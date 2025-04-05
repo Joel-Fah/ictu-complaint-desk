@@ -45,6 +45,9 @@ module.exports = {
      * and make sure the pattern below matches your project structure.
      */
     // '../../**/*.py'
+    "./app/**/*.{js,ts,jsx,tsx}",
+    "./pages/**/*.{js,ts,jsx,tsx}",
+    "./components/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
@@ -104,8 +107,9 @@ module.exports = {
      * for forms. If you don't like it or have own styling for forms,
      * comment the line below to disable '@tailwindcss/forms'.
      */
-    require("@tailwindcss/forms"),
+    /**require("@tailwindcss/forms"),
     require("@tailwindcss/typography"),
     require("@tailwindcss/aspect-ratio"),
+    */
   ],
 };
