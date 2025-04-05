@@ -1,21 +1,26 @@
-{% load static %}
+{% load static tailwind_tags %}
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>
-    {% block title %}
-        
-    {% endblock title %}
-        </title>
+    <title> {% block title %}{% endblock %}</title>
+
+    {# Tailwind CSS #}
+    {% tailwind_css %}
+
+    {# Fonts: Pilcrow Rounded + Archivo @Fontshare.com #}
+    <link href="https://api.fontshare.com/v2/css?f[]=archivo@1,2&f[]=pilcrow-rounded@1&display=swap" rel="stylesheet">
 </head>
 <body>
-   
-   {% block body %}
-    
-   {% endblock body %}
-    
+{# Body of the page #}
+{% block content %}
+
+{% endblock %}
+
+{# Extra javascript #}
+{% block javascript %}
+
+{% endblock %}
 </body>
 </html>
