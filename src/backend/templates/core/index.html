@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{# Title of the page #}
+{% block title %}
+	Home page
+{% endblock %}
+
+{# Body of the page #}
+{% block content %}
+    <div class="container mx-auto h-screen flex flex-col items-center justify-center">
+        <h1 class="text-3xl font-bold">Welcome to the Home Page</h1>
+        <p class="mt-4">
+            This is a simple example of a Django template using Tailwind CSS.
+        </p>
+    </div>
+{% endblock %}
+
+{# Extra javascript #}
+{% block javascript %}
+{% endblock %}
