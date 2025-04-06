@@ -1,12 +1,5 @@
 import type { Metadata } from "next";
-import { Belanosima } from "next/font/google";
 import "./globals.css";
-
-const belanosima = Belanosima({
-  variable: "--font-belanosima",
-  subsets: ["latin"],
-  weight: ["400", "700"],
-});
 
 export const metadata: Metadata = {
   title: "ICTU Complaint Desk",
@@ -20,7 +13,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${belanosima.variable}`}>{children}</body>
+      <body>{children}</body>
     </html>
   );
 }

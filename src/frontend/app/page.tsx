@@ -1,9 +1,16 @@
+import "../app/globals.css";
 export default function Home() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-24">
-      <h1 className="text-4xl font-bold text-red-500 font-belanosima">
-        Welcome to the ICTU Complaint Desk!
-      </h1>
-    </div>
+    <nav>
+      <div className="text-xl font-heading">
+        This text uses the custom pilcrow font!
+      </div>
+      <div className="text-xl font-sans">
+        This text uses the custom archivo font!
+      </div>
+      <div className="text-xl">
+        This text uses the custom archivo italic font!
+      </div>
+    </nav>
   );
 }
