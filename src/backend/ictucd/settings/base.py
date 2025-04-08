@@ -31,9 +31,21 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'core.apps.CoreConfig',
 
+    # Tailwind
     'tailwind',
     'theme',
     'django_browser_reload',
+
+    # Allauth
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+
+    # DRF
+    'rest_framework',
+    'dj_rest_auth',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -46,7 +58,12 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+
+    "allauth.account.middleware.AccountMiddleware",
+
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'ictucd.urls'
@@ -121,3 +138,39 @@ NPM_BIN_PATH = which("npm")
 INTERNAL_IPS = [
     '127.0.0.1',
 ]
+
+# Django Allauth Configs
+SITE_ID = 1
+SOCIALACCOUNT_ADAPTER = 'core.adapters.ICTEmailOnlyAdapter'
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APP': {
+            'client_id': os.getenv('GOOGLE_CLIENT_ID'),
+            'secret': os.getenv('GOOGLE_CLIENT_SECRET'),
+            'key': ''
+        },
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+    }
+}
+
+ACCOUNT_LOGIN_METHODS = {'username', 'email'}
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+ACCOUNT_SIGNUP_FIELDS = ['username*', 'email*', 'password1*', 'password2*']
+
+# CORS Settings
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+
+# DRF Settings
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
+    ),
+    'TOKEN_MODEL': None,
+}
+REST_USE_JWT = True
+JWT_AUTH_COOKIE = 'my-auth-token'
+JWT_AUTH_REFRESH_COOKIE = 'my-refresh-token'
