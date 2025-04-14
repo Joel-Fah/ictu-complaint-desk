@@ -12,3 +12,24 @@
     font-family: "Pilcrow Rounded", sans-serif;
   }
 }
+
+@font-face {
+  font-family: 'Pilcrow Rounded';
+  src: url('/fonts/PilcrowRounded-Variable.ttf');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Archivo';
+  src: url('/fonts/Archivo-Variable.ttf');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Archivo-Italic';
+  src: url('/fonts/Archivo-VariableItalic.ttf');
+  font-weight: normal;
+  font-style: normal;
+}

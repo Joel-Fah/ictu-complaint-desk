@@ -47,13 +47,27 @@ module.exports = {
     // '../../**/*.py'
     "./app/**/*.{js,ts,jsx,tsx}",
     "./pages/**/*.{js,ts,jsx,tsx}",
-    "./components/**/*.{js,ts,jsx,tsx}",
+    "./Usercomponents/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
       fontFamily: {
-        sans: ["Archivo", "sans-serif"],
-        heading: ['"Pilcrow Rounded"', "sans-serif"],
+        sans: ['Archivo', 'sans-serif'],
+        heading: ['Pilcrow Rounded', 'sans-serif'],
+        sansItalic: ['Archivo-Italic', 'sans-serif'],
+      },
+      fontSize: {
+        'title': ['34px','40px'],
+        'h1': ['28px','36px'],
+        'h2': ['24px','32px'],
+        'h3': ['20px','24px'],
+        'h4': ['18px','24px'],
+        'button-primary': ['16px','18px'],
+        'button-secondary': ['14px','16px'],
+        'body': ['16px', '18px'],
+        'quote': ['16px', '18px'],
+        'subtitle': ['14px', '16px'],
+        'small': ['12px', '14px'],
       },
       colors: {
         // Primaries
