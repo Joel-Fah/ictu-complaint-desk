@@ -5,7 +5,7 @@ import Image from 'next/image';
 
 export default function Button () {
     const handleLogin = () => {
-        window.location.href = 'http://localhost:8000/api/auth/user/';
+        window.location.href = 'http://localhost:8000/accounts/google/login/?process=login';
     }
     return (
         <button onClick={handleLogin} className="flex flex-row items-center justify-center mt-20 px-36 py-8 border-2 border-secondary-500 border-dashed rounded-[37px] text-secondary-500 bg-orange-100 hover:bg-orange-200">
