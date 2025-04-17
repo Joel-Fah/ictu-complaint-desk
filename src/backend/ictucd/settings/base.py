@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-
+from datetime import timedelta
 from pathlib import Path
 import os
 from shutil import which
@@ -31,14 +31,31 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'core.apps.CoreConfig',
 
+    # Tailwind
     'tailwind',
     'theme',
     'django_browser_reload',
+
+    # DRF
+    'rest_framework',
+    'rest_framework.authtoken',
+
+    # Allauth
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+
+    # CORS
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+
+    'corsheaders.middleware.CorsMiddleware',
+
     'django.middleware.common.CommonMiddleware',
 
     "django_browser_reload.middleware.BrowserReloadMiddleware",
@@ -47,6 +64,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'ictucd.urls'
@@ -121,3 +140,60 @@ NPM_BIN_PATH = which("npm")
 INTERNAL_IPS = [
     '127.0.0.1',
 ]
+
+# Django Allauth Configs
+SITE_ID = 1
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APP': {
+            'client_id': os.getenv('GOOGLE_CLIENT_ID'),
+            'secret': os.getenv('GOOGLE_CLIENT_SECRET'),
+            'key': ''
+        },
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+        'OAUTH_PKCE_ENABLED': True,
+        'FETCH_USERINFO': True,
+    }
+}
+SOCIALACCOUNT_STORE_TOKENS = True
+
+ACCOUNT_LOGIN_METHODS = {'username', 'email'}
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+ACCOUNT_SIGNUP_FIELDS = ['username*', 'email*', 'password1*', 'password2*']
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
+
+# CORS Settings
+CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:3000",  # frontend domain
+# ]
+CORS_ALLOW_CREDENTIALS = True
+
+# DRF Settings
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ]
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+}
+REST_USE_JWT = True
+JWT_AUTH_COOKIE = 'my-auth-token'
+JWT_AUTH_REFRESH_COOKIE = 'my-refresh-token'
+
+LOGIN_REDIRECT_URL = '/api/callback/'
