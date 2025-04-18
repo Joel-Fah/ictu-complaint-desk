@@ -20,8 +20,10 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('core.urls', namespace='core')),
+    path('api/', include('core.urls', namespace='core')),
     path("__reload__/", include("django_browser_reload.urls")),
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path('accounts/', include('allauth.urls')),
 ]
 
 if settings.DEBUG:
