@@ -196,4 +196,4 @@ REST_USE_JWT = True
 JWT_AUTH_COOKIE = 'my-auth-token'
 JWT_AUTH_REFRESH_COOKIE = 'my-refresh-token'
 
-LOGIN_REDIRECT_URL = '/callback/'
+LOGIN_REDIRECT_URL = '/api/callback/'
