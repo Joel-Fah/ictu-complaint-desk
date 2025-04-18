@@ -52,7 +52,7 @@ def google_login_callback(request):
         # return JsonResponse({'error': 'No social account found for user'}, status=404)
         return redirect('http://localhost:3000/login/callback/?error=NoSocialAccount')
 
-    token = SocialToken.objects.get(account=social_account, account__provider='google')
+    token = SocialToken.objects.filter(account=social_account, account__provider='google').first()
 
     if token:
         print(f'Google token found >>> {token}')
