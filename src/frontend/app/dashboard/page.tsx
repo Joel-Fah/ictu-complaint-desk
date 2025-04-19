@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getUser } from "@/lib/api";
 import { getAccessToken } from "@/lib/token";
+import {logout} from "@/lib/auth";
 
 type User = {
     id: number;
@@ -11,6 +12,7 @@ type User = {
     username: string;
     first_name: string;
     last_name: string;
+    google_data: string;
 };
 
 
@@ -51,6 +53,9 @@ export default function DashboardPage() {
                 <>
                     <p className="text-md font-sans">Your email: {user.email}</p>
                     <p className="text-md font-sans">Your Username: {user.username}</p>
+                    <button onClick={logout}>
+                        Logout
+                    </button>
                 </>
             ) : (
                 <p className="text-error">User data not found.</p>

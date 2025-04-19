@@ -13,7 +13,7 @@ export const getUser = async (token: string | null) => {
         const response = await api.get("auth/user/", {
             headers: {
                 Authorization: `Bearer ${token}`,
-            }
+            },
         });
         return response.data;
     }catch(err) {
