@@ -20,10 +20,6 @@ class HomeView(TemplateView):
     template_name = 'core/index.html'
 
 
-class CustomLoginView(TemplateView):
-    template_name = 'core/login.html'
-
-
 class UserCreate(CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
