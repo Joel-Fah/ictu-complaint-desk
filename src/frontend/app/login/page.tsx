@@ -1,8 +1,11 @@
+"use client";
+
+import { withPublic } from "@/lib/withPublic";
 import "@/app/globals.css"
 import Image from 'next/image';
 
 
-export default function Home() {
+function LoginPage() {
     return (
         <section>
             <div className="min-h-screen flex flex-col items-center justify-center bg-secondary-50">
@@ -14,3 +17,5 @@ export default function Home() {
         </section>
     );
 }
+
+export default withPublic(LoginPage);

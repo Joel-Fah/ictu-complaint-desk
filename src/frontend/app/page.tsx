@@ -1,9 +1,11 @@
+'use client';
 import "../app/globals.css";
 import Button from "../Usercomponents/Button";
 import Image from 'next/image';
+import {withPublic} from "@/lib/withPublic";
 
 
-export default function Home() {
+function Home() {
   return (
     <section>
         <div className="min-h-screen flex flex-col items-center justify-center bg-secondary-50">
@@ -18,3 +20,4 @@ export default function Home() {
     </section>
   );
 }
+export default withPublic(Home);
