@@ -1,65 +1,48 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { getUser } from "@/lib/api";
-import { getAccessToken } from "@/lib/token";
-import {logout} from "@/lib/auth";
+import { logout } from '@/lib/auth';
+import { withAuth } from '@/lib/withAuth';
+import { useUserStore } from '@/stores/userStore';
+import Image from "next/image";
 
-type User = {
-    id: number;
-    email: string;
-    username: string;
-    first_name: string;
-    last_name: string;
-    google_data: string;
-};
+function DashboardPage() {
+    const user = useUserStore((state) => state.user);
 
-
-export default function DashboardPage() {
-    const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
-    const router = useRouter();
-
-    useEffect(() => {
-        const accessToken = getAccessToken();
-
-        if (!accessToken) {
-            // No token? Bounce to log in
-            router.push("/login");
-            return;
-        }
-
-        getUser(accessToken)
-            .then((userData) => {
-                setUser(userData);
-                console.log(userData);
-                setLoading(false);
-            })
-            .catch((error) => {
-                console.error("Failed to fetch user:", error);
-                router.push("/login");
-            });
-    }, [router]); // run once on component mount
-
-    if (loading) {
-        return <p>Loading user data...</p>;
+    if (!user) {
+        return <p className="text-error">User data not found.</p>;
     }
 
     return (
-        <section className="min-h-screen flex flex-col items-center justify-center bg-primary-300">
+        <section className="min-h-screen flex flex-col items-center justify-center bg-primary-300 p-6">
             <h1 className="text-3xl font-bold mt-4 font-heading">Dashboard</h1>
-            {user ? (
-                <>
-                    <p className="text-md font-sans">Your email: {user.email}</p>
-                    <p className="text-md font-sans">Your Username: {user.username}</p>
-                    <button onClick={logout}>
-                        Logout
-                    </button>
-                </>
-            ) : (
-                <p className="text-error">User data not found.</p>
+
+            {/* Profile Image */}
+            {user.picture && (
+                <Image
+                    src={user.picture}
+                    alt="Profile"
+                    width={24}
+                    height={24}
+                    className="rounded-full mt-4 shadow-md"
+                />
             )}
+
+            <div className="mt-6 space-y-2 text-center">
+                <p className="text-lg font-medium">Full Name: {user.fullName}</p>
+                <p className="text-md">First Name: {user.firstName}</p>
+                <p className="text-md">Last Name: {user.lastName}</p>
+                <p className="text-md">Email: {user.email}</p>
+                <p className="text-md">Username: {user.username}</p>
+            </div>
+
+            <button
+                onClick={logout}
+                className="mt-6 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+            >
+                Logout
+            </button>
         </section>
     );
 }
+
+export default withAuth(DashboardPage);
