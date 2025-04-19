@@ -3,12 +3,12 @@
 import Image from 'next/image';
 
 
-export default function Button () {
+export default function Button() {
     const handleLogin = () => {
         window.location.href = 'http://localhost:8000/accounts/google/login/?process=login';
     }
     return (
-        <button onClick={handleLogin} className="flex items-center justify-center
+        <button type={"submit"} onClick={handleLogin} className="flex items-center justify-center
         w-full lg:max-w-[40rem] max-w-[23rem] mx-auto
         px-6 py-4
         border-2 border-secondary-500 border-dashed
