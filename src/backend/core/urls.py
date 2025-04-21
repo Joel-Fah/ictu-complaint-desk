@@ -1,7 +1,7 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .views import HomeView, UserCreate, google_login_callback, UserDetailView, validate_google_token
+from .views import HomeView, UserCreate, google_login_callback, UserDetailView, validate_google_token, google_logout
 
 # Create your urls here
 
@@ -15,4 +15,5 @@ urlpatterns = [
     path('callback/', google_login_callback, name='callback'),
     path('google/validate_token/', validate_google_token, name='validate_token'),
     path('auth/user/', UserDetailView.as_view(), name='user_details'),
+    path('auth/logout/', google_logout, name='google_logout'),
 ]

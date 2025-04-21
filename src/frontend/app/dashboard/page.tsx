@@ -1,9 +1,9 @@
 'use client';
 
-import { logout } from '@/lib/auth';
 import { withAuth } from '@/lib/withAuth';
 import { useUserStore } from '@/stores/userStore';
 import Image from "next/image";
+import {logout} from "@/lib/auth";
 
 function DashboardPage() {
     const user = useUserStore((state) => state.user);

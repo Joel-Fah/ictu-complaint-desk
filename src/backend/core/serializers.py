@@ -16,7 +16,7 @@ class UserSerializer(serializers.ModelSerializer):
             return {
                 'provider': social_account.provider,
                 'uid': social_account.uid,
-                'extra_data': social_account.extra_data,  # Includes Google-specific user data
+                'extra_data': social_account.extra_data,
             }
         except SocialAccount.DoesNotExist:
             return None
