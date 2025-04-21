@@ -6,10 +6,11 @@ from .serializers import UserSerializer
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from allauth.socialaccount.models import SocialToken, SocialAccount
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, logout
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
+import requests
 
 # Create your views here.
 
@@ -18,10 +19,6 @@ User = get_user_model()
 
 class HomeView(TemplateView):
     template_name = 'core/index.html'
-
-
-class CustomLoginView(TemplateView):
-    template_name = 'core/login.html'
 
 
 class UserCreate(CreateAPIView):
@@ -79,3 +76,30 @@ def validate_google_token(request):
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
     return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+
+def google_logout(request):
+    user = request.user
+
+    # Revoke the Google token
+    social_tokens = SocialToken.objects.filter(account__user=user, account__provider='google')
+    if social_tokens.exists():
+        token = social_tokens.first()
+        revoke_url = f'https://accounts.google.com/o/oauth2/revoke?token={token.token}'
+        response = requests.post(revoke_url)
+        if response.status_code == 200:
+            print('Google token successfully revoked.')
+        else:
+            print(f'Failed to revoke Google token: {response.status_code}')
+
+        # Delete the token from the database
+        social_tokens.delete()
+
+    # Log the user out of the Django application
+    logout(request)
+
+    # Clear the session
+    request.session.flush()
+
+    # Send a response to the frontend and redirect to the login page
+    return JsonResponse({'message': 'User logged out successfully'}, status=200)

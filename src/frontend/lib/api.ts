@@ -8,6 +8,25 @@ const api = axios.create({
     },
 });
 
+// export const logout = async () => {
+//     try {
+//         const response = await api.post('auth/logout/', {}, {
+//             headers: {
+//                 Authorization: `Bearer ${getAccessToken()}`,
+//             },
+//         });
+//
+//         if (response.status === 200) {
+//             removeAccessToken();
+//             window.location.href = '/';
+//         } else {
+//             console.error('Logout failed:', response.statusText);
+//         }
+//     } catch (error) {
+//         console.error('An error occurred during logout:', error);
+//     }
+// }
+
 export const getUser = async (token: string | null) => {
     try {
         const response = await api.get("auth/user/", {
