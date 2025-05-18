@@ -12,7 +12,7 @@ export default function Navbar() {
     const toggleMenu = () => setMenuOpen((prev) => !prev);
 
     return (
-        <nav className="fixed top-0 left-0 right-0 z-50 w-full bg-primary-950 text-neutral-50 px-6 md:px-[100px] py-[16px] flex items-center justify-between">
+        <nav className="sticky top-0 left-0 right-0 z-50 w-full bg-primary-950 text-whiteColor px-6 md:px-[100px] py-[16px] flex items-center justify-between">
             {/* Logo - always visible */}
             <div className="flex items-center space-x-2">
                 <Image
@@ -30,14 +30,14 @@ export default function Navbar() {
                 <div className="flex items-center space-x-4 mx-auto">
                     <Link
                         href="/"
-                        className="flex items-center space-x-1 text-primary-50 hover:text-neutral-50 transition px-[16px] py-[8px] rounded-[16px] gap-[10px] bg-[#E4EDFF] bg-opacity-[20%]"
+                        className="flex items-center space-x-1 text-primary-50 hover:text-whiteColor transition px-[16px] py-[8px] rounded-[16px] gap-[10px] bg-[#E4EDFF] bg-opacity-[20%]"
                     >
                         <Image src="/icons/home-01.png" alt="Home Icon" width={24} height={24} />
                         <span className="font-sans text-[14px]">Home</span>
                     </Link>
                     <Link
                         href="/"
-                        className="flex items-center space-x-1 text-primary-100 hover:text-white transition gap-[10px]"
+                        className="flex items-center space-x-1 text-primary-100 hover:text-whiteColor transition gap-[10px]"
                     >
                         <Image src="/icons/help-circle.png" alt="Help Icon" width={24} height={24} />
                         <span className="font-sans text-[14px]">How it works?</span>
@@ -48,7 +48,7 @@ export default function Navbar() {
                 <div className="flex items-center">
                     <Link
                         href="/login"
-                        className="flex items-center text-white px-[16px] py-[8px] rounded-[16px] bg-primary-800 hover:bg-blue-700 transition gap-[10px]"
+                        className="flex items-center text-whiteColor px-[16px] py-[8px] rounded-[16px] bg-primary-800 hover:bg-blue-700 transition gap-[10px]"
                     >
                         <Image src="/icons/login-03.png" alt="Sign In Icon" width={24} height={24} />
                         <span className="text-neutral-50">Sign in</span>

@@ -36,7 +36,7 @@ export default function Button({
                                    borderRadius = "rounded-md",
                                    textColor = "text-black",
                                    bgColor = "bg-white",
-                                   hoverBgColor = "hover:bg-gray-100",
+                                   hoverBgColor = " ",
                                    fontSize = "text-base",
                                    fontFamily = "font-sans",
                                    text = "Click Me",
