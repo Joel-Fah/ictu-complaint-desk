@@ -53,7 +53,7 @@ module.exports = {
     extend: {
       fontFamily: {
         sans: ['Archivo', 'sans-serif'],
-        heading: ['Pilcrow Rounded', 'sans-serif'],
+        heading: ['"Pilcrow Rounded"', 'sans-serif'],
         sansItalic: ['Archivo-Italic', 'sans-serif'],
       },
       fontSize: {
@@ -64,7 +64,7 @@ module.exports = {
         'h4': ['18px','24px'],
         'button-primary': ['16px','18px'],
         'button-secondary': ['14px','16px'],
-        'body': ['16px', '18px'],
+        'body': ['16px', '20px'],
         'quote': ['16px', '18px'],
         'subtitle': ['14px', '16px'],
         'small': ['12px', '14px'],
