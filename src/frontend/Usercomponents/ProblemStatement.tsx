@@ -34,9 +34,9 @@ const ProblemStatement: FC<ProblemStatementProps> = ({
 
                                                          // Styling with defaults
                                                          backgroundColor = " ",
-                                                         labelColor = "text-orange-500",
-                                                         titleColor = "text-navy-900",
-                                                         descriptionColor = "text-gray-700",
+                                                         labelColor = "text-secondary-500",
+                                                         titleColor = "text-primary-950",
+                                                         descriptionColor = "text-greyColor",
                                                          rightColumnContent,
 
                                                          // Layout with defaults

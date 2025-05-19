@@ -3,8 +3,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
-import MenuIcon from '../public/icons/menu-11.png';
-import XIcon from '../public/icons/cancel-01.png';
+import MenuIcon from '../public/icons/menu-11.svg';
+import XIcon from '../public/icons/cancel-01.svg';
 
 export default function Navbar() {
     const [menuOpen, setMenuOpen] = useState(false);
@@ -32,14 +32,14 @@ export default function Navbar() {
                         href="/"
                         className="flex items-center space-x-1 text-primary-50 hover:text-whiteColor transition px-[16px] py-[8px] rounded-[16px] gap-[10px] bg-[#E4EDFF] bg-opacity-[20%]"
                     >
-                        <Image src="/icons/home-01.png" alt="Home Icon" width={24} height={24} />
+                        <Image src="/icons/home-01.svg" alt="Home Icon" width={24} height={24} />
                         <span className="font-sans text-[14px]">Home</span>
                     </Link>
                     <Link
                         href="/"
                         className="flex items-center space-x-1 text-primary-100 hover:text-whiteColor transition gap-[10px]"
                     >
-                        <Image src="/icons/help-circle.png" alt="Help Icon" width={24} height={24} />
+                        <Image src="/icons/help-circle.svg" alt="Help Icon" width={24} height={24} />
                         <span className="font-sans text-[14px]">How it works?</span>
                     </Link>
                 </div>
@@ -50,7 +50,7 @@ export default function Navbar() {
                         href="/login"
                         className="flex items-center text-whiteColor px-[16px] py-[8px] rounded-[16px] bg-primary-800 hover:bg-blue-700 transition gap-[10px]"
                     >
-                        <Image src="/icons/login-03.png" alt="Sign In Icon" width={24} height={24} />
+                        <Image src="/icons/login-03.svg" alt="Sign In Icon" width={24} height={24} />
                         <span className="text-neutral-50">Sign in</span>
                     </Link>
                 </div>
@@ -67,15 +67,15 @@ export default function Navbar() {
             {menuOpen && (
                 <div className="sm:hidden fixed top-16 left-0 right-0 bg-primary-950 text-white flex flex-col space-y-4 px-6 py-4 shadow-md z-40 animate-slide-down">
                     <Link href="/" onClick={toggleMenu} className="flex items-center gap-2">
-                        <Image src="/icons/home-01.png" alt="Home Icon" width={24} height={24} />
+                        <Image src="/icons/home-01.svg" alt="Home Icon" width={24} height={24} />
                         <span>Home</span>
                     </Link>
                     <Link href="/" onClick={toggleMenu} className="flex items-center gap-2">
-                        <Image src="/icons/help-circle.png" alt="Help Icon" width={24} height={24} />
+                        <Image src="/icons/help-circle.svg" alt="Help Icon" width={24} height={24} />
                         <span>How it works?</span>
                     </Link>
                     <Link href="/login" onClick={toggleMenu} className="flex items-center gap-2">
-                        <Image src="/icons/login-03.png" alt="Sign In Icon" width={24} height={24} />
+                        <Image src="/icons/login-03.svg" alt="Sign In Icon" width={24} height={24} />
                         <span>Sign in</span>
                     </Link>
                 </div>
