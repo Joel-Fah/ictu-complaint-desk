@@ -4,6 +4,7 @@ import {withPublic} from "@/lib/withPublic";
 import "@/app/globals.css"
 import Image from 'next/image';
 import Button from "@/Usercomponents/Button";
+import Footer from "@/Usercomponents/Footer";
 
 function LoginPage() {
     return (
@@ -37,6 +38,20 @@ function LoginPage() {
                     fontFamily="font-sans"
                 />
             </div>
+
+            <Footer
+                leftContent={<p>© 2025 - ICTU Complaint Desk. All rights reserved.</p>}
+                rightContent={
+                    <>
+                        <a href="/terms" className="hover:underline">Terms</a>
+                        <a href="/privacy" className="hover:underline">Privacy</a>
+                        <select className="bg-transparent border rounded px-2 py-1">
+                            <option>English</option>
+                            <option>French</option>
+                        </select>
+                    </>
+                }
+            />
         </section>
     );
 }

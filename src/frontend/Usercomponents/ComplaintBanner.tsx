@@ -9,7 +9,10 @@ interface ComplaintBannerProps {
     largeTextHighlight?: string;
     buttonText?: string;
     sideText?: string;
+    buttonWidth?: string;
+    buttonHeight?: string;
     onButtonClick?: () => void;
+    textSize?: string;
 }
 
 const ComplaintBanner: FC<ComplaintBannerProps> = ({
@@ -17,6 +20,10 @@ const ComplaintBanner: FC<ComplaintBannerProps> = ({
                                                        largeText = "There's always a",
                                                        largeTextHighlight = "complaint",
                                                        sideText = "File in your complaints now",
+                                                       buttonText = '',
+                                                       buttonHeight = '',
+                                                       buttonWidth = '',
+                                                       textSize = '',
                                                    }) => {
     return (
         <div className="p-4 sm:p-6 md:p-8 rounded-lg w-full flex flex-col items-center max-w-screen-xl mx-auto">
@@ -31,13 +38,14 @@ const ComplaintBanner: FC<ComplaintBannerProps> = ({
                 <div className="flex flex-col md:flex-row items-center justify-center gap-3 mt-4 flex-wrap text-center md:text-left">
                 <Button
                         type='button'
-                        width='w-[152px]'
-                        text='Get Started'
+                        width= {buttonWidth}
+                        text={buttonText}
                         bgColor='bg-primary-800 '
                         border='border-none'
                         textColor='text-whiteColor'
-                        className='gap-[10px] h-[42px]'
+                        className={`gap-[10px]  ${buttonHeight}`}
                         borderRadius='rounded-[16px]'
+                        fontSize={textSize}
                     />
 
                     <div className="flex items-center gap-2 font-sans text-body text-greyColor">
