@@ -6,6 +6,7 @@ import { useState } from "react";
 import MenuIcon from '../public/icons/menu-11.svg';
 import XIcon from '../public/icons/cancel-01.svg';
 
+
 export default function Navbar() {
     const [menuOpen, setMenuOpen] = useState(false);
 
