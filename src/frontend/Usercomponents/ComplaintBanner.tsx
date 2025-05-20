@@ -1,7 +1,10 @@
 import { FC } from 'react';
 import Button from "@/Usercomponents/Button";
 import Image from "next/image";
-import Arrow from "../public/icons/arrow-right-01.png"
+import Arrow from "../public/icons/arrow-right-01.svg"
+
+
+
 
 interface ComplaintBannerProps {
     smallText?: string;

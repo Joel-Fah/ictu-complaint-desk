@@ -27,33 +27,8 @@ function Home() {
         />
 
         <LayeredImageSection
-            mainImageSrc="/images/Mask-group.png"
+            mainImageSrc="/images/hero-bg.svg"
             mainImageAlt="Main graphic showing system"
-            overlayImages={[
-                {
-                    src: "/images/paper-plane.png",
-                    alt: "Plane 1",
-                    position: "top-[12rem] left-[-43px] sm:top-[20rem] sm:left-8 md:left-[3.25rem]",
-                    flip: "scale-x-[-1]",
-                    rotate: "rotate-[-0.3deg]",
-                },
-                {
-                    src: "/images/paper-plane.png",
-                    alt: "Plane 2",
-                    position: "bottom-[2rem] right-4 sm:bottom-[12rem] sm:right-8 md:right-[3.25rem]",
-                },
-                {
-                    src: "/images/Group-4.png",
-                    alt: "Bolt",
-                    position: "bottom-[14rem] right-[54%] sm:right-[55%] md:right-[65%]",
-                },
-                {
-                    src: "/images/Lines.png",
-                    alt: "Tornado",
-                    position: "bottom-[14rem] right-[6rem] sm:right-[12rem] md:right-[16rem]",
-                },
-            ]}
-
         />
 
         <ProblemStatement
