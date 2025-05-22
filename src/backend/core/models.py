@@ -297,3 +297,98 @@ class Attachment(models.Model):
 
     def __str__(self):
         return self.file_url.name
+
+class Endorsement(models.Model):
+    student = models.ForeignKey(get_user_model(),
+        on_delete=models.CASCADE,
+        related_name="complaints",
+        limit_choices_to={'role': 'Student'},
+        verbose_name="Student",
+        help_text="The student submitting the complaint",
+    )
+    complaint = models.ForeignKey(
+        Complaint,
+        on_delete=models.CASCADE,
+        related_name="assignments",
+        verbose_name="Complaint",
+        help_text="The complaint being assigned",
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Created At',
+        help_text='Date and time when the complaint was created',
+    )
+
+class Resolution(models.Model):
+    complaint =  models.ForeignKey(
+        Complaint,
+        on_delete=models.CASCADE,
+        related_name="assignments",
+        verbose_name="Complaint",
+        help_text="The complaint being assigned",
+    )
+    staff = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE,
+        related_name="assigned_complaints",
+        limit_choices_to={'role__in': ['Lecturer', 'Admin Assistant', 'Complaint Coordinator']},
+        verbose_name="Staff",
+        help_text="The staff member assigned to the complaint",
+    )
+    response = models.CharField(
+        max_length=255,
+        verbose_name='Response',
+        help_text='response to complaint',
+        blank=False,
+        null=False,
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Created At',
+        help_text='Date and time when the resolution was created'
+    )
+
+class Notification(models.Model):
+    recipient = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE,
+        related_name="recipient",
+        verbose_name="Recipient",
+        help_text="The recipient of the complaint",
+    )
+    message = models.TextField(
+        verbose_name="Message",
+        blank=False, null=False
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Created At',
+        help_text='Date and time when the notification was created'
+    )
+    is_read = models.BooleanField(
+        default=False,
+        verbose_name="Is Read",
+        help_text="Whether the notification has been read or not"
+    )
+
+class Reminder(models.Model):
+    staff = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE,
+        related_name="reminders",
+        limit_choices_to={'role__in': ['Lecturer', 'Admin Assistant', 'Complaint Coordinator']},
+        verbose_name="Staff",
+        help_text="The staff member to whom the reminder is assigned",
+    )
+    complaint = models.ForeignKey(
+        Complaint,
+        on_delete=models.CASCADE,
+        related_name="reminders",
+        verbose_name="Complaint",
+        help_text="The complaint to which the reminder being assigned",
+    )
+    sent_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Sent At',
+        help_text='Date and time when the reminder was sent'
+    )
