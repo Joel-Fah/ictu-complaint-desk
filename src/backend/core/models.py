@@ -9,7 +9,7 @@ from django.contrib.auth import get_user_model
 # Create your models here.
 class UserRole(Enum):
     STUDENT = 'Student'
-    LECTURER = 'Lecture'
+    LECTURER = 'Lecturer'
     ADMIN_ASSISTANT = "Admin Assistant"
     COMPLAINT_COORDINATOR = 'Complaint Coordinator'
 
@@ -221,7 +221,8 @@ class Category(models.Model):
 
     description = models.TextField(
         verbose_name="Description",
-        blank=False, null=False
+        blank=False,
+        null=False
     )
 
     created_at = models.DateTimeField(
