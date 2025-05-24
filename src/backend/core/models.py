@@ -5,6 +5,8 @@ from django.db import models
 from enum import Enum
 from django.contrib.auth import get_user_model
 
+from core.utils import get_current_year
+
 
 # Create your models here.
 class UserRole(Enum):
@@ -67,6 +69,11 @@ class Complaint(models.Model):
         RESOLVED = "Resolved", "Resolved"
         CLOSED = "Closed", "Closed"
         ESCALATED = "Escalated", "Escalated"
+
+    class SemesterChoices(models.TextChoices):
+        FALL = "Fall", "Fall"
+        SPRING = "Spring", "Spring"
+        SUMMER = "Summer", "Summer"
 
     student = models.ForeignKey(
         get_user_model(),
@@ -142,6 +149,24 @@ class Complaint(models.Model):
         null=False
     )
 
+    semester = models.CharField(
+        max_length=255,
+        choices=SemesterChoices.choices,
+        default=SemesterChoices.FALL,
+        verbose_name="Semester",
+        help_text="Semester during which the complaint was submitted",
+        blank=False,
+        null=False
+    )
+
+    year = models.PositiveIntegerField(
+        verbose_name="Year",
+        default=get_current_year,
+        help_text="The semester year that the complaint was submitted",
+        blank=False,
+        null=False
+    )
+
     created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name="Created At",
@@ -212,6 +237,10 @@ class ComplaintAssignment(models.Model):
 
 
 class Category(models.Model):
+    """
+        Model representing a Category
+    """
+
     name = models.CharField(
         max_length=250,
         verbose_name="Name",
@@ -235,39 +264,6 @@ class Category(models.Model):
         auto_now=True,
         verbose_name="Updated At",
         help_text="Date and time when the category was updated"
-    )
-
-    def __str__(self):
-        return self.name
-
-
-class Tag(models.Model):
-    """
-        Model representing a Tag
-    """
-
-    class Meta:
-        verbose_name = 'Tag'
-        verbose_name_plural = 'Tags'
-
-    name = models.CharField(
-        max_length=255,
-        verbose_name='Name',
-        help_text='Name of the tag',
-        blank=False,
-        null=False,
-    )
-
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name='Created At',
-        help_text='Date and time when the tag was created'
-    )
-
-    updated_at = models.DateTimeField(
-        auto_now=True,
-        verbose_name='Updated At',
-        help_text='Date and time when the tag was last updated'
     )
 
     def __str__(self):
@@ -298,43 +294,67 @@ class Attachment(models.Model):
     def __str__(self):
         return self.file_url.name
 
+
 class Endorsement(models.Model):
-    student = models.ForeignKey(get_user_model(),
+    """
+        Model representation of an Endorsement
+    """
+
+    student = models.ForeignKey(
+        get_user_model(),
         on_delete=models.CASCADE,
-        related_name="complaints",
+        related_name="endorsements",
         limit_choices_to={'role': 'Student'},
         verbose_name="Student",
         help_text="The student submitting the complaint",
     )
+
     complaint = models.ForeignKey(
         Complaint,
         on_delete=models.CASCADE,
-        related_name="assignments",
+        related_name="endorsements",
         verbose_name="Complaint",
         help_text="The complaint being assigned",
     )
+
     created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Created At',
         help_text='Date and time when the complaint was created',
     )
 
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name='Updated At',
+        help_text='Date and time when the complaint was updated',
+    )
+
+    def __str__(self):
+        return f"Endorsement by {self.student.username} for {self.complaint.title}"
+
+
 class Resolution(models.Model):
-    complaint =  models.ForeignKey(
+    """
+        Model representing a Resolution
+    """
+
+    complaint = models.ForeignKey(
         Complaint,
         on_delete=models.CASCADE,
-        related_name="assignments",
+        related_name="resolutions",
         verbose_name="Complaint",
         help_text="The complaint being assigned",
     )
+
     staff = models.ForeignKey(
         get_user_model(),
         on_delete=models.CASCADE,
-        related_name="assigned_complaints",
+        related_name="resolutions",
         limit_choices_to={'role__in': ['Lecturer', 'Admin Assistant', 'Complaint Coordinator']},
         verbose_name="Staff",
-        help_text="The staff member assigned to the complaint",
+        help_text="The staff member who resolved the complaint",
     )
+
     response = models.CharField(
         max_length=255,
         verbose_name='Response',
@@ -342,34 +362,58 @@ class Resolution(models.Model):
         blank=False,
         null=False,
     )
+
     created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Created At',
         help_text='Date and time when the resolution was created'
     )
 
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name='Updated At',
+        help_text='Date and time when the resolution was updated'
+    )
+
+    def __str__(self):
+        return f"Resolution for {self.complaint.title} by {self.staff.username}"
+
+
 class Notification(models.Model):
     recipient = models.ForeignKey(
         get_user_model(),
         on_delete=models.CASCADE,
-        related_name="recipient",
+        related_name="notifications",
         verbose_name="Recipient",
-        help_text="The recipient of the complaint",
+        help_text="The recipient of the notification",
     )
+
     message = models.TextField(
         verbose_name="Message",
         blank=False, null=False
     )
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name='Created At',
-        help_text='Date and time when the notification was created'
-    )
+
     is_read = models.BooleanField(
         default=False,
         verbose_name="Is Read",
         help_text="Whether the notification has been read or not"
     )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Created At',
+        help_text='Date and time when the notification was created'
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name='Updated At',
+        help_text='Date and time when the notification was updated'
+    )
+
+    def __str__(self):
+        return f"Notification for {self.recipient.username}: {self.message[:20]}..."
+
 
 class Reminder(models.Model):
     staff = models.ForeignKey(
@@ -378,17 +422,22 @@ class Reminder(models.Model):
         related_name="reminders",
         limit_choices_to={'role__in': ['Lecturer', 'Admin Assistant', 'Complaint Coordinator']},
         verbose_name="Staff",
-        help_text="The staff member to whom the reminder is assigned",
+        help_text="The staff member to whom the reminder is sent",
     )
+
     complaint = models.ForeignKey(
         Complaint,
         on_delete=models.CASCADE,
         related_name="reminders",
         verbose_name="Complaint",
-        help_text="The complaint to which the reminder being assigned",
+        help_text="The complaint for which the reminder is sent",
     )
+
     sent_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Sent At',
         help_text='Date and time when the reminder was sent'
     )
+
+    def __str__(self):
+        return f"Reminder for {self.complaint.title} to {self.staff.username}"
