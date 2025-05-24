@@ -7,6 +7,7 @@ import ToastNotification from '@/Usercomponents/ToastNotifications';
 import { useUserStore } from '@/stores/userStore';
 import Image from 'next/image';
 import { logout } from '@/lib/auth';
+import {withAuth} from "@/lib/withAuth";
 
 function DashboardPage() {
     const user = useUserStore((state) => state.user);
@@ -75,4 +76,4 @@ function DashboardPage() {
     );
 }
 
-export default DashboardPage;
+export default withAuth(DashboardPage);
