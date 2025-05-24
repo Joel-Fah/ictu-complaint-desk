@@ -1,7 +1,9 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
 from django.views.generic import TemplateView
-from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView
+from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView, ListCreateAPIView
+
+from .models import Category
 from .serializers import UserSerializer
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from allauth.socialaccount.models import SocialToken, SocialAccount
@@ -103,3 +105,9 @@ def google_logout(request):
 
     # Send a response to the frontend and redirect to the login page
     return JsonResponse({'message': 'User logged out successfully'}, status=200)
+
+class CategoryListCreateView(ListCreateAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CatergorySerializer
+    permission_classes = []
+
