@@ -1,10 +1,11 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
 from django.views.generic import TemplateView
-from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView, ListCreateAPIView
+from rest_framework.filters import SearchFilter
+from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView
 
 from .models import Category
-from .serializers import UserSerializer
+from .serializers import UserSerializer, CategorySerializer
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from allauth.socialaccount.models import SocialToken, SocialAccount
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -108,6 +109,14 @@ def google_logout(request):
 
 class CategoryListCreateView(ListCreateAPIView):
     queryset = Category.objects.all()
-    serializer_class = CatergorySerializer
+    serializer_class = CategorySerializer
     permission_classes = []
+    filter_backends = [SearchFilter]
+    search_fields = ['name']
+
+class CategoryDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = []
+
 
