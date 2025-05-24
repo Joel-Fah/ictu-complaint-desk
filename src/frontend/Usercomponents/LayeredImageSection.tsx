@@ -6,6 +6,7 @@ import Image from 'next/image';
 interface LayeredImageSectionProps {
     mainImageSrc: string;    // Pass string path like "/images/Lines.png"
     mainImageAlt: string;
+    height?:string;
 }
 
 const LayeredImageSection: FC<LayeredImageSectionProps> = ({
