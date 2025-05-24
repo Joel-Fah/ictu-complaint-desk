@@ -142,6 +142,7 @@ INTERNAL_IPS = [
 ]
 
 # Django Allauth Configs
+AUTH_USER_MODEL = 'core.CustomUser'
 SITE_ID = 1
 SOCIALACCOUNT_PROVIDERS = {
     'google': {

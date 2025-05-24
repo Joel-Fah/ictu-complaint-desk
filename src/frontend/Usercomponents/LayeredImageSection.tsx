@@ -30,7 +30,6 @@ const LayeredImageSection: FC<LayeredImageSectionProps> = ({
                     className=" md:max-w-[750px] lg:max-w-[1366px] xl:max-w-[1100px] object-contain "
                 />
             </div>
-
         </div>
     );
 };
