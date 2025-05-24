@@ -39,7 +39,7 @@ const ProblemStatement: FC<ProblemStatementProps> = ({
                                                          titleColor = "text-primary-950",
                                                          descriptionColor = "text-greyColor",
 
-                                                      
+
 
                                                          rightColumnContent,
 
