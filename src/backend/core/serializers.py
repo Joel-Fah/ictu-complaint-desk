@@ -1,7 +1,8 @@
 from allauth.socialaccount.models import SocialAccount
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from core.models import Category
+from core.models import Category, UserProfile
+
 
 class UserSerializer(serializers.ModelSerializer):
     google_data = serializers.SerializerMethodField()
@@ -30,3 +31,5 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = '__all__'
+
+
