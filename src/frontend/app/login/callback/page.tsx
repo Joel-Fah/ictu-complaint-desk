@@ -11,7 +11,7 @@ export default function LoginCallbackPage() {
 
         if (token) {
             localStorage.setItem('access_token', token);
-            router.push('/dashboard'); // or wherever your user should go next
+            router.push('/dashboard?login=success');
         } else {
             router.push('/login?error=missing_token');
         }

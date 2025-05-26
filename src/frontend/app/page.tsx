@@ -10,11 +10,6 @@ import ComplaintsInsightsHeader from "@/Usercomponents/ComplaintsInsightsHeader"
 import StudentComplaintsCard from "@/Usercomponents/StudentComplaintsCard";
 import Footer from "@/Usercomponents/Footer";
 
-
-
-
-
-
 function Home() {
   return (
     <section>
