@@ -3,9 +3,10 @@ from django.shortcuts import redirect
 from django.views.generic import TemplateView
 from rest_framework.filters import SearchFilter
 from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from django.contrib.auth.models import User
 
-from .models import Category
-from .serializers import UserSerializer, CategorySerializer
+from .models import Category, UserProfile
+from .serializers import UserSerializer, CategorySerializer, UserProfileSerializer, UserSerializer
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from allauth.socialaccount.models import SocialToken, SocialAccount
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -119,4 +120,10 @@ class CategoryDetailView(RetrieveUpdateDestroyAPIView):
     serializer_class = CategorySerializer
     permission_classes = []
 
+class UserListCreateView(ListCreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    filter_backends = [SearchFilter]
+    search_fields = ['username', 'email', 'first_name', 'last_name']
+    permission_classes = [IsAuthenticated]
 
