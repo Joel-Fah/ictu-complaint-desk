@@ -14,8 +14,6 @@ from pathlib import Path
 import os
 from shutil import which
 
-import core.models
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 

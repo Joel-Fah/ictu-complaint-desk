@@ -3,9 +3,6 @@ import Button from "@/Usercomponents/Button";
 import Image from "next/image";
 import Arrow from "../public/icons/arrow-right-01.svg"
 
-
-
-
 interface ComplaintBannerProps {
     smallText?: string;
     largeText?: string;
