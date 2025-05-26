@@ -11,6 +11,10 @@ import StudentComplaintsCard from "@/Usercomponents/StudentComplaintsCard";
 import Footer from "@/Usercomponents/Footer";
 
 
+
+
+
+
 function Home() {
   return (
     <section>
@@ -25,7 +29,8 @@ function Home() {
             buttonWidth= 'w-[152px]'
             onButtonClick={() => console.log('Button clicked!')}
         />
-
+       
+    
         <LayeredImageSection
             mainImageSrc="/images/hero-bg.svg"
             mainImageAlt="Main graphic showing system"
