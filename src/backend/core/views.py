@@ -1,15 +1,12 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
 from django.views.generic import TemplateView
-from rest_framework import viewsets, status, permissions
-from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from django.contrib.auth.models import User
-from rest_framework.response import Response
 
-from .models import Category, Reminder, Notification, Resolution
-from .serializers import CategorySerializer, UserSerializer, ReminderSerializer, NotificationSerializer, ResolutionSerializer
+from .models import Category, UserProfile
+from .serializers import UserSerializer, CategorySerializer, UserProfileSerializer, UserSerializer
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from allauth.socialaccount.models import SocialToken, SocialAccount
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -130,35 +127,3 @@ class UserListCreateView(ListCreateAPIView):
     search_fields = ['username', 'email', 'first_name', 'last_name']
     permission_classes = [IsAuthenticated]
 
-class ReminderViewSet(viewsets.ModelViewSet):
-    queryset = Reminder.objects.all().order_by('-sent_at')
-    serializer_class = ReminderSerializer
-    filter_backends = [SearchFilter]
-    search_fields = ['complaint__title', 'staff__username']
-
-class NotificationViewSet(viewsets.ModelViewSet):
-    serializer_class = NotificationSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        return Notification.objects.filter(recipient=self.request.user)
-
-    def perform_create(self, serializer):
-        serializer.save(recipient=self.request.user)
-
-    @action(detail=True, methods=['post'])
-    def mark_as_read(self, request, pk=None):
-        notification = self.get_object()
-        notification.is_read = True
-        notification.save()
-        return Response({'status': 'Notification marked as read'})
-
-class ResolutionListCreateView(ListCreateAPIView):
-    queryset = Resolution.objects.all()
-    serializer_class = ResolutionSerializer
-    filter_backends = [SearchFilter]
-    search_fields = ['complaint__title', 'staff__username', 'response']
-
-class ResolutionRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
-    queryset = Resolution.objects.all()
-    serializer_class = ResolutionSerializer
