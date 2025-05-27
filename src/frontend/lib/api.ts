@@ -29,7 +29,7 @@ const api = axios.create({
 
 export const getUser = async (token: string | null) => {
     try {
-        const response = await api.get("auth/user/", {
+        const response = await api.get("auth/login/", {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
