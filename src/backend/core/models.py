@@ -9,16 +9,20 @@ from core.utils import get_current_year
 
 
 # Create your models here.
-class UserRole(Enum):
+class UserRole(str, Enum):
     STUDENT = 'Student'
     LECTURER = 'Lecturer'
-    ADMIN_ASSISTANT = "Admin Assistant"
+    ADMIN = "Admin"
     COMPLAINT_COORDINATOR = 'Complaint Coordinator'
 
     @classmethod
     def choices(cls):
         return [(tag, tag.value) for tag in cls]
 
+class SemesterChoices(models.TextChoices):
+    FALL = "Fall", "Fall"
+    SPRING = "Spring", "Spring"
+    SUMMER = "Summer", "Summer"
 
 class CustomUser(AbstractUser):
     role = models.CharField(
@@ -28,26 +32,108 @@ class CustomUser(AbstractUser):
     )
 
 
-class UserProfile(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='profile')
+class StudentProfile(models.Model):
+    user = models.OneToOneField(
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name='student_profile'
+    )
 
-    # Specific to students
-    student_number = models.CharField(max_length=10, unique=True, blank=True, null=True)
-
-    # Specific to lecturers or staff
-    department = models.CharField(max_length=10, blank=True, null=True)
+    student_number = models.CharField(
+        max_length=12,
+        unique=True,
+        blank=False,
+        null=False
+    )
 
     def __str__(self):
-        return f"Profile of {self.user.username}"
+        return f"Student Profile of {self.user.username}"
 
     def is_student(self):
         return self.user.role == UserRole.STUDENT
 
+
+class AdminProfile(models.Model):
+    user = models.OneToOneField(
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name='admin_profile'
+    )
+
+    office = models.CharField(
+        max_length=100,
+        blank=False,
+        null=False
+    )
+
+    function = models.CharField(
+        max_length=100,
+        blank=False,
+        null=False
+    )
+
+    def __str__(self):
+        return f"Admin Profile of {self.user.username}"
+
+    def is_admin(self):
+        return self.user.role
+
+
+class LecturerProfile(models.Model):
+    user = models.OneToOneField(
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name='lecturer_profile'
+    )
+
+    def __str__(self):
+        return f"Lecturer Profile of {self.user.username}"
+
     def is_lecturer(self):
         return self.user.role == UserRole.LECTURER
 
-    def is_admin_assistant(self):
-        return self.user.role == UserRole.ADMIN_ASSISTANT
+
+class Course(models.Model):
+    class FacultyChoices(models.TextChoices):
+        ICT = 'ICT', 'ICT'
+        BMS = 'BMS', 'BMS'
+
+    code = models.CharField(
+        max_length=7,
+        unique=True,
+        blank=False,
+        null=False
+    )
+
+    title = models.CharField(
+        max_length=255,
+        blank=False,
+        null=False
+    )
+
+    semester = models.CharField(
+        max_length=255,
+        choices=SemesterChoices.choices,
+        blank=False,
+        null=False
+    )
+
+    year = models.PositiveIntegerField(
+        default=get_current_year()
+    )
+
+    lecturer = models.ForeignKey(
+        LecturerProfile,
+        on_delete=models.CASCADE,
+        related_name='courses',
+    )
+
+    faculty = models.CharField(
+        max_length=100,
+        choices=FacultyChoices.choices,
+        blank=False,
+        null=False
+    )
 
 
 class Complaint(models.Model):
@@ -69,11 +155,6 @@ class Complaint(models.Model):
         RESOLVED = "Resolved", "Resolved"
         CLOSED = "Closed", "Closed"
         ESCALATED = "Escalated", "Escalated"
-
-    class SemesterChoices(models.TextChoices):
-        FALL = "Fall", "Fall"
-        SPRING = "Spring", "Spring"
-        SUMMER = "Summer", "Summer"
 
     student = models.ForeignKey(
         get_user_model(),
@@ -127,7 +208,7 @@ class Complaint(models.Model):
         null=False
     )
 
-    isAnonymous = models.BooleanField(
+    is_anonymous = models.BooleanField(
         default=False,
         verbose_name="Is Anonymous",
         help_text="Whether the complaint is anonymous or not"
@@ -214,16 +295,22 @@ class ComplaintAssignment(models.Model):
         help_text="The staff member assigned to the complaint",
     )
 
-    assignedAt = models.DateTimeField(
+    assigned_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name="Assigned At",
         help_text="The date and time when the complaint was assigned",
     )
 
-    reminderCount = models.PositiveIntegerField(
+    reminder_count = models.PositiveIntegerField(
         default=0,
         verbose_name="Reminder Count",
         help_text="The number of reminders sent to the staff member",
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Created At",
+        help_text="Date and time when the assignment was created"
     )
 
     updated_at = models.DateTimeField(
@@ -241,9 +328,14 @@ class Category(models.Model):
         Model representing a Category
     """
 
+    class Meta:
+        verbose_name = "Category"
+        verbose_name_plural = "Categories"
+
     name = models.CharField(
         max_length=250,
         verbose_name="Name",
+        unique=True,
         blank=False,
         null=False
     )

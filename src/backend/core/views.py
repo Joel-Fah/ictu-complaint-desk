@@ -1,20 +1,26 @@
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect
-from django.views.generic import TemplateView
-from rest_framework.filters import SearchFilter
-from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView
-from django.contrib.auth.models import User
-
-from .models import Category, UserProfile
-from .serializers import UserSerializer, CategorySerializer, UserProfileSerializer, UserSerializer
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from allauth.socialaccount.models import SocialToken, SocialAccount
-from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import get_user_model, logout
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 import json
+
 import requests
+from allauth.socialaccount.models import SocialToken, SocialAccount
+from django.contrib.auth import get_user_model, logout
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.shortcuts import redirect
+from django.views.decorators.csrf import csrf_exempt
+from django.views.generic import TemplateView
+from rest_framework import viewsets, permissions
+from rest_framework.decorators import action
+from rest_framework.filters import SearchFilter
+from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView, ListCreateAPIView, \
+    RetrieveUpdateDestroyAPIView
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
+
+from .models import Category, Reminder, Notification, Resolution, Complaint
+from .serializers import CategorySerializer, UserSerializer, ReminderSerializer, NotificationSerializer, \
+    ResolutionSerializer, ComplaintSerializer
 
 # Create your views here.
 
@@ -25,6 +31,7 @@ class HomeView(TemplateView):
     template_name = 'core/index.html'
 
 
+# Authentication View
 class UserCreate(CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -108,6 +115,8 @@ def google_logout(request):
     # Send a response to the frontend and redirect to the login page
     return JsonResponse({'message': 'User logged out successfully'}, status=200)
 
+
+# Categories Views
 class CategoryListCreateView(ListCreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
@@ -115,10 +124,44 @@ class CategoryListCreateView(ListCreateAPIView):
     filter_backends = [SearchFilter]
     search_fields = ['name']
 
+
 class CategoryDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = []
+
+
+# Complaint Views
+class ComplaintPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
+class ComplaintListCreateView(ListCreateAPIView):
+    queryset = Complaint.objects.all()
+    serializer_class = ComplaintSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = ComplaintPagination
+    filter_backends = [SearchFilter]
+    search_fields = ['title', 'description', 'status']
+
+    def perform_create(self, serializer):
+        serializer.save(student=self.request.user)
+
+
+class ComplaintDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = Complaint.objects.all()
+    serializer_class = ComplaintSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        # Only allow students to see their own complaints
+        if hasattr(user, 'studentprofile'):
+            return self.queryset.filter(student=user)
+        return self.queryset
+
 
 class UserListCreateView(ListCreateAPIView):
     queryset = User.objects.all()
@@ -127,3 +170,39 @@ class UserListCreateView(ListCreateAPIView):
     search_fields = ['username', 'email', 'first_name', 'last_name']
     permission_classes = [IsAuthenticated]
 
+
+class ReminderViewSet(viewsets.ModelViewSet):
+    queryset = Reminder.objects.all().order_by('-sent_at')
+    serializer_class = ReminderSerializer
+    filter_backends = [SearchFilter]
+    search_fields = ['complaint__title', 'staff__username']
+
+
+class NotificationViewSet(viewsets.ModelViewSet):
+    serializer_class = NotificationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Notification.objects.filter(recipient=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(recipient=self.request.user)
+
+    @action(detail=True, methods=['post'])
+    def mark_as_read(self, request, pk=None):
+        notification = self.get_object()
+        notification.is_read = True
+        notification.save()
+        return Response({'status': 'Notification marked as read'})
+
+
+class ResolutionListCreateView(ListCreateAPIView):
+    queryset = Resolution.objects.all()
+    serializer_class = ResolutionSerializer
+    filter_backends = [SearchFilter]
+    search_fields = ['complaint__title', 'staff__username', 'response']
+
+
+class ResolutionRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
+    queryset = Resolution.objects.all()
+    serializer_class = ResolutionSerializer
