@@ -3,9 +3,11 @@ import { FC } from 'react';
 import Image from 'next/image';
 
 
+
 interface LayeredImageSectionProps {
     mainImageSrc: string;    // Pass string path like "/images/Lines.png"
     mainImageAlt: string;
+    height?: string;
 }
 
 const LayeredImageSection: FC<LayeredImageSectionProps> = ({
@@ -17,7 +19,6 @@ const LayeredImageSection: FC<LayeredImageSectionProps> = ({
         <div className={`relative w-full ${height} overflow-hidden`}>
             {/* Top light section */}
             <div className="absolute top-0 left-0 right-0 h-1/2 z-0"></div>
-
 
             {/* Main content image */}
             <div className="absolute inset-0 flex items-center justify-center z-10">

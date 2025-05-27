@@ -1,16 +1,23 @@
-from django.urls import path
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from django.urls import re_path
-from rest_framework import permissions
-from drf_yasg.views import get_schema_view
+from django.contrib import admin
+from django.urls import path, include
 from drf_yasg import openapi
+from drf_yasg.views import get_schema_view
+from rest_framework import permissions
+from rest_framework.routers import DefaultRouter
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .views import HomeView, UserCreate, google_login_callback, UserDetailView, validate_google_token, google_logout, \
-    CategoryListCreateView, CategoryDetailView, ComplaintListCreateView, ComplaintDetailView
+from .views import ComplaintListCreateView, ComplaintDetailView
+from .views import HomeView, UserCreate, google_login_callback, validate_google_token, google_logout, \
+    CategoryListCreateView, CategoryDetailView, UserListCreateView, UserDetailView, ReminderViewSet, \
+    NotificationViewSet, ResolutionListCreateView, ResolutionRetrieveUpdateDestroyView
 
-# Create your urls here
+# Create your urls here.
 
 app_name = 'core'
+
+router = DefaultRouter()
+router.register(r'reminders', ReminderViewSet, basename='reminder')
+router.register(r'notifications', NotificationViewSet, basename='notification')
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -52,4 +59,18 @@ urlpatterns = [
     # complaints
     path('complaints/', ComplaintListCreateView.as_view(), name='complaint_list_create'),
     path('complaints/<int:pk>/', ComplaintDetailView.as_view(), name='complaint_detail'),
+
+    # Users
+    path('api/users/', UserListCreateView.as_view(), name='user-list-create'),
+    path('api/users/<int:pk>/', UserDetailView.as_view(), name='user-detail'),
+
+    # Reminders
+    path('admin/', admin.site.urls),
+    # notifications
+    path('', include(router.urls)),
+
+    # Resolution
+    path('api/resolutions/', ResolutionListCreateView.as_view(), name='resolution-list-create'),
+    path('api/resolutions/<int:pk>/', ResolutionRetrieveUpdateDestroyView.as_view(), name='resolution-detail'),
 ]
+urlpatterns += router.urls

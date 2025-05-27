@@ -3,6 +3,7 @@ import "./globals.css";
 import UserProvider from '@/Usercomponents/userProvider';
 import FaviconSwitcher from "@/Usercomponents/faviconSwitcher";
 import React from "react";
+import { Toaster } from "@/components/ui/sonner"
 
 export const metadata: Metadata = {
   title: "ICTU Complaint Desk",
@@ -17,6 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+      <Toaster />
        <FaviconSwitcher />
        <UserProvider>{children}</UserProvider>
       </body>

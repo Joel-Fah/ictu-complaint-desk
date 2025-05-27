@@ -45,9 +45,9 @@ function LoginPage() {
                     <>
                         <a href="/terms" className="hover:underline">Terms</a>
                         <a href="/privacy" className="hover:underline">Privacy</a>
-                        <select className="bg-transparent border rounded px-2 py-1">
-                            <option>English</option>
-                            <option>French</option>
+                        <select className="bg-transparent border border-b-black rounded px-2 py-1">
+                            <option>en</option>
+                            <option>fr</option>
                         </select>
                     </>
                 }
