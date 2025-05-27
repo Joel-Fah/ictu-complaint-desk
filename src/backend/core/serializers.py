@@ -1,7 +1,7 @@
 from allauth.socialaccount.models import SocialAccount
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from core.models import Category, UserProfile
+from core.models import Category, Reminder, Notification, Resolution
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -32,4 +32,19 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
         fields = '__all__'
 
+class ReminderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Reminder
+        fields = '__all__'
+        read_only_fields = ['sent_at']
 
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = '__all__'
+        read_only_fields = ['recipient', 'created_at', 'updated_at']
+
+class ResolutionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Resolution
+        fields = '__all__'
