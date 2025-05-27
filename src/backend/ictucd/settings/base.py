@@ -31,14 +31,17 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'core.apps.CoreConfig',
 
-    # Tailwind
+    # tailwind
     'tailwind',
     'theme',
     'django_browser_reload',
 
-    # DRF
+    # drf
     'rest_framework',
     'rest_framework.authtoken',
+
+    # drf-yasg
+    'drf_yasg',
 
     # Allauth
     'allauth',
@@ -46,7 +49,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
 
-    # CORS
+    # cors
     'corsheaders',
 ]
 
@@ -198,3 +201,16 @@ JWT_AUTH_COOKIE = 'my-auth-token'
 JWT_AUTH_REFRESH_COOKIE = 'my-refresh-token'
 
 LOGIN_REDIRECT_URL = '/api/callback/'
+
+# DRF Yasg settings
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'basic': {
+            'type': 'basic'
+        }
+    },
+}
+
+REDOC_SETTINGS = {
+   'LAZY_RENDERING': False,
+}
