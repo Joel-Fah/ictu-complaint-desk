@@ -1,11 +1,20 @@
+import csv
+import os
+
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
 from django.views.generic import TemplateView
+from rest_framework import status
 from rest_framework.filters import SearchFilter
-from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView, ListCreateAPIView, \
+    RetrieveUpdateDestroyAPIView
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from .models import Category
-from .serializers import UserSerializer, CategorySerializer
+from .models import Category, Complaint
+from .serializers import UserSerializer, CategorySerializer, ComplaintSerializer, ProfileCompleteSerializer
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from allauth.socialaccount.models import SocialToken, SocialAccount
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -24,6 +33,7 @@ class HomeView(TemplateView):
     template_name = 'core/index.html'
 
 
+# Authentication View
 class UserCreate(CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -107,6 +117,8 @@ def google_logout(request):
     # Send a response to the frontend and redirect to the login page
     return JsonResponse({'message': 'User logged out successfully'}, status=200)
 
+
+# Categories Views
 class CategoryListCreateView(ListCreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
@@ -114,9 +126,39 @@ class CategoryListCreateView(ListCreateAPIView):
     filter_backends = [SearchFilter]
     search_fields = ['name']
 
+
 class CategoryDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = []
 
 
+# Complaint Views
+class ComplaintPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
+class ComplaintListCreateView(ListCreateAPIView):
+    queryset = Complaint.objects.all()
+    serializer_class = ComplaintSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = ComplaintPagination
+    filter_backends = [SearchFilter]
+    search_fields = ['title', 'description', 'status']
+
+    def perform_create(self, serializer):
+        serializer.save(student=self.request.user)
+
+
+class ComplaintDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = Complaint.objects.all()
+    serializer_class = ComplaintSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if hasattr(user, 'profile') and user.profile.is_student():
+            return self.queryset.filter(student=user)
+        return self.queryset

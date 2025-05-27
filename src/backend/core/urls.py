@@ -1,24 +1,55 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from django.urls import re_path
+from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
 
 from .views import HomeView, UserCreate, google_login_callback, UserDetailView, validate_google_token, google_logout, \
-    CategoryListCreateView, CategoryDetailView
+    CategoryListCreateView, CategoryDetailView, ComplaintListCreateView, ComplaintDetailView
 
 # Create your urls here
 
 app_name = 'core'
 
+schema_view = get_schema_view(
+    openapi.Info(
+        title="ICTU Complaint Desk API",
+        default_version='v1',
+        description="Test description",
+        terms_of_service="https://www.google.com/policies/terms/",
+        contact=openapi.Contact(email="joelfah2003@gmail.com"),
+        license=openapi.License(name="BSD License"),
+    ),
+    public=True,
+    permission_classes=[permissions.AllowAny],
+)
+
 urlpatterns = [
+    path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+
     path('', HomeView.as_view(), name='home'),
-    path('user/reister/', UserCreate.as_view(), name='user_create'),
+
+    # Token authentication
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
+    # Google OAuth2 login
     path('callback/', google_login_callback, name='callback'),
     path('google/validate_token/', validate_google_token, name='validate_token'),
-    path('auth/user/', UserDetailView.as_view(), name='user_details'),
+
+    # User authentication
+    path('auth/register/', UserCreate.as_view(), name='user_create'),
+    path('auth/login/', UserDetailView.as_view(), name='user_details'),
     path('auth/logout/', google_logout, name='google_logout'),
 
-    #categories
+    # categories
     path('categories/', CategoryListCreateView.as_view(), name='category_list_create'),
     path('categories/<int:pk>/', CategoryDetailView.as_view(), name='category_detail'),
+
+    # complaints
+    path('complaints/', ComplaintListCreateView.as_view(), name='complaint_list_create'),
+    path('complaints/<int:pk>/', ComplaintDetailView.as_view(), name='complaint_detail'),
 ]
