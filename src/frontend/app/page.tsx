@@ -53,7 +53,7 @@ function Home() {
             descriptionColor="text-darkColor"
 
             // Optional right column content
-            rightColumnClassName="bg-greyColor rounded-[50px]"
+            rightColumnClassName="bg-greyColor rounded-[55px]"
             rightColumnContent={
                 <Image
                     src="/images/dummy.jpg"
@@ -82,7 +82,7 @@ function Home() {
             descriptionColor="text-darkColor"
 
             // Optional right column content
-            rightColumnClassName="bg-greyColor rounded-[50px]"
+            rightColumnClassName="bg-greyColor rounded-[55px]"
             rightColumnContent={
                 <Image
                     src="/images/dummy.jpg"
