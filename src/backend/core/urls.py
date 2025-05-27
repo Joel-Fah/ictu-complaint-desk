@@ -64,8 +64,6 @@ urlpatterns = [
     path('api/users/', UserListCreateView.as_view(), name='user-list-create'),
     path('api/users/<int:pk>/', UserDetailView.as_view(), name='user-detail'),
 
-    # Reminders
-    path('admin/', admin.site.urls),
     # notifications
     path('', include(router.urls)),
 
