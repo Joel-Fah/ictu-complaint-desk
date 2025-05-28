@@ -10,6 +10,14 @@ import ComplaintsInsightsHeader from "@/Usercomponents/ComplaintsInsightsHeader"
 import StudentComplaintsCard from "@/Usercomponents/StudentComplaintsCard";
 import Footer from "@/Usercomponents/Footer";
 
+<<<<<<< HEAD
+=======
+
+
+
+
+
+>>>>>>> e5d7c254c6cd3edbd57026c065d62fa48e09ba04
 function Home() {
   return (
     <section>
@@ -48,7 +56,7 @@ function Home() {
             descriptionColor="text-darkColor"
 
             // Optional right column content
-            rightColumnClassName="bg-greyColor rounded-[50px]"
+            rightColumnClassName="bg-greyColor rounded-[55px]"
             rightColumnContent={
                 <Image
                     src="/images/dummy.jpg"
@@ -77,7 +85,7 @@ function Home() {
             descriptionColor="text-darkColor"
 
             // Optional right column content
-            rightColumnClassName="bg-greyColor rounded-[50px]"
+            rightColumnClassName="bg-greyColor rounded-[55px]"
             rightColumnContent={
                 <Image
                     src="/images/dummy.jpg"
