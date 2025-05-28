@@ -62,6 +62,7 @@ export const getUser = async (token: string | null) => {
 
 api.interceptors.request.use(
     (config) => {
+
         const token = getAccessToken();
         if (token) {
             config.headers["Authorization"] = `Bearer ${token}`;
