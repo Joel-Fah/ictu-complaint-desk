@@ -17,7 +17,7 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="\core\data\lecturers.csv">
+        <entry key="\core\data\courses.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />

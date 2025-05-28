@@ -12,14 +12,6 @@ import Footer from "@/Usercomponents/Footer";
 import NavbarDashboard from "@/Usercomponents/NavbarDashboard";
 import Sidebar from "@/Usercomponents/Sidebar";
 
-
-
-
-
-
-
-
-
 function Home() {
   return (
     <section>
