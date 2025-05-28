@@ -6,7 +6,7 @@ from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
 from core.models import Category, Complaint, ComplaintAssignment, \
-    StudentProfile, LecturerProfile, AdminProfile, Course
+    StudentProfile, LecturerProfile, AdminProfile, Course, Resolution, Reminder, Notification
 
 # Utilities
 User = get_user_model()
@@ -107,6 +107,7 @@ class ComplaintAssignmentAdmin(admin.ModelAdmin):
     search_fields = ['complaint__title']
     readonly_fields = ['created_at']
 
+
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
     list_display = ['code', 'title', 'semester_year', 'lecturer', 'faculty']
@@ -118,3 +119,27 @@ class CourseAdmin(admin.ModelAdmin):
 
     def semester_year(self, obj):
         return f'{obj.semester} {obj.year}'
+
+
+@admin.register(Resolution)
+class ResolutionAdmin(admin.ModelAdmin):
+    list_display = ['complaint', 'staff', 'response', 'created_at']
+    list_filter = ['staff']
+    search_fields = ['response', 'complaint__title']
+    readonly_fields = ['created_at', 'updated_at']
+
+
+@admin.register(Reminder)
+class ReminderAdmin(admin.ModelAdmin):
+    list_display = ['staff', 'sent_at']
+    list_filter = ['sent_at']
+    search_fields = ['complaint__title']
+    readonly_fields = ['sent_at']
+
+
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ['recipient', 'message', 'created_at', 'is_read']
+    list_filter = ['is_read', 'created_at']
+    search_fields = ['message', 'recipient__username']
+    readonly_fields = ['created_at']
