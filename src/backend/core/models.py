@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from enum import Enum
 from django.contrib.auth import get_user_model
@@ -19,17 +19,47 @@ class UserRole(str, Enum):
     def choices(cls):
         return [(tag, tag.value) for tag in cls]
 
+
 class SemesterChoices(models.TextChoices):
     FALL = "Fall", "Fall"
     SPRING = "Spring", "Spring"
     SUMMER = "Summer", "Summer"
 
+
+class CustomUserManager(BaseUserManager):
+    def create_superuser(self, username, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('role', UserRole.ADMIN)
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
+
+        return self.create_user(username, email, password, **extra_fields)
+
+
 class CustomUser(AbstractUser):
     role = models.CharField(
         max_length=100,
-        choices=UserRole.choices(),
+        choices=UserRole.choices,
         default=UserRole.STUDENT,
+        help_text="Role of the user in the system",
     )
+
+    secondary_role = models.CharField(
+        max_length=100,
+        choices=UserRole.choices,
+        blank=True,
+        null=True,
+        help_text="Optional second role for users with multiple roles"
+    )
+
+    def clean(self):
+        super().clean()
+        if self.role and self.secondary_role and self.role == self.secondary_role:
+            raise ValidationError("Primary and secondary roles cannot be the same.")
 
 
 class StudentProfile(models.Model):
@@ -76,7 +106,7 @@ class AdminProfile(models.Model):
         return f"Admin Profile of {self.user.username}"
 
     def is_admin(self):
-        return self.user.role
+        return self.user.role == UserRole.ADMIN or self.user.role == UserRole.COMPLAINT_COORDINATOR
 
 
 class LecturerProfile(models.Model):
