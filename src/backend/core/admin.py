@@ -106,3 +106,26 @@ class ComplaintAssignmentAdmin(admin.ModelAdmin):
     list_filter = ['staff', 'created_at']
     search_fields = ['complaint__title']
     readonly_fields = ['created_at']
+
+@admin.register(Resolution)
+class ResolutionAdmin(admin.ModelAdmin):
+    list_display = ['complaint', 'staff', 'response', 'created_at']
+    list_filter = ['staff']
+    search_fields = ['response', 'complaint__title']
+    readonly_fields = ['created_at', 'updated_at']
+
+@admin.register(Reminder)
+class ReminderAdmin(admin.ModelAdmin):
+    list_display = ['staff', 'sent_at']
+    list_filter = ['sent_at']
+    search_fields = ['complaint__title']
+    readonly_fields = ['sent_at']
+
+
+
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ['recipient', 'message', 'created_at', 'is_read']
+    list_filter = ['is_read', 'created_at']
+    search_fields = ['message', 'recipient__username']
+    readonly_fields = ['created_at']
