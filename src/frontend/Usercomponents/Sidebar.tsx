@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ChevronDown, Filter, MessageSquare, Clock, CheckCircle, AlertCircle, Circle } from 'lucide-react';
 import Image from 'next/image';
 
+
 interface Complaint {
   id: number;
   title: string;
@@ -221,7 +222,6 @@ const ComplaintsUI = () => {
           ))}
         </div>
       </div>
-
       {/* Click outside to close dropdowns */}
       {(statusDropdownOpen || valueDropdownOpen) && (
         <div
@@ -237,3 +237,4 @@ const ComplaintsUI = () => {
 };
 
 export default ComplaintsUI;
+
