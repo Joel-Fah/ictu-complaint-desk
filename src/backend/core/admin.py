@@ -1,12 +1,12 @@
 from django.contrib import admin
 from django.contrib.admin.widgets import AdminFileWidget
-from django.utils.html import format_html
 from django.contrib.auth import get_user_model
-from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.admin import UserAdmin
+from django.utils.html import format_html
+from django.utils.translation import gettext_lazy as _
 
-from core.models import Category, Complaint, Endorsement, Notification, Resolution, Reminder, ComplaintAssignment, \
-    StudentProfile, LecturerProfile, AdminProfile, Course, Attachment
+from core.models import Category, Complaint, ComplaintAssignment, \
+    StudentProfile, LecturerProfile, AdminProfile, Course
 
 # Utilities
 User = get_user_model()
@@ -14,7 +14,7 @@ User = get_user_model()
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
-    list_display = ['username', 'email', 'role', 'is_staff', 'is_active']
+    list_display = ['username', 'email', 'role', 'secondary_role', 'is_staff', 'is_active']
     search_fields = ['username', 'email']
     list_filter = ['role', 'is_staff', 'is_active']
 
@@ -23,7 +23,7 @@ class CustomUserAdmin(UserAdmin):
             'fields': ('username', 'email', 'password')
         }),
         (_('Personal info'), {
-            'fields': ('first_name', 'last_name', 'role')
+            'fields': ('first_name', 'last_name', 'role', 'secondary_role')
         }),
         (_('Permissions'), {
             'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')
@@ -106,3 +106,15 @@ class ComplaintAssignmentAdmin(admin.ModelAdmin):
     list_filter = ['staff', 'created_at']
     search_fields = ['complaint__title']
     readonly_fields = ['created_at']
+
+@admin.register(Course)
+class CourseAdmin(admin.ModelAdmin):
+    list_display = ['code', 'title', 'semester_year', 'lecturer', 'faculty']
+    search_fields = ['code', 'title']
+    list_filter = ['semester', 'year', 'faculty']
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('lecturer')
+
+    def semester_year(self, obj):
+        return f'{obj.semester} {obj.year}'
