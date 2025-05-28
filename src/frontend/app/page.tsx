@@ -9,16 +9,15 @@ import Image from "next/image";
 import ComplaintsInsightsHeader from "@/Usercomponents/ComplaintsInsightsHeader";
 import StudentComplaintsCard from "@/Usercomponents/StudentComplaintsCard";
 import Footer from "@/Usercomponents/Footer";
-
-
-
-
-
+import NavbarDashboard from "@/Usercomponents/NavbarDashboard";
+import Sidebar from "@/Usercomponents/Sidebar";
 
 function Home() {
   return (
     <section>
         <Navbar />
+        <NavbarDashboard />
+        <Sidebar />
         <ComplaintBanner
             smallText="You know what?"
             largeText="There's always a"
@@ -129,9 +128,7 @@ function Home() {
         }
         rightContent={<p>© 2025 - ICTU Complaint Desk. All rights reserved.</p>}
         />
-
-
-    </section>
+   </section>
   );
 }
 export default withPublic(Home);

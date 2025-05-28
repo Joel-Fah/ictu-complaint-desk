@@ -1,12 +1,12 @@
 from django.contrib import admin
 from django.contrib.admin.widgets import AdminFileWidget
-from django.utils.html import format_html
 from django.contrib.auth import get_user_model
-from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.admin import UserAdmin
+from django.utils.html import format_html
+from django.utils.translation import gettext_lazy as _
 
-from core.models import Category, Complaint, Endorsement, Notification, Resolution, Reminder, ComplaintAssignment, \
-    StudentProfile, LecturerProfile, AdminProfile, Course, Attachment
+from core.models import Category, Complaint, ComplaintAssignment, \
+    StudentProfile, LecturerProfile, AdminProfile, Course, Resolution, Reminder, Notification
 
 # Utilities
 User = get_user_model()
@@ -14,7 +14,7 @@ User = get_user_model()
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
-    list_display = ['username', 'email', 'role', 'is_staff', 'is_active']
+    list_display = ['username', 'email', 'role', 'secondary_role', 'is_staff', 'is_active']
     search_fields = ['username', 'email']
     list_filter = ['role', 'is_staff', 'is_active']
 
@@ -23,7 +23,7 @@ class CustomUserAdmin(UserAdmin):
             'fields': ('username', 'email', 'password')
         }),
         (_('Personal info'), {
-            'fields': ('first_name', 'last_name', 'role')
+            'fields': ('first_name', 'last_name', 'role', 'secondary_role')
         }),
         (_('Permissions'), {
             'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')
@@ -105,4 +105,41 @@ class ComplaintAssignmentAdmin(admin.ModelAdmin):
     list_display = ['id', 'complaint', 'staff__username', 'reminder_count']
     list_filter = ['staff', 'created_at']
     search_fields = ['complaint__title']
+    readonly_fields = ['created_at']
+
+
+@admin.register(Course)
+class CourseAdmin(admin.ModelAdmin):
+    list_display = ['code', 'title', 'semester_year', 'lecturer', 'faculty']
+    search_fields = ['code', 'title']
+    list_filter = ['semester', 'year', 'faculty']
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('lecturer')
+
+    def semester_year(self, obj):
+        return f'{obj.semester} {obj.year}'
+
+
+@admin.register(Resolution)
+class ResolutionAdmin(admin.ModelAdmin):
+    list_display = ['complaint', 'staff', 'response', 'created_at']
+    list_filter = ['staff']
+    search_fields = ['response', 'complaint__title']
+    readonly_fields = ['created_at', 'updated_at']
+
+
+@admin.register(Reminder)
+class ReminderAdmin(admin.ModelAdmin):
+    list_display = ['staff', 'sent_at']
+    list_filter = ['sent_at']
+    search_fields = ['complaint__title']
+    readonly_fields = ['sent_at']
+
+
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ['recipient', 'message', 'created_at', 'is_read']
+    list_filter = ['is_read', 'created_at']
+    search_fields = ['message', 'recipient__username']
     readonly_fields = ['created_at']
