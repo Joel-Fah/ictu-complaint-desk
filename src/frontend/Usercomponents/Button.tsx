@@ -60,7 +60,7 @@ export default function Button({
                     alt={imageAlt}
                     width={imageWidth}
                     height={imageHeight}
-                    className={`mr-3 ${imageClassName}`}
+                    className={`${imageClassName}`}
                 />
             )}
             <span className={`${fontSize} ${fontFamily} ${spanClassName}`}>

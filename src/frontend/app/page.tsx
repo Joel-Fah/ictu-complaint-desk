@@ -9,14 +9,12 @@ import Image from "next/image";
 import ComplaintsInsightsHeader from "@/Usercomponents/ComplaintsInsightsHeader";
 import StudentComplaintsCard from "@/Usercomponents/StudentComplaintsCard";
 import Footer from "@/Usercomponents/Footer";
-import NavbarDashboard from "@/Usercomponents/NavbarDashboard";
 import Sidebar from "@/Usercomponents/Sidebar";
 
 function Home() {
   return (
     <section>
         <Navbar />
-        <NavbarDashboard />
         <Sidebar />
         <ComplaintBanner
             smallText="You know what?"

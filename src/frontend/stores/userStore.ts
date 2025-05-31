@@ -14,6 +14,7 @@ interface User {
     dateJoined: string;
     googleUid: string;
     domain: string;
+    role: 'Student' | 'Lecturer' | 'Admin';
 }
 
 interface UserState {
