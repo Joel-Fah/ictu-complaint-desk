@@ -2,7 +2,7 @@
 
 {# Title of the page #}
 {% block title %}
-	Home page
+    Home page
 {% endblock %}
 
 {# Body of the page #}
@@ -12,6 +12,11 @@
         <p class="mt-4">
             This is a simple example of a Django template using Tailwind CSS.
         </p>
+
+        <a href="{% url 'core:schema-swagger-ui' %}" class="mt-4 flex items-center gap-2 bg-primary shadow-none py-2.5 px-8 rounded-xl font-medium text-whiteColor transition-colors duration-300 ease
+                 hover:bg-primary-900 hover:shadow-md focus:ring-2 focus:ring-primary-500 focus:ring-offset-1">
+            Login with your @ictuniversity.edu.cm account
+        </a>
     </div>
 {% endblock %}
 
