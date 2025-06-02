@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.core.exceptions import ValidationError
 from django.db import models
 from enum import Enum
 from django.contrib.auth import get_user_model
@@ -276,6 +277,14 @@ class Complaint(models.Model):
         help_text="The semester year that the complaint was submitted",
         blank=False,
         null=False
+    )
+
+    course = models.ForeignKey(
+        'Course',
+        on_delete=models.CASCADE,
+        related_name='courses',
+        verbose_name='Course',
+        help_text="The course for which a complaint was submitted",
     )
 
     created_at = models.DateTimeField(

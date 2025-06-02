@@ -18,9 +18,9 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import Category, Reminder, Notification, Resolution, Complaint
+from .models import Category, Reminder, Notification, Resolution, Complaint, Course
 from .serializers import CategorySerializer, UserSerializer, ReminderSerializer, NotificationSerializer, \
-    ResolutionSerializer, ComplaintSerializer
+    ResolutionSerializer, ComplaintSerializer, CourseSerializer
 
 # Create your views here.
 
@@ -206,3 +206,26 @@ class ResolutionListCreateView(ListCreateAPIView):
 class ResolutionRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
     queryset = Resolution.objects.all()
     serializer_class = ResolutionSerializer
+
+
+# Courses Views
+class CourseListCreateView(ListCreateAPIView):
+    queryset = Course.objects.all()
+    serializer_class = CourseSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [SearchFilter]
+    search_fields = ['code', 'title', 'lecturer__user__username']
+
+    def perform_create(self, serializer):
+        serializer.save(lecturer=self.request.user.lecturerprofile)
+
+class CourseDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = Course.objects.all()
+    serializer_class = CourseSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if hasattr(user, 'lecturerprofile'):
+            return self.queryset.filter(lecturer__user=user)
+        return self.queryset

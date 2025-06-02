@@ -204,13 +204,38 @@ LOGIN_REDIRECT_URL = '/api/callback/'
 
 # DRF Yasg settings
 SWAGGER_SETTINGS = {
+    'SHOW_REQUEST_HEADERS': True,
     'SECURITY_DEFINITIONS': {
+        #         'oauth2': {
+        #             'type': 'oauth2',
+        #             'authorizationUrl': 'https://accounts.google.com/o/oauth2/v2/auth',
+        #             'flow': 'implicit',
+        #             'scopes': {
+        #                 'profile': 'User profile information',
+        #                 'email': 'User email information',
+        #             },
+        #         },
+        # 'SWAGGER_UI_OAUTH2_REDIRECT_URL': 'http://localhost:8000/swagger/oauth2-redirect/',
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header',
+        },
         'basic': {
             'type': 'basic'
         }
     },
+    'USE_SESSION_AUTH': True,
+    'JSON_EDITOR': True,
+    'SUPPORTED_SUBMIT_METHODS': [
+        'get',
+        'post',
+        'put',
+        'delete',
+        'patch'
+    ],
 }
 
 REDOC_SETTINGS = {
-   'LAZY_RENDERING': False,
+    'LAZY_RENDERING': False,
 }
