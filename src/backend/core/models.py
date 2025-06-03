@@ -1,9 +1,11 @@
 from datetime import timedelta
 
 from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.core.exceptions import ValidationError
 from django.db import models
 from enum import Enum
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 from core.utils import get_current_year
 
@@ -165,6 +167,9 @@ class Course(models.Model):
         null=False
     )
 
+    def __str__(self):
+        return f"{self.code} - {self.title} ({self.semester} {self.year})"
+
 
 class Complaint(models.Model):
     """
@@ -183,7 +188,6 @@ class Complaint(models.Model):
         OPEN = "Open", "Open"
         IN_PROGRESS = "In Progress", "In Progress"
         RESOLVED = "Resolved", "Resolved"
-        CLOSED = "Closed", "Closed"
         ESCALATED = "Escalated", "Escalated"
 
     student = models.ForeignKey(
@@ -256,8 +260,8 @@ class Complaint(models.Model):
 
     deadline = models.DateTimeField(
         verbose_name="Deadline",
-        blank=False,
-        null=False
+        blank=True,
+        null=True
     )
 
     semester = models.CharField(
@@ -278,6 +282,14 @@ class Complaint(models.Model):
         null=False
     )
 
+    course = models.ForeignKey(
+        'Course',
+        on_delete=models.CASCADE,
+        related_name='courses',
+        verbose_name='Course',
+        help_text="The course for which a complaint was submitted",
+    )
+
     created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name="Created At",
@@ -291,8 +303,8 @@ class Complaint(models.Model):
     )
 
     def save(self, *args, **kwargs):
-        if not self.pk:  # Check if the object is being created (not updated)
-            self.deadline = self.created_at + timedelta(days=3)
+        if not self.pk:
+            self.deadline = timezone.now() + timedelta(days=3)
         super().save(*args, **kwargs)
 
     def __str__(self):
