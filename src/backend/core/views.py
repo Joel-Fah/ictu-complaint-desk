@@ -8,7 +8,7 @@ from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, generics
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView, ListCreateAPIView, \
@@ -20,7 +20,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import Category, Reminder, Notification, Resolution, Complaint, Course
 from .serializers import CategorySerializer, UserSerializer, ReminderSerializer, NotificationSerializer, \
-    ResolutionSerializer, ComplaintSerializer, CourseSerializer
+    ResolutionSerializer, ComplaintSerializer, CourseSerializer, StudentProfileSerializer
 
 # Create your views here.
 
@@ -229,3 +229,14 @@ class CourseDetailView(RetrieveUpdateDestroyAPIView):
         if hasattr(user, 'lecturerprofile'):
             return self.queryset.filter(lecturer__user=user)
         return self.queryset
+
+class StudentProfileUpdateView(generics.UpdateAPIView):
+    serializer_class = StudentProfileSerializer
+    permissions_classes = [IsAuthenticated]
+
+    def get_object(self):
+        user = self.request.user
+        if hasattr(user, 'studentprofile'):
+            return user.studentprofile
+        else:
+            raise Http404("Student profile does not exist.")
