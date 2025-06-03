@@ -5,8 +5,10 @@ import "@/app/globals.css"
 import Image from 'next/image';
 import Button from "@/Usercomponents/Button";
 import Footer from "@/Usercomponents/Footer";
+import StudentNumberDialog from "@/Usercomponents/StudentNumberDialog";
 
 function LoginPage() {
+
     return (
         <section>
             <div className="min-h-screen flex flex-col items-center justify-center bg-secondary-50">
@@ -52,6 +54,7 @@ function LoginPage() {
                     </>
                 }
             />
+            {/* 🔥 Student Number Dialog */}
         </section>
     );
 }

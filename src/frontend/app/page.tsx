@@ -9,13 +9,11 @@ import Image from "next/image";
 import ComplaintsInsightsHeader from "@/Usercomponents/ComplaintsInsightsHeader";
 import StudentComplaintsCard from "@/Usercomponents/StudentComplaintsCard";
 import Footer from "@/Usercomponents/Footer";
-import Sidebar from "@/Usercomponents/Sidebar";
 
 function Home() {
   return (
     <section>
         <Navbar />
-        <Sidebar />
         <ComplaintBanner
             smallText="You know what?"
             largeText="There's always a"

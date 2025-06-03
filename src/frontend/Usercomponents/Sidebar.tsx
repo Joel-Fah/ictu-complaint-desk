@@ -1,52 +1,41 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-
-
-interface Complaint {
-  id: number;
-  title: string;
-  description: string;
-  status: 'Open' | 'In Progress' | 'Escalated' | 'Resolved';
-  timeAgo: string;
-}
+import { Complaint } from "@/types/complaint";
+import { getComplaints } from '@/lib/api';
 
 const ComplaintsUI = () => {
+  const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [statusFilter, setStatusFilter] = useState('Open');
   const [valueFilter, setValueFilter] = useState('Value');
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
   const [valueDropdownOpen, setValueDropdownOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Sample data - this would come from backend
-  const complaints: Complaint[] = [
-    {
-      id: 4,
-      title: "Untitled",
-      description: "I am a Level 2 student at ICT University, and I am writing to report a missing grade for the course Computational Mathematics taught by Engr. Agbor Andrew during the Spring 2025 semester. The final grades for the semester have recently been released, but my result for this particular course is not available on the student portal. I fully participated in the course throughout the semester, submitted all required assignments, and completed both the Continuous Assessment (CA) and the final examination. I was expecting to see a grade reflected for this course, as I encountered no issues with attendance or submission deadlines. This missing grade is affecting my academic record and progression, so I kindly request that the issue be investigated and resolved promptly. If any additional information is needed to support my complaint, I am willing to provide it. Thank you for your assistance.",
-      status: "Escalated",
-      timeAgo: "1 min ago"
-    },
-    {
-      id: 3,
-      title: "This complaint was submitted a while ago and the title is quite long",
-      description: "I am a Level 2 student at ICT University, and I am writing to report a missing grade for the course Computational Mathematics taught by Engr. Agbor Andrew during the Spring 2025 semester. The final grades for the semester have recently been released, but my result for this particular course is not available on the student portal. I fully participated in the course throughout the semester, submitted all required assignments, and completed both the Continuous Assessment (CA) and the final examination. I was expecting to see a grade reflected for this course, as I encountered no issues with attendance or submission deadlines. This missing grade is affecting my academic record and progression, so I kindly request that the issue be investigated and resolved promptly. If any additional information is needed to support my complaint, I am willing to provide it. Thank you for your assistance.",
-      status: "Open",
-      timeAgo: "2 mins ago"
-    },
-    {
-      id: 2,
-      title: "I just wanted to complain ohh ... Me I just wan testam",
-      description: "I am a Level 2 student at ICT University, and I am writing to report a missing grade for the course Computational Mathematics taught by Engr. Agbor Andrew during the Spring 2025 semester. The final grades for the semester have recently been released, but my result for this particular course is not available on the student portal. I fully participated in the course throughout the semester, submitted all required assignments, and completed both the Continuous Assessment (CA) and the final examination. I was expecting to see a grade reflected for this course, as I encountered no issues with attendance or submission deadlines. This missing grade is affecting my academic record and progression, so I kindly request that the issue be investigated and resolved promptly. If any additional information is needed to support my complaint, I am willing to provide it. Thank you for your assistance.",
-      status: "In Progress",
-      timeAgo: "last week"
-    },
-    {
-      id: 1,
-      title: "This is a complaint title that is only one line",
-      description: "I am a Level 2 student at ICT University, and I am writing to report a missing grade for the course Computational Mathematics taught by Engr. Agbor Andrew during the Spring 2025 semester. The final grades for the semester have recently been released, but my result for this particular course is not available on the student portal. I fully participated in the course throughout the semester, submitted all required assignments, and completed both the Continuous Assessment (CA) and the final examination. I was expecting to see a grade reflected for this course, as I encountered no issues with attendance or submission deadlines. This missing grade is affecting my academic record and progression, so I kindly request that the issue be investigated and resolved promptly. If any additional information is needed to support my complaint, I am willing to provide it. Thank you for your assistance.",
-      status: "Resolved",
-      timeAgo: "20/4/2025"
-    }
-  ];
+  useEffect(() => {
+    const fetchComplaints = async () => {
+      try {
+        const data = await getComplaints();
+        if (Array.isArray(data)) {
+          setComplaints(data);
+        } else {
+          console.error('Invalid response:', data);
+          setError('Unexpected data format');
+        }
+      } catch (err: any) {
+        setError('Failed to fetch complaints');
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchComplaints();
+  }, []);
+
+  const filteredComplaints = statusFilter === 'All'
+      ? complaints
+      : complaints.filter(c => c.status === statusFilter);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -79,173 +68,174 @@ const ComplaintsUI = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto bg-[#050041] bg-opacity-[5%] min-h-screen border-r border-gray-200">
-      {/* Header */}
-      <div className="p-4 border-b border-gray-200">
-        <div className="flex items-center gap-2 mb-4">
-          <Image
-             src="/icons/preference-horizontal.svg"
-             alt='Filter icon'
-             height={24}
-             width={24} 
-          />
-          <span className="text-h2 font-semibold text-primary-950">Filters</span>
-        </div>
-        
-        {/* Filter Dropdowns */}
-        <div className="flex gap-2">
-          {/* Status Filter */}
-          <div className="relative">
-            <button
-              onClick={() => {
-                setStatusDropdownOpen(!statusDropdownOpen);
-                setValueDropdownOpen(false);
-              }}
-              className="flex items-center gap-[10px] px-[8px] py-[8px] w-[145px] h-[36px] text-sm border border-primary-950 rounded-[12px] bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <span className="text-primary-950 text-opacity-[80%] text-body font-sans">Status:</span>
-              <span className="text-primary-950 font-medium font-sans truncate text-ellipsis">{statusFilter}</span>
-              <Image
-             src="/icons/arrow-down-01.svg"
-             alt='Dropdown icon'
-             height={18}
-             width={18}
-          /> 
-            </button>
-            
-            {statusDropdownOpen && (
-              <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg z-10">
-                {['All','Open', 'In Progress', 'Escalated', 'Resolved'].map((status) => (
-                  <button
-                    key={status}
-                    onClick={() => {
-                      setStatusFilter(status);
-                      setStatusDropdownOpen(false);
-                    }}
-                    className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50"
-                  >
-                    {status}
-                  </button>
-                ))}
-              </div>
-            )}
+      <div className="fixed left-0 top-[72px] bottom-0 max-w-md mx-auto bg-[#050041] bg-opacity-[5%] min-h-screen border-r border-gray-200 z-0">
+        {/* Overlay: Put it BEFORE dropdowns so it’s behind them */}
+        {(statusDropdownOpen || valueDropdownOpen) && (
+            <div
+                className="fixed inset-0 z-10"
+                onClick={() => {
+                  setStatusDropdownOpen(false);
+                  setValueDropdownOpen(false);
+                }}
+            />
+        )}
+
+        {/* Header */}
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center gap-2 mb-4">
+            <Image
+                src="/icons/preference-horizontal.svg"
+                alt='Filter icon'
+                height={24}
+                width={24}
+            />
+            <span className="text-h2 font-semibold text-primary-950">Filters</span>
           </div>
 
-          {/* Value Filter */}
-          <div className="relative">
-            <button
-              onClick={() => {
-                setValueDropdownOpen(!valueDropdownOpen);
-                setStatusDropdownOpen(false);
-              }}
-              className="flex items-center w-[136px] h-[36px] gap-[10px] truncate px-[8px] py-[8px] text-sm border border-primary-950 rounded-[12px] bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <span className="text-gray-600">Filter:</span>
-              <span className="text-gray-900 truncate overflow-hidden text-ellipsis">{valueFilter}</span>
-              <Image
-             src="/icons/arrow-down-01.svg"
-             alt='Dropdown icon'
-             height={18}
-             width={18}
-          />
-            </button>
+          {/* Filter Dropdowns */}
+          <div className="flex gap-2">
+            {/* Status Filter */}
+            <div className="relative z-20">
+              <button
+                  onClick={() => {
+                    setStatusDropdownOpen(!statusDropdownOpen);
+                    setValueDropdownOpen(false);
+                  }}
+                  className="flex items-center gap-[10px] px-[8px] py-[8px] w-[145px] h-[36px] text-sm border border-primary-950 rounded-[12px] bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <span className="text-primary-950 text-opacity-[80%] text-body font-sans">Status:</span>
+                <span className="text-primary-950 font-medium font-sans truncate text-ellipsis">{statusFilter}</span>
+                <Image
+                    src="/icons/arrow-down-01.svg"
+                    alt='Dropdown icon'
+                    height={18}
+                    width={18}
+                />
+              </button>
 
-            {valueDropdownOpen && (
-              <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg z-10">
-                {['Value', 'Date', 'Priority', 'Category'].map((filter) => (
-                  <button
-                    key={filter}
-                    onClick={() => {
-                      setValueFilter(filter);
-                      setValueDropdownOpen(false);
-                    }}
-                    className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50"
-                  >
-                    {filter}
-                  </button>
-                ))}
-              </div>
-            )}
+              {statusDropdownOpen && (
+                  <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg z-20">
+                    {['All', 'Open', 'In Progress', 'Escalated', 'Resolved'].map((status) => (
+                        <button
+                            key={status}
+                            onClick={() => {
+                              setStatusFilter(status);
+                              setStatusDropdownOpen(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50"
+                        >
+                          {status}
+                        </button>
+                    ))}
+                  </div>
+              )}
+            </div>
+
+            {/* Value Filter */}
+            <div className="relative z-20">
+              <button
+                  onClick={() => {
+                    setValueDropdownOpen(!valueDropdownOpen);
+                    setStatusDropdownOpen(false);
+                  }}
+                  className="flex items-center w-[136px] h-[36px] gap-[10px] truncate px-[8px] py-[8px] text-sm border border-primary-950 rounded-[12px] bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <span className="text-gray-600">Filter:</span>
+                <span className="text-gray-900 truncate overflow-hidden text-ellipsis">{valueFilter}</span>
+                <Image
+                    src="/icons/arrow-down-01.svg"
+                    alt='Dropdown icon'
+                    height={18}
+                    width={18}
+                />
+              </button>
+
+              {valueDropdownOpen && (
+                  <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg z-20">
+                    {['Value', 'Date', 'Priority', 'Category'].map((filter) => (
+                        <button
+                            key={filter}
+                            onClick={() => {
+                              setValueFilter(filter);
+                              setValueDropdownOpen(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50"
+                        >
+                          {filter}
+                        </button>
+                    ))}
+                  </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* My Complaints Section */}
-      <div className="p-4">
-        <div className="flex items-center gap-2 mb-4">
-          <Image
-             src="/icons/megaphone-02.svg"
-             alt='Megaphone icon'
-             height={24}
-             width={24}
-          /> 
-          <h2 className="text-h2 font-semibold text-primary-950">My Complaints</h2>
-        </div>
+        {/* My Complaints Section */}
+        <div className="p-4">
+          <div className="flex items-center gap-2 mb-4">
+            <Image
+                src="/icons/megaphone-02.svg"
+                alt='Megaphone icon'
+                height={24}
+                width={24}
+            />
+            <h2 className="text-h2 font-semibold text-primary-950">My Complaints</h2>
+          </div>
 
-        {/* Complaints List */}
-        <div className="space-y-3 max-h-[calc(100vh-250px)] overflow-y-auto pr-2">
-          {complaints
-              .filter(c => statusFilter === 'All' || c.status === statusFilter)
-              .map((complaint) => (
-                  <div
-                      key={complaint.id}
-                      className="px-[16px] py-[16px] rounded-[20px] hover:shadow-md transition-shadow cursor-pointer"
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[18px] leading-[20px] font-heading font-medium text-darkColor">{complaint.id}.</span>
-                        <h3 className="text-[18px] font-medium text-darkColor leading-[20px] flex-1 font-sans">
-                          {complaint.title}
-                        </h3>
-                      </div>
-                      <button className="ml-2">
-                        <Image
-                            src="/icons/more-horizontal.svg"
-                            alt='Option icon'
-                            height={24}
-                            width={24}
-                        />
-                      </button>
+          {isLoading && <p className="p-4 text-gray-500">Loading complaints...</p>}
+          {error && <p className="p-4 text-red-500">{error}</p>}
+
+          {/* Complaints List */}
+          <div className="space-y-3 max-h-[calc(100vh-250px)] overflow-y-auto pr-2">
+            {filteredComplaints.map((complaint) => (
+                <div
+                    key={complaint.id}
+                    className="px-[16px] py-[16px] rounded-[20px] hover:shadow-md transition-shadow cursor-pointer"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[18px] leading-[20px] font-heading font-medium text-darkColor">{complaint.id}.</span>
+                      <h3 className="text-[18px] font-medium text-darkColor leading-[20px] flex-1 font-sans">
+                        {complaint.title}
+                      </h3>
                     </div>
+                    <button className="ml-2">
+                      <Image
+                          src="/icons/more-horizontal.svg"
+                          alt='Option icon'
+                          height={24}
+                          width={24}
+                      />
+                    </button>
+                  </div>
 
-                    <p className="text-[14px] ml-6 text-greyColor font-sans mb-3 truncate whitespace-nowrap overflow-hidden text-ellipsis pr-8">
-                      {complaint.description}
-                    </p>
+                  <p className="text-[14px] ml-6 text-greyColor font-sans mb-3 truncate whitespace-nowrap overflow-hidden text-ellipsis pr-8">
+                    {complaint.description}
+                  </p>
 
-                    <div className="flex items-center justify-between ml-6">
-                      <div className="flex items-center gap-2">
-                        <span className={`text-xs font-sans flex flex-row items-center justify-center px-[6px] py-[3px] gap-1 rounded-[8px] ${getStatusColor(complaint.status)}`}>
-                           <div>{getStatusIcon(complaint.status)}</div>
-                           {complaint.status}
-                        </span>
-                        <div className="flex items-center gap-1 text-xs text-[#050041] text-opacity-[50%] font-sans">
-                          <Image
-                              src="/icons/clock-02.svg"
-                              alt='Option icon'
-                              height={12}
-                              width={12}
-                          />
-                          <span>{complaint.timeAgo}</span>
-                        </div>
+                  <div className="flex items-center justify-between ml-6">
+                    <div className="flex items-center gap-2">
+                  <span className={`text-xs font-sans flex flex-row items-center justify-center px-[6px] py-[3px] gap-1 rounded-[8px] ${getStatusColor(complaint.status)}`}>
+                    <div>{getStatusIcon(complaint.status)}</div>
+                    {complaint.status}
+                  </span>
+                      <div className="flex items-center gap-1 text-xs text-[#050041] text-opacity-[50%] font-sans">
+                        <Image
+                            src="/icons/clock-02.svg"
+                            alt='Option icon'
+                            height={12}
+                            width={12}
+                        />
+                        <span>{complaint.created_at}</span>
                       </div>
                     </div>
                   </div>
-              ))}
+                </div>
+            ))}
+          </div>
         </div>
       </div>
-      {/* Click outside to close dropdowns */}
-      {(statusDropdownOpen || valueDropdownOpen) && (
-        <div
-          className="fixed inset-0 z-0"
-          onClick={() => {
-            setStatusDropdownOpen(false);
-            setValueDropdownOpen(false);
-          }}
-        />
-      )}
-    </div>
   );
 };
 
 export default ComplaintsUI;
-

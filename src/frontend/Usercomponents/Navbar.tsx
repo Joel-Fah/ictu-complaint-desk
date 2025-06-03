@@ -20,7 +20,7 @@ export default function Navbar() {
     const isActive = (href: string) => pathname === href;
 
     return (
-        <nav className="sticky top-0 left-0 right-0 z-50 w-full bg-primary-950 text-whiteColor px-6 md:px-[100px] py-[16px] flex items-center justify-between">
+        <nav className="sticky top-0 left-0 right-0 z-20 w-full bg-primary-950 text-whiteColor px-6 md:px-[100px] py-[16px] flex items-center justify-between">
             {/* Logo */}
             <div className="flex items-center space-x-2">
                 <Image
@@ -74,7 +74,7 @@ export default function Navbar() {
 
             {/* Mobile Sidebar */}
             {menuOpen && (
-                <div className="sm:hidden fixed top-16 left-0 right-0 bg-primary-950 text-white flex flex-col space-y-4 px-6 py-4 shadow-md z-40 animate-slide-down">
+                <div className="sm:hidden fixed top-16 left-0 right-0 bg-primary-950 text-white flex flex-col space-y-4 px-6 py-4 shadow-md z-20 animate-slide-down">
                     {navLinks.map(({ href, label, icon }) => (
                         <Link
                             key={href}

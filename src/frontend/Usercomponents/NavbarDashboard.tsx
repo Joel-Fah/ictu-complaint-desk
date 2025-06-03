@@ -6,8 +6,6 @@ import Image from "next/image";
 import Link from "next/link";
 import Button from "@/Usercomponents/Button";
 import { useUserStore } from "@/stores/userStore";
-
-// Replace with your actual icons
 import MenuIcon from "/public/icons/menu-11.svg";
 import XIcon from "/public/icons/cancel-01.svg";
 
@@ -25,7 +23,7 @@ const NavbarDashboard = () => {
   const isActive = (href: string) => pathname === href;
 
   return (
-      <nav className="sticky top-0 z-50 bg-primary-950 px-6 py-4 flex items-center justify-between text-white w-full">
+      <nav className="sticky top-0 left-0 right-0 z-20 bg-primary-950 h-[72px] px-6 py-4 flex items-center justify-between text-white w-full">
         {/* Left: Logo */}
         <div className="flex items-center space-x-8">
           <Image
@@ -83,13 +81,15 @@ const NavbarDashboard = () => {
           />
 
           {user?.picture && (
-              <Image
-                  src={user.picture}
-                  alt="Profile"
-                  width={40}
-                  height={40}
-                  className="rounded-full shadow-md"
-              />
+              <button onClick={() => {}}>
+                  <Image
+                      src={user.picture}
+                      alt="Profile"
+                      width={40}
+                      height={40}
+                      className="rounded-full shadow-md"
+                  />
+              </button>
           )}
           <div className="text-right">
             <div className="text-primary-100 font-heading text-[18.77px] font-semibold">{user?.fullName || "User"}</div>
@@ -106,7 +106,7 @@ const NavbarDashboard = () => {
 
         {/* Mobile Sidebar */}
         {menuOpen && (
-            <div className="sm:hidden fixed top-[64px] left-0 right-0 bg-primary-950 px-6 py-4 z-40 flex flex-col space-y-4 animate-slide-down shadow-md">
+            <div className="sm:hidden fixed top-[64px] left-0 right-0 bg-primary-950 px-6 py-4 z-30 flex flex-col space-y-4 animate-slide-down shadow-md">
               {navLinks.map(({ href, label, icon }) => (
                   <Link
                       key={href}
@@ -121,7 +121,7 @@ const NavbarDashboard = () => {
                   </Link>
               ))}
 
-              <div className="flex items-center gap-2 px-4 py-2">
+              <div className="flex items-center gap-2 px-4 py-2 truncate text-ellipsis">
                 {user?.picture && (
                     <Image
                         src={user.picture}
@@ -131,10 +131,12 @@ const NavbarDashboard = () => {
                         className="rounded-full shadow-md"
                     />
                 )}
-                <div className="text-left">
-                  <div className="font-medium text-sm">{user?.fullName || "User"}</div>
-                  <div className="text-blue-200 text-xs">{user?.role || "Student"}</div>
-                </div>
+                  <div className="text-left">
+                      <div className="font-medium text-sm truncate text-ellipsis">
+                          {user?.firstName ? user.firstName.split(" ").slice(0, 2).join(" ") : "User"}
+                      </div>
+                      <div className="text-blue-200 text-xs">{user?.role || "Student"}</div>
+                  </div>
               </div>
             </div>
         )}

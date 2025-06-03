@@ -24,6 +24,8 @@ type ButtonProps = {
     imageHeight?: number;
     imageClassName?: string;
     spanClassName?: string;
+    children?: React.ReactNode;
+    disabled?: boolean;
 };
 
 export default function Button({
@@ -47,12 +49,14 @@ export default function Button({
                                    imageHeight = 24,
                                    imageClassName = "",
                                    spanClassName = "",
+                                   children,
+                                   disabled = false,
                                }: ButtonProps) {
     return (
         <button
             type={type}
             onClick={onClick}
-            className={`flex items-center justify-center ${width} ${padding} ${border} ${borderRadius} ${textColor} ${bgColor} ${hoverBgColor} ${className}`}
+            className={`flex items-center justify-center ${width} ${padding} ${border} ${borderRadius} ${textColor} ${bgColor} ${hoverBgColor} ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
         >
             {imageSrc && (
                 <Image
@@ -64,8 +68,12 @@ export default function Button({
                 />
             )}
             <span className={`${fontSize} ${fontFamily} ${spanClassName}`}>
-        {text}
+        {children ?? (
+            <>
+                {text}
                 {strongText && <strong> {strongText}</strong>}
+            </>
+        )}
       </span>
         </button>
     );

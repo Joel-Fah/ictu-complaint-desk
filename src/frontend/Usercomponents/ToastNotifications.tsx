@@ -150,7 +150,7 @@ const ToastNotification: FC<ToastNotificationProps> = ({
                     type="button"
                 >
                     <Image
-                        src="/icons/cancel-circle.svg"
+                        src="/icons/cancel-01.svg"
                         alt="Close"
                         width={16}
                         height={16}
