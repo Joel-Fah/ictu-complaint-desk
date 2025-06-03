@@ -95,7 +95,7 @@ class ComplaintAdmin(admin.ModelAdmin):
     list_display = ['id', 'student__username', 'title', 'status', 'semester_year']
     list_filter = ['category', 'status', 'type', 'is_anonymous']
     search_fields = ['title', 'description']
-    readonly_fields = ['created_at']
+    readonly_fields = ['deadline', 'created_at']
 
     def semester_year(self, obj):
         return f'{obj.semester} {obj.year}'
