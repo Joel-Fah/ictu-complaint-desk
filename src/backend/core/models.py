@@ -68,7 +68,7 @@ class StudentProfile(models.Model):
     user = models.OneToOneField(
         CustomUser,
         on_delete=models.CASCADE,
-        related_name='student_profile'
+        related_name='studentprofile'
     )
 
     student_number = models.CharField(
@@ -89,7 +89,7 @@ class AdminProfile(models.Model):
     user = models.OneToOneField(
         CustomUser,
         on_delete=models.CASCADE,
-        related_name='admin_profile'
+        related_name='adminprofile'
     )
 
     office = models.CharField(
@@ -115,7 +115,7 @@ class LecturerProfile(models.Model):
     user = models.OneToOneField(
         CustomUser,
         on_delete=models.CASCADE,
-        related_name='lecturer_profile'
+        related_name='lecturerprofile'
     )
 
     def __str__(self):

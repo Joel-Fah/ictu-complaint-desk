@@ -4,7 +4,7 @@ import requests
 from allauth.socialaccount.models import SocialToken, SocialAccount
 from django.contrib.auth import get_user_model, logout
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from django.shortcuts import redirect
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView

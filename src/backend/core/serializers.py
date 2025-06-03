@@ -29,21 +29,31 @@ class AdminProfileSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     google_data = serializers.SerializerMethodField()
-    profile = serializers.SerializerMethodField()
+    profiles = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = '__all__'
         extra_kwargs = {'password': {'write_only': True}}
 
-    def get_profile(self, obj):
+    def get_profiles(self, obj):
+        profiles = []
         if hasattr(obj, 'studentprofile'):
-            return StudentProfileSerializer(obj.studentprofile).data
-        elif hasattr(obj, 'lecturerprofile'):
-            return LecturerProfileSerializer(obj.lecturerprofile).data
-        elif hasattr(obj, 'adminprofile'):
-            return AdminProfileSerializer(obj.adminprofile).data
-        return None
+            profiles.append({
+                'type': 'student',
+                'data': StudentProfileSerializer(obj.studentprofile).data
+            })
+        if hasattr(obj, 'lecturerprofile'):
+            profiles.append({
+                'type': 'lecturer',
+                'data': LecturerProfileSerializer(obj.lecturerprofile).data
+            })
+        if hasattr(obj, 'adminprofile'):
+            profiles.append({
+                'type': 'admin',
+                'data': AdminProfileSerializer(obj.adminprofile).data
+            })
+        return profiles
 
     def get_google_data(self, obj):
         try:
