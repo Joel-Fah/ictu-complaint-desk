@@ -13,7 +13,6 @@ import Footer from "@/Usercomponents/Footer";
 function Home() {
   return (
     <section>
-        <Navbar />
         <ComplaintBanner
             smallText="You know what?"
             largeText="There's always a"

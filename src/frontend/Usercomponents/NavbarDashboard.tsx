@@ -1,13 +1,14 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Button from "@/Usercomponents/Button";
 import { useUserStore } from "@/stores/userStore";
 import MenuIcon from "/public/icons/menu-11.svg";
 import XIcon from "/public/icons/cancel-01.svg";
+import {logout} from "@/lib/auth";
 
 const navLinks = [
   { href: "/dashboard", label: "Personal", icon: "/icons/user-lock-01.svg" },
@@ -19,8 +20,25 @@ const NavbarDashboard = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const toggleMenu = () => setMenuOpen((prev) => !prev);
   const user = useUserStore((state) => state.user);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  const isActive = (href: string) => pathname === href;
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            const target = event.target as HTMLElement;
+            if (!target.closest(".profile-dropdown")) {
+                setDropdownOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
+
+
+
+    const isActive = (href: string) => pathname === href;
 
   return (
       <nav className="sticky top-0 left-0 right-0 z-20 bg-primary-950 h-[72px] px-6 py-4 flex items-center justify-between text-white w-full">
@@ -81,18 +99,35 @@ const NavbarDashboard = () => {
           />
 
           {user?.picture && (
-              <button onClick={() => {}}>
-                  <Image
-                      src={user.picture}
-                      alt="Profile"
-                      width={40}
-                      height={40}
-                      className="rounded-full shadow-md"
-                  />
-              </button>
+              <div className="relative profile-dropdown">
+                  <button onClick={() => setDropdownOpen(!dropdownOpen)}>
+                      <Image
+                          src={user.picture}
+                          alt="Profile"
+                          width={40}
+                          height={40}
+                          className="rounded-full shadow-md mr-9"
+                      />
+                  </button>
+                  {dropdownOpen && (
+                      <div className="absolute z-40 bg-white border rounded-md shadow-md">
+                          {/* Logout button */}
+                          <button
+                              onClick={() => {
+                                  sessionStorage.removeItem('loginToastShown');
+                                  logout();
+                              }}
+                              className="px-4 py-2 bg-error text-white rounded hover:bg-red-700"
+                          >
+                              Logout
+                          </button>
+                      </div>
+                  )}
+              </div>
+
           )}
           <div className="text-right">
-            <div className="text-primary-100 font-heading text-[18.77px] font-semibold">{user?.fullName || "User"}</div>
+            <div className="text-primary-100 font-heading text-[18.77px] font-semibold">{user?.fullName ? user.fullName.split(" ").slice(0, 2).join(" ") : "User"}</div>
             <div className="text-primary-100 text-[9.38px] font-sans">{user?.role || "student"}</div>
           </div>
         </div>
@@ -133,7 +168,7 @@ const NavbarDashboard = () => {
                 )}
                   <div className="text-left">
                       <div className="font-medium text-sm truncate text-ellipsis">
-                          {user?.firstName ? user.firstName.split(" ").slice(0, 2).join(" ") : "User"}
+                          {user?.fullName ? user.fullName.split(" ").slice(0, 2).join(" ") : "User"}
                       </div>
                       <div className="text-blue-200 text-xs">{user?.role || "Student"}</div>
                   </div>

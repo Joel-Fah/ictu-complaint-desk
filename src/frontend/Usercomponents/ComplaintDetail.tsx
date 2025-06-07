@@ -1,69 +1,82 @@
-import React from 'react';
+import React from "react";
 import { Complaint } from "@/types/complaint";
 import ComplaintDetailSkeleton from "@/Usercomponents/ComplaintDetailSkeleton";
+import { useCategoryStore } from "@/stores/categoryStore";
 
 interface ComplaintDetailProps {
-    complaint: Complaint;
+    complaint: Complaint | null;
     isLoading?: boolean;
 }
 
-const ComplaintDetail: React.FC<ComplaintDetailProps> = ({
-                                                             complaint,
-                                                             isLoading = false,
-                                                         }) => {
-    if (isLoading) {
-        return <ComplaintDetailSkeleton />;
+const ComplaintDetail: React.FC<ComplaintDetailProps> = ({ complaint, isLoading = false }) => {
+    const { categories } = useCategoryStore();
+    const categoryId = complaint?.category ? Number(complaint.category) : -1;
+    const categoryName = categories[categoryId] ?? `Category ${complaint?.category}`;
+
+    if (isLoading) return <ComplaintDetailSkeleton />;
+
+    if (!complaint) {
+        return (
+            <div className="text-center text-gray-500 italic mt-4" role="status" aria-live="polite">
+                Select a complaint to view its details.
+            </div>
+        );
     }
 
     return (
-        <div className="bg-white p-4 max-w-[590px] mx-auto space-y-4">
+        <div className="bg-white p-4 w-full max-w-4xl mx-auto space-y-6">
             {/* Header */}
-            <div className="mb-12">
-                <h1 className="text-[48px] font-heading text-darkColor">
+            <div>
+                <h1 className="text-3xl sm:text-4xl lg:text-[48px] font-heading text-darkColor">
                     {complaint.id}. {complaint.title || "Untitled"}
                 </h1>
             </div>
+
             <div>
-                <h1 className="text-h3 font-heading text-greyColor font-medium">Details</h1>
+                <h2 className="text-lg sm:text-xl font-heading text-greyColor font-medium">Details</h2>
             </div>
 
             {/* Badges */}
-            <div className="flex flex-wrap gap-[16px]">
-                <div className="bg-[#050041] bg-opacity-[5%] px-[16px] py-[10px] rounded-[16px] w-[186px] h-[58px]">
-                    <span className="font-sans text-small text-darkColor">Category:</span> <br/><p className="font-sans text-body font-medium text-darkColor">{complaint.category}</p>
+            <div className="flex flex-col sm:flex-row gap-4">
+                <div className="bg-[#050041] bg-opacity-[5%] px-4 py-3 rounded-2xl flex-1">
+                    <span className="font-sans text-sm text-darkColor">Category:</span><br />
+                    <p className="font-sans text-base font-medium text-darkColor">{categoryName}</p>
                 </div>
-                <div className="bg-[#050041] bg-opacity-[5%] px-[16px] py-[10px] rounded-[16px] w-[186px] h-[58px]">
-                    <span className="font-sans text-small text-darkColor">Semester:</span><br/><p className="font-sans text-body font-medium text-darkColor">{complaint.semester}</p>
+                <div className="bg-[#050041] bg-opacity-[5%] px-4 py-3 rounded-2xl flex-1">
+                    <span className="font-sans text-sm text-darkColor">Semester:</span><br />
+                    <p className="font-sans text-base font-medium text-darkColor">
+                        {complaint.semester} {complaint.year}
+                    </p>
                 </div>
             </div>
 
             {/* Description */}
             <div className="prose max-w-none">
-                <p className="font-sans text-darkColor text-body whitespace-pre-wrap">
-                    {complaint.description}
+                <p className="font-sans text-darkColor text-base whitespace-pre-wrap">
+                    {complaint.description || "No description provided."}
                 </p>
-            </div><br/><br/>
+            </div>
 
             {/* Metadata */}
-            <div className="pt-6 border-t border-gray-200 text-sm text-gray-500 flex flex-col sm:flex-row sm:justify-between space-y-2 sm:space-y-0">
+            <div className="pt-6 border-t border-gray-200 text-sm text-gray-500 flex flex-col sm:flex-row sm:justify-between gap-2">
         <span>
-          Created:{' '}
-            {new Date(complaint.created_at).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
+          Created:{" "}
+            {complaint.created_at && new Date(complaint.created_at).toLocaleString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
             })}
         </span>
                 <span>
-          Updated:{' '}
-                    {new Date(complaint.updated_at).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
+          Updated:{" "}
+                    {complaint.updated_at && new Date(complaint.updated_at).toLocaleString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
                     })}
         </span>
             </div>

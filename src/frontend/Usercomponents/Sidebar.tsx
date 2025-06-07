@@ -2,15 +2,22 @@ import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Complaint } from "@/types/complaint";
 import { getComplaints } from '@/lib/api';
+import { formatComplaintDate } from "@/lib/formatDate";
 
-const ComplaintsUI = () => {
+interface ComplaintsUIProps {
+  onSelectItem: (item: Complaint) => void;
+}
+
+const ComplaintsUI = ({ onSelectItem }: ComplaintsUIProps) => {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const [selectedComplaintId, setSelectedComplaintId] = useState<number | null>(null);
   const [statusFilter, setStatusFilter] = useState('Open');
   const [valueFilter, setValueFilter] = useState('Value');
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
   const [valueDropdownOpen, setValueDropdownOpen] = useState(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
 
   useEffect(() => {
     const fetchComplaints = async () => {
@@ -68,8 +75,8 @@ const ComplaintsUI = () => {
   };
 
   return (
-      <div className="fixed left-0 top-[72px] bottom-0 max-w-md mx-auto bg-[#050041] bg-opacity-[5%] min-h-screen border-r border-gray-200 z-0">
-        {/* Overlay: Put it BEFORE dropdowns so it’s behind them */}
+      <div className="md:fixed md:left-0 md:top-[72px] md:bottom-0 md:w-[320px] w-full bg-[#050041] bg-opacity-[5%] min-h-screen md:border-r border-gray-200 z-0">
+      {/* Overlay: Put it BEFORE dropdowns so it’s behind them */}
         {(statusDropdownOpen || valueDropdownOpen) && (
             <div
                 className="fixed inset-0 z-10"
@@ -186,11 +193,19 @@ const ComplaintsUI = () => {
           {error && <p className="p-4 text-red-500">{error}</p>}
 
           {/* Complaints List */}
-          <div className="space-y-3 max-h-[calc(100vh-250px)] overflow-y-auto pr-2">
+          <div className="space-y-3 max-h-[calc(100vh-250px)] overflow-y-auto pr-2 rounded-[20px]">
             {filteredComplaints.map((complaint) => (
                 <div
                     key={complaint.id}
-                    className="px-[16px] py-[16px] rounded-[20px] hover:shadow-md transition-shadow cursor-pointer"
+                    onClick={() => {
+                      onSelectItem(complaint)
+                      setSelectedComplaintId(complaint.id)
+                    }}
+                    className={`px-[16px] py-[21px] rounded-[20px] transition-all duration-300 cursor-pointer mb-1.5 ${
+                        selectedComplaintId === complaint.id
+                            ? 'bg-white shadow-lg'
+                            : 'hover:bg-white hover:shadow-lg'
+                    }`}
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-2">
@@ -226,7 +241,7 @@ const ComplaintsUI = () => {
                             height={12}
                             width={12}
                         />
-                        <span>{complaint.created_at}</span>
+                        <span>{formatComplaintDate(complaint.created_at)}</span>
                       </div>
                     </div>
                   </div>

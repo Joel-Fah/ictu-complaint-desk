@@ -54,7 +54,7 @@ export default function Navbar() {
                 {/* Sign In */}
                 <div className="flex items-center">
                     <Link
-                        href="/login"
+                        href="http://localhost:8000/accounts/google/login/?process=login"
                         className={`flex items-center text-whiteColor px-[16px] py-[8px] rounded-[16px] bg-primary-800 hover:bg-blue-700 transition gap-[10px] ${
                             isActive("/login") ? "ring-2 ring-[#E4EDFF] ring-opacity-40" : ""
                         }`}
@@ -90,7 +90,7 @@ export default function Navbar() {
                     ))}
 
                     <Link
-                        href="/login"
+                        href="http://localhost:8000/accounts/google/login/?process=login"
                         onClick={toggleMenu}
                         className={`flex items-center gap-2 px-4 py-2 rounded-[12px] ${
                             isActive("/login") ? "bg-[#E4EDFF] bg-opacity-[20%]" : ""

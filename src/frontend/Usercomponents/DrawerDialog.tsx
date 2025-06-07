@@ -16,6 +16,9 @@ import {
 } from "@/components/ui/drawer"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { toast } from 'sonner';
+import {updateStudentProfile} from "@/lib/api";
+import ToastNotification from "@/Usercomponents/ToastNotifications";
 
 export function DrawerDialogDemo() {
     const [open, setOpen] = React.useState(false)
@@ -44,13 +47,53 @@ export function DrawerDialogDemo() {
 }
 
 function ProfileForm({ className }: React.ComponentProps<"form">) {
+    const [studentNumber, setStudentNumber] = React.useState("");
+    const [loading, setLoading] = React.useState(false);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            await updateStudentProfile({ student_number: studentNumber });
+            toast.custom((t) => (
+                <ToastNotification
+                    type="success"
+                    title="Student matricule added successfully!"
+                    subtitle="Now you can get on with your complaints."
+                    onClose={() => toast.dismiss(t)}
+                    showClose
+                />
+            ), { duration: 4000 });
+        } catch (err) {
+            toast.custom((t) => (
+                <ToastNotification
+                    type="error"
+                    title="Failed to add student matricule"
+                    subtitle="Something went wrong!."
+                    onClose={() => toast.dismiss(t)}
+                    showClose
+                />
+            ), { duration: 4000 });
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
-        <form className={cn("grid items-start gap-6 bg-primary-50", className)}>
+        <form onSubmit={handleSubmit} className={cn("grid items-start gap-6 bg-primary-50", className)}>
             <div className="grid gap-3">
                 <Label htmlFor="student_number">Your Matricule</Label>
-                <Input id="student_number" placeholder="ICTU20231414" className="bg-whiteColor"/>
+                <Input id="student_number"
+                       value={studentNumber}
+                       onChange={(e) => setStudentNumber(e.target.value)}
+                       placeholder="ICTU2023xxxx"
+                       className="bg-whiteColor"
+                />
             </div>
-            <Button type="submit" className="bg-primary-800 text-whiteColor hover:bg-primary-400">Save changes</Button>
+            <Button type="submit" className="bg-primary-800 text-whiteColor hover:bg-primary-400" disabled={loading}>
+                {loading ? "Saving..." : "Save changes"}
+            </Button>
         </form>
     )
 }

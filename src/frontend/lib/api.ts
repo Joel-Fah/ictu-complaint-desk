@@ -64,8 +64,8 @@ export const getUser = async (token: string | null) => {
         id: raw.id,
         username: raw.username,
         email: raw.email,
-        fullName: extra.name || `${raw.first_name} ${raw.last_name}`,
-        firstName: extra.given_name || raw.first_name,
+        fullName: extra.name,
+        firstName: raw.first_name,
         lastName: extra.family_name || raw.last_name,
         picture: extra.picture || "",
         isStaff: raw.is_staff,
@@ -74,6 +74,7 @@ export const getUser = async (token: string | null) => {
         dateJoined: raw.date_joined,
         googleUid: raw.google_data?.uid || "",
         domain: extra.hd || "",
+        profiles: raw.profiles,
     };
 };
 
@@ -137,17 +138,9 @@ export const createUser = async (id: number | string, data: any) => (await api.p
 export const getUserById = async (id: number | string) => (await api.get(`/users/${id}/`)).data;
 export const updateUser = async (id: number | string, data: any) => (await api.put(`/users/${id}/`, data)).data;
 export const patchUser = async (id: number | string, data: any) => (await api.patch(`/users/${id}/`, data)).data;
-// Dummy implementation
-export async function fetchStudentNumber(userId: number | string): Promise<{ student_number?: string }> {
-    // Simulate a network delay
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
-    return {
-        // Set to undefined to trigger dialog; set to a string like 'ICTU20230001' to suppress dialog
-        student_number: undefined,
-    };
-}
-
+export const updateStudentProfile = async (data: { student_number: string }) => {
+    return (await api.patch("/users/students/profile/", data)).data;
+};
 
 
 export default api;
