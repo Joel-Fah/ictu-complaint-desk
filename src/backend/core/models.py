@@ -19,7 +19,7 @@ class UserRole(str, Enum):
 
     @classmethod
     def choices(cls):
-        return [(tag.value, tag.value) for tag in cls]
+        return [(tag, tag.value) for tag in cls]
 
 
 class SemesterChoices(models.TextChoices):
