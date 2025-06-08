@@ -74,10 +74,10 @@ const NavbarDashboard = () => {
           <Button
               onClick={() => {}}
               width={"26px"}
-              imageSrc={"/icons/mail-02.svg"}
-              imageAlt={"Mail Icon"}
-              imageWidth={24}
-              imageHeight={24}
+              leftImageSrc={"/icons/mail-02.svg"}
+              leftImageAlt={"Mail Icon"}
+              leftImageWidth={24}
+              leftImageHeight={24}
               bgColor={"bg-transparent"}
               borderRadius={"rounded-full"}
               text={""}
@@ -87,15 +87,15 @@ const NavbarDashboard = () => {
           <Button
               onClick={() => {}}
               width={"26px"}
-              imageSrc={"/icons/notification-03.svg"}
-              imageAlt={"Notification Icon"}
-              imageWidth={24}
-              imageHeight={24}
+              leftImageSrc={"/icons/notification-03.svg"}
+              leftImageAlt={"Notification Icon"}
+              leftImageWidth={24}
+              leftImageHeight={24}
               bgColor={"bg-transparent"}
               borderRadius={"rounded-full"}
               text={""}
               border={"border-none"}
-              imageClassName={"mr-7"}
+              leftImageClassName={"mr-7"}
           />
 
           {user?.picture && (

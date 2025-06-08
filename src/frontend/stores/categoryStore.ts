@@ -1,11 +1,14 @@
+// @/store/categoryStore.ts
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { getCategories } from "@/lib/api";
+import { Category } from "@/types/category";
 
 type CategoryState = {
-    categories: Record<number, string>;
+    categories: Record<number, Category>;
     loading: boolean;
     fetchCategories: () => Promise<void>;
+    resetCategories: () => void;
 };
 
 export const useCategoryStore = create(
@@ -16,9 +19,9 @@ export const useCategoryStore = create(
             fetchCategories: async () => {
                 set({ loading: true });
                 try {
-                    const data = await getCategories();
-                    const map = data.reduce((acc: Record<number, string>, curr:any) => {
-                        acc[curr.id] = curr.name;
+                    const data: Category[] = await getCategories();
+                    const map = data.reduce((acc: Record<number, Category>, curr) => {
+                        acc[curr.id] = curr;
                         return acc;
                     }, {});
                     set({ categories: map });
@@ -28,6 +31,7 @@ export const useCategoryStore = create(
                     set({ loading: false });
                 }
             },
+            resetCategories: () => set({ categories: {}, loading: false }),
         }),
         {
             name: "category-store",

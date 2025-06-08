@@ -7,7 +7,6 @@ import ToastNotification from '@/Usercomponents/ToastNotifications';
 import { useUserStore } from '@/stores/userStore';
 import { withAuth } from "@/lib/withAuth";
 import Sidebar from "@/Usercomponents/Sidebar";
-import NavbarDashboard from "@/Usercomponents/NavbarDashboard";
 import { DrawerDialogDemo } from "@/Usercomponents/DrawerDialog";
 import Button from "@/Usercomponents/Button";
 import { Complaint } from "@/types/complaint";
@@ -124,8 +123,8 @@ function DashboardPage() {
             <Button
                 width="207px"
                 type="button"
-                className="fixed bottom-6 right-6 z-50 font-sans font-medium text-body h-[44px] gap-[10px] text-primary-50 shadow-xl/30"
-                imageSrc="/icons/file-add.svg"
+                className="fixed bottom-6 right-6 z-50 font-sans font-medium text-body h-[44px] gap-[10px] text-primary-50 shadow-md"
+                leftImageSrc="/icons/file-add.svg"
                 bgColor="bg-primary-800"
                 hoverBgColor="bg-primary-600"
                 padding="px-[12px] py-[10px]"

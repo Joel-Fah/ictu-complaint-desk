@@ -13,7 +13,7 @@ export default function LoginCallbackPage() {
             localStorage.setItem('access_token', token);
             router.push('/dashboard?login=success');
         } else {
-            router.push('/login?error=missing_token');
+            router.push('/?error=missing_token');
         }
     }, [router, searchParams]);
 

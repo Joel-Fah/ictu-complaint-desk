@@ -11,7 +11,8 @@ interface ComplaintDetailProps {
 const ComplaintDetail: React.FC<ComplaintDetailProps> = ({ complaint, isLoading = false }) => {
     const { categories } = useCategoryStore();
     const categoryId = complaint?.category ? Number(complaint.category) : -1;
-    const categoryName = categories[categoryId] ?? `Category ${complaint?.category}`;
+    const category = categories[categoryId] ?? `Category ${complaint?.category}`;
+    const categoryName = category?.name ?? "";
 
     if (isLoading) return <ComplaintDetailSkeleton />;
 

@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { getAccessToken, removeAccessToken } from "@/lib/token";
 import {Complaint} from "@/types/complaint";
+import {Category} from "@/types/category";
 
 interface ComplaintResponse {
     count: number;
@@ -33,7 +34,7 @@ api.interceptors.response.use(
         if (error.response?.status === 401) {
             removeAccessToken();
             if (typeof window !== 'undefined') {
-                window.location.href = '/login';
+                window.location.href = '/';
             }
         }
         return Promise.reject(error);
@@ -80,12 +81,23 @@ export const getUser = async (token: string | null) => {
 
 // ======= CATEGORIES =======
 
-export const getCategories = async () => (await api.get("/categories/")).data;
-export const createCategory = async (data: any) => (await api.post("/categories/", data)).data;
-export const getCategory = async (id: number | string) => (await api.get(`/categories/${id}/`)).data;
-export const updateCategory = async (id: number | string, data: any) => (await api.put(`/categories/${id}/`, data)).data;
-export const patchCategory = async (id: number | string, data: any) => (await api.patch(`/categories/${id}/`, data)).data;
-export const deleteCategory = async (id: number | string) => (await api.delete(`/categories/${id}/`)).data;
+export const getCategories = async (): Promise<Category[]> =>
+    (await api.get("/categories/")).data;
+
+export const createCategory = async (data: Partial<Category>) =>
+    (await api.post("/categories/", data)).data;
+
+export const getCategory = async (id: number | string): Promise<Category> =>
+    (await api.get(`/categories/${id}/`)).data;
+
+export const updateCategory = async (id: number | string, data: Partial<Category>) =>
+    (await api.put(`/categories/${id}/`, data)).data;
+
+export const patchCategory = async (id: number | string, data: Partial<Category>) =>
+    (await api.patch(`/categories/${id}/`, data)).data;
+
+export const deleteCategory = async (id: number | string) =>
+    (await api.delete(`/categories/${id}/`)).data;
 
 // ======= COMPLAINTS =======
 export const getComplaints = async (): Promise<Complaint[]> => {
@@ -98,11 +110,33 @@ export const getComplaints = async (): Promise<Complaint[]> => {
     }
 };
 
-export const createComplaint = async (data: any) => (await api.post("/complaints/", data)).data;
+
+export const createComplaint = async (data: any) => {
+    try {
+        return (await api.post("/complaints/", data)).data;
+    } catch (error: any) {
+        if (error.response) {
+            console.error("API Error Response:", error.response.data);
+        } else {
+            console.error("Unknown Error:", error.message);
+        }
+        throw error;
+    }
+};
+
 export const getComplaint = async (id: number | string) => (await api.get(`/complaints/${id}/`)).data;
 export const updateComplaint = async (id: number | string, data: any) => (await api.put(`/complaints/${id}/`, data)).data;
 export const patchComplaint = async (id: number | string, data: any) => (await api.patch(`/complaints/${id}/`, data)).data;
 export const deleteComplaint = async (id: number | string) => (await api.delete(`/complaints/${id}/`)).data;
+
+// ======= Courses =======
+export const getCourses = async () => (await api.get("/courses/")).data;
+export const createCourse = async (data: any) => (await api.post("/courses/", data)).data;
+export const getCourse = async (id: number | string) => (await api.get(`/courses/${id}/`)).data;
+export const updateCourse = async (id: number | string, data: any) => (await api.put(`/courses/${id}/`, data)).data;
+export const patchCourse = async (id: number | string, data: any) => (await api.patch(`/courses/${id}/`, data)).data;
+export const deleteCourse = async (id: number | string) => (await api.delete(`/courses/${id}/`)).data;
+
 
 // ======= NOTIFICATIONS =======
 
@@ -133,7 +167,6 @@ export const deleteResolution = async (id: number | string) => (await api.delete
 
 // ======= USERS =======
 
-export const getUsers = async () => (await api.get("/users/")).data;
 export const createUser = async (id: number | string, data: any) => (await api.post(`/users/${id}/`, data)).data;
 export const getUserById = async (id: number | string) => (await api.get(`/users/${id}/`)).data;
 export const updateUser = async (id: number | string, data: any) => (await api.put(`/users/${id}/`, data)).data;

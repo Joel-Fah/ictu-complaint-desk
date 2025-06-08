@@ -10,11 +10,7 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
     const pathname = usePathname();
 
     const isRoot = pathname === "/";
-    const isLogin = pathname === "/login";
 
-    if (isLogin) {
-        return <main>{children}</main>;
-    }
 
     return (
         <>

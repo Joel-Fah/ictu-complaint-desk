@@ -55,8 +55,7 @@ export default function Navbar() {
                 <div className="flex items-center">
                     <Link
                         href="http://localhost:8000/accounts/google/login/?process=login"
-                        className={`flex items-center text-whiteColor px-[16px] py-[8px] rounded-[16px] bg-primary-800 hover:bg-blue-700 transition gap-[10px] ${
-                            isActive("/login") ? "ring-2 ring-[#E4EDFF] ring-opacity-40" : ""
+                        className={`flex items-center text-whiteColor px-[16px] py-[8px] rounded-[16px] bg-primary-800 hover:bg-blue-700 transition gap-[10px]
                         }`}
                     >
                         <Image src="/icons/login-03.svg" alt="Sign In Icon" width={24} height={24} />
@@ -92,8 +91,7 @@ export default function Navbar() {
                     <Link
                         href="http://localhost:8000/accounts/google/login/?process=login"
                         onClick={toggleMenu}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-[12px] ${
-                            isActive("/login") ? "bg-[#E4EDFF] bg-opacity-[20%]" : ""
+                        className={`flex items-center gap-2 px-4 py-2 rounded-[12px]
                         }`}
                     >
                         <Image src="/icons/login-03.svg" alt="Sign In Icon" width={24} height={24} />

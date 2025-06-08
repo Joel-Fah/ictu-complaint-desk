@@ -1,9 +1,17 @@
 'use client'
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import Button from '@/Usercomponents/Button'
 import Image from 'next/image';
 import RichTextEditor from "@/Usercomponents/RichTextEditor";
 import FileUploadPreview from "@/Usercomponents/FileUploadPreview";
+import { useUserStore } from '@/stores/userStore';
+import { useCategoryStore } from "@/stores/categoryStore";
+import {useCourseStore} from "@/stores/useCourseStore";
+import { getUserById } from "@/lib/api";
+import { createComplaint } from "@/lib/api";
+import {toast} from "sonner";
+import ToastNotification from "@/Usercomponents/ToastNotifications";
+import {useRouter} from "next/navigation";
 
 interface FormData {
     category: string;
@@ -15,14 +23,111 @@ interface FormData {
 }
 
 const ComplaintForm: React.FC = () => {
+    const { categories, fetchCategories } = useCategoryStore();
+    const [selectedCategory, setSelectedCategory] = useState("");
+    const { courses, fetchCourses } = useCourseStore();
+    const [selectedCourseId, setSelectedCourseId] = useState("");
+    const [lecturerName, setLecturerName] = useState("");
+    const [semester, setSemester] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const router = useRouter();
+
     const [formData, setFormData] = useState<FormData>({
-        category: 'Missing grade',
-        semester: 'Spring',
-        complaintTitle: 'No grade for computational maths',
-        courseCode: 'MTH2222 Computational Maths',
+        category: '',
+        semester: '',
+        complaintTitle: '',
+        courseCode: '',
         description: '',
         attachments: []
     });
+
+    const isFormValid = selectedCategory && selectedCourseId && semester &&
+        formData.complaintTitle.trim() && formData.description.trim();
+
+    const selectedCourse = courses.find((course) => course.id === Number(selectedCourseId));
+
+    const user = useUserStore((state) => state.user);
+    const currentYear = new Date().getFullYear();
+
+
+    const studentProfile = user?.profiles?.find(p => p.type === "student");
+    const studentNumber = studentProfile?.data?.student_number;
+
+    useEffect(() => {
+        if (!selectedCourse) return;
+        const fetchLecturerName = async () => {
+            if (selectedCourse?.lecturer) {
+                try {
+                    const lecturer = await getUserById(selectedCourse.lecturer);
+                    setLecturerName(lecturer.first_name || `${lecturer.first_name} ${lecturer.last_name}`);
+                } catch (error) {
+                    console.error("Failed to fetch lecturer name:", error);
+                    setLecturerName("Unknown");
+                }
+            } else {
+                setLecturerName("");
+            }
+
+        };
+        fetchLecturerName();
+
+    }, [setLecturerName, selectedCourse]);
+
+    useEffect(() => {
+        fetchCourses();
+        fetchCategories();
+    }, [fetchCategories, fetchCourses]);
+
+    const goBack = () => {
+        router.back(); // Navigates to the previous page in history
+    };
+
+    const handleSubmit = async () => {
+        if (!isFormValid || isSubmitting) return;
+
+        setIsSubmitting(true);
+        try {
+            const payload = {
+                category: parseInt(selectedCategory),
+                semester,
+                title: formData.complaintTitle,
+                course: parseInt(selectedCourseId),
+                description: formData.description,
+                student: user?.id
+            };
+
+
+            console.log("Complaint Payload:", payload);
+            await createComplaint(payload);
+
+            toast.custom((t) => (
+                <ToastNotification
+                    type="success"
+                    title="Complaint filed!"
+                    subtitle="Congratulations you are one step closer to peace of mind"
+                    onClose={() => toast.dismiss(t)}
+                    showClose
+                />
+            ), { duration: 4000 });
+            goBack();
+        } catch (err) {
+            console.error("Submission error:", err);
+            toast.custom((t) => (
+                <ToastNotification
+                    type="error"
+                    title="Something went wrong!"
+                    subtitle="There seems to be a problem. Please try again. Contact an admin if problem persists"
+                    onClose={() => toast.dismiss(t)}
+                    showClose
+                />
+            ), { duration: 4000 });
+            goBack();
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+    
+
 
     const handleInputChange = (field: keyof FormData, value: string) => {
         setFormData(prev => ({
@@ -31,14 +136,16 @@ const ComplaintForm: React.FC = () => {
         }));
     };
 
-    const handleFileUpload = (files: FileList | null) => {
-        if (files) {
-            setFormData(prev => ({
-                ...prev,
-                attachments: [...prev.attachments, ...Array.from(files)]
-            }));
-        }
-    };
+    {/**
+     const handleFileUpload = (files: FileList | null) => {
+     if (files) {
+     setFormData(prev => ({
+     ...prev,
+     attachments: [...prev.attachments, ...Array.from(files)]
+     }));
+     }
+     };
+     **/}
 
     return (
         <div className="h-screen bg-gray-50 flex overflow-hidden">
@@ -50,6 +157,7 @@ const ComplaintForm: React.FC = () => {
                         width={24}
                         height={24}
                         alt="Back icon"
+                        onClick={goBack}
                     />
 
                     <h1 className="text-h1 font-bold mb-2 font-heading text-whiteColor">
@@ -68,7 +176,7 @@ const ComplaintForm: React.FC = () => {
                 <div className="flex flex-col items-start justify-center rounded-[20px] border border-primary-800 gap-2 px-5 py-4">
                     <div className="text-sm text-primary-50">Submitting as:</div>
                     <div className="text-xl font-heading font-semibold">
-                        Dajen Fah Joel (ICT20240004)
+                        {user?.fullName ? user.fullName.split(" ").slice(0, 2).join(" ") : "User"} ({studentNumber})
                     </div>
                 </div>
 
@@ -103,11 +211,19 @@ const ComplaintForm: React.FC = () => {
                                 <div className="relative">
                                     <select
                                         id="category"
+                                        value={selectedCategory}
+                                        onChange={(e) => setSelectedCategory(e.target.value)}
                                         className="appearance-none w-full bg-transparent text-xl text-primary-950 border-0 border-b border-primary-950 focus:ring-0 focus:outline-none pr-6"
+                                        required={true}
                                     >
-                                        <option>Missing grade</option>
-                                        <option>Course registration</option>
-                                        <option>Library fines</option>
+                                        <option value="" disabled>
+                                            What type of complaint is it?
+                                        </option>
+                                        {Object.values(categories).map((category) => (
+                                            <option key={category.id} value={category.id}>
+                                                {category.name}
+                                            </option>
+                                        ))}
                                     </select>
                                     <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none">
                                         <Image
@@ -131,14 +247,20 @@ const ComplaintForm: React.FC = () => {
                                         <div className="flex items-center">
                                             <select
                                                 id="semester"
+                                                value={semester}
+                                                onChange={(e) => setSemester(e.target.value)}
                                                 className="appearance-none bg-transparent w-full text-xl text-primary-950 focus:outline-none"
+                                                required={true}
                                             >
-                                                <option value="spring">Spring</option>
-                                                <option value="fall">Fall</option>
-                                                <option value="spring">Summer</option>
+                                                <option value="" disabled>
+                                                    Select from list
+                                                </option>
+                                                <option value="Spring">Spring</option>
+                                                <option value="Fall">Fall</option>
+                                                <option value="Summer">Summer</option>
                                             </select>
                                             <span className="text-sm text-orange-600 bg-orange-100 rounded-full px-2.5 py-0.5 mr-8">
-                                             2025
+                                             {currentYear}
                                             </span>
 
                                             <div
@@ -167,6 +289,7 @@ const ComplaintForm: React.FC = () => {
                                 className="border-b text-primary-950 font-sans text-xl border-primary-950 w-full p-3 appearance-none bg-transparent focus:ring-0 focus:outline-none"
                                 value={formData.complaintTitle}
                                 onChange={(e) => handleInputChange('complaintTitle', e.target.value)}
+                                required={true}
                             />
                         </div>
 
@@ -178,11 +301,19 @@ const ComplaintForm: React.FC = () => {
                             <div className="relative">
                                 <select
                                     id="category"
+                                    value={selectedCourseId}
+                                    onChange={(e) => setSelectedCourseId(e.target.value)}
                                     className="appearance-none w-full bg-transparent text-xl text-primary-950 border-0 border-b border-primary-950 focus:ring-0 focus:outline-none pr-6"
+                                    required={true}
                                 >
-                                    <option>MTH2222 Computational Maths</option>
-                                    <option>CSC2112 Computational Object Oriented Programming with Python</option>
-                                    <option>BMS2244 Civics and Ethics</option>
+                                    <option value="" disabled>
+                                        For what course are you complaining?
+                                    </option>
+                                    {courses.map((course) => (
+                                        <option key={course.id} value={course.id}>
+                                            {course.code} {course.title}
+                                        </option>
+                                    ))}
                                 </select>
                                 <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none">
                                     <Image
@@ -193,9 +324,11 @@ const ComplaintForm: React.FC = () => {
                                     />
                                 </div>
                             </div>
-                            <p className="text-xs text-orange-500 bg-orange-100 rounded-xl w-48 mt-2 py-2 px-2">
-                                Taught by: Engr. Andrew Agbor
-                            </p>
+                            {selectedCourse && (
+                                <p className="text-xs text-orange-500 bg-orange-100 rounded-xl w-48 mt-2 py-2 px-2">
+                                    Taught by: {lecturerName}
+                                </p>
+                            )}
                         </div>
 
                         {/* Description */}
@@ -226,6 +359,7 @@ const ComplaintForm: React.FC = () => {
                                 type="submit"
                                 bgColor={"bg-primary-800"}
                                 textColor={"text-primary-50 text-xl font-medium"}
+                                onClick={handleSubmit}
                                 text={"Submit complaint"}
                                 border={"border-none"}
                                 rightImageSrc={"icons/arrow-down-01-white.svg"}
@@ -236,6 +370,7 @@ const ComplaintForm: React.FC = () => {
                                 width={"w-[200px]"}
                                 padding={"px-[12px] py-[10px]"}
                                 borderRadius={"rounded-xl"}
+                                disabled={!isFormValid || isSubmitting}
                             />
                         </div>
                     </div>
