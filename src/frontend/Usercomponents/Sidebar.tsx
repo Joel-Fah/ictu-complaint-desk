@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { Complaint } from "@/types/complaint";
 import { getComplaints } from '@/lib/api';
 import { formatComplaintDate } from "@/lib/formatDate";
+import { useMemo } from "react";
 
 interface ComplaintsUIProps {
   onSelectItem: (item: Complaint) => void;
@@ -194,7 +195,7 @@ const ComplaintsUI = ({ onSelectItem }: ComplaintsUIProps) => {
 
           {/* Complaints List */}
           <div className="space-y-3 max-h-[calc(100vh-250px)] overflow-y-auto pr-2 rounded-[20px]">
-            {filteredComplaints.map((complaint) => (
+            {filteredComplaints.slice().reverse().map((complaint) => (
                 <div
                     key={complaint.id}
                     onClick={() => {
@@ -225,7 +226,7 @@ const ComplaintsUI = ({ onSelectItem }: ComplaintsUIProps) => {
                   </div>
 
                   <p className="text-[14px] ml-6 text-greyColor font-sans mb-3 truncate whitespace-nowrap overflow-hidden text-ellipsis pr-8">
-                    {complaint.description}
+                    {new DOMParser().parseFromString(complaint.description, "text/html").body.textContent || ""}
                   </p>
 
                   <div className="flex items-center justify-between ml-6">

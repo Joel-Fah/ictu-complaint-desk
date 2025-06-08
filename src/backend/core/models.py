@@ -6,6 +6,7 @@ from django.db import models
 from enum import Enum
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from slugify import slugify
 
 from core.utils import get_current_year
 
@@ -208,7 +209,7 @@ class Complaint(models.Model):
 
     slug = models.SlugField(
         max_length=255,
-        unique=True,
+        unique=False,
         verbose_name="Category Slug",
         editable=False,
         blank=False,
@@ -303,6 +304,7 @@ class Complaint(models.Model):
     )
 
     def save(self, *args, **kwargs):
+        self.slug = slugify(self.title)
         if not self.pk:
             self.deadline = timezone.now() + timedelta(days=3)
         super().save(*args, **kwargs)
