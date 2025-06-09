@@ -2,6 +2,7 @@
 
 import React,{ useState } from 'react';
 import api from '@/lib/api'; // Your authenticated Axios instance
+import axios from 'axios';
 
 type NotificationFormState = {
     message: string;
@@ -27,9 +28,14 @@ export default function NotificationForm() {
             await api.post('/notifications/', formData); // token auto-attached by interceptor
             setFormData({ message: '' });
             setSuccess('Notification sent successfully!');
-        } catch (err: any) {
-            console.error('Error sending notification:', err);
-            setError(err.response?.data?.detail || 'Failed to send notification');
+        } catch (err: unknown) {
+            if (axios.isAxiosError(err)) {
+                console.error('Error sending notification:', err);
+                setError(err.response?.data?.detail || 'Failed to send notification');
+            } else {
+                console.error('Unexpected error:', err);
+                setError('An unexpected error occurred');
+            }
         } finally {
             setLoading(false);
         }

@@ -13,5 +13,26 @@ export interface Complaint {
     year: number;
     deadline: string;
     student?: number; // or full object if you're returning populated data
+    attachments?: Attachment[];
 }
+
+export interface Attachment {
+    id: number;
+    file: string; // URL to file
+    complaint: number;
+    uploaded_at: string;
+}
+// Payload without attachments (when sending JSON)
+export type CreateComplaintJSONPayload = {
+    title: string;
+    description: string;
+    category: string;
+    semester: string;
+    course: number;
+    student?: number;
+};
+
+export type CreateComplaintFormDataPayload = CreateComplaintJSONPayload & {
+    attachments?: File[]; // Future file uploads
+};
 

@@ -12,6 +12,7 @@ import { getUserById, createComplaint } from "@/lib/api";
 import { toast } from "sonner";
 import ToastNotification from "@/Usercomponents/ToastNotifications";
 import { useRouter } from "next/navigation";
+import {withAuth} from "@/lib/withAuth";
 
 interface FormData {
     category: string;
@@ -74,7 +75,10 @@ const ComplaintForm: React.FC = () => {
 
     const goBack = () => router.back();
 
-    const handleInputChange = (field: keyof FormData, value: any) => {
+    const handleInputChange = <K extends keyof FormData>(
+        field: K,
+        value: FormData[K]
+    ) => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
@@ -83,7 +87,7 @@ const ComplaintForm: React.FC = () => {
         setIsSubmitting(true);
         try {
             await createComplaint({
-                category: parseInt(selectedCategory),
+                category: selectedCategory,
                 semester,
                 title: formData.complaintTitle,
                 course: parseInt(selectedCourseId),
@@ -107,8 +111,8 @@ const ComplaintForm: React.FC = () => {
             {/* Left Sidebar */}
             <div className={`
         bg-primary-950 text-white p-4 sm:p-5 md:p-6 flex-shrink-0
-        w-full md:w-[400px] ${showForm ? "hidden md:block" : "block"}
-      `}>
+              w-full md:w-[400px] ${showForm ? "hidden md:block" : "block"}
+            `}>
                 <div className="mb-6 sm:mb-7 md:mb-8">
                     <Image src="/icons/arrow-left-03.svg" width={24} height={24} alt="Back icon" onClick={goBack} />
                     <h1 className="text-xl sm:text-2xl md:text-h1 font-bold mb-2 font-heading text-whiteColor">
@@ -286,4 +290,4 @@ const ComplaintForm: React.FC = () => {
     );
 }
 
-export default ComplaintForm;
+export default withAuth(ComplaintForm);

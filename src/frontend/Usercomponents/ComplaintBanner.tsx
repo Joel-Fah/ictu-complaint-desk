@@ -32,7 +32,7 @@ const ComplaintBanner: FC<ComplaintBannerProps> = ({
                 <h2 className="text-[32px] sm:text-[40px] md:text-[48px] lg:text-[68px] font-bold text-primary-950 mb-4 leading-tight">
                 {largeText} <span className="text-orange-500">{largeTextHighlight}</span>
                     <br /> <span className="text-primary-950">going</span> <span className="text-orange-500">around</span>
-                    <span>.r'You concerned too?</span>
+                    <span>.r&apos;You concerned too?</span>
                 </h2>
 
                 <div className="flex flex-col md:flex-row items-center justify-center gap-3 mt-4 flex-wrap text-center md:text-left">

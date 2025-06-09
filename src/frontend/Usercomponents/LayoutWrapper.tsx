@@ -10,11 +10,12 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
     const pathname = usePathname();
 
     const isRoot = pathname === "/";
+    const isWiki = pathname === "/wiki";
 
 
     return (
         <>
-            {isRoot ? <Navbar /> : <NavbarDashboard />}
+            {isRoot || isWiki ? <Navbar /> : <NavbarDashboard />}
             <main>{children}</main>
         </>
     );

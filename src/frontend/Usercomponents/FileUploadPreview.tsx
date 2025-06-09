@@ -20,11 +20,18 @@ export default function FileUploadPreview() {
         const input = document.createElement("input");
         input.type = "file";
         input.accept = "*/*";
-        input.onchange = (e: any) => {
-            handleFileChange(e);
+        input.onchange = (e: Event) => {
+            const target = e.target as HTMLInputElement;
+            if (target.files && target.files.length > 0) {
+                const syntheticEvent = {
+                    target,
+                } as React.ChangeEvent<HTMLInputElement>;
+                handleFileChange(syntheticEvent);
+            }
         };
         input.click();
     };
+
 
     return (
         <div className="flex flex-col w-[329px]">

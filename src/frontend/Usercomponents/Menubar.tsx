@@ -1,7 +1,12 @@
 import './editor.css';
 import Image from 'next/image';
+import { Editor } from '@tiptap/react';
 
-const MenuBar = ({ editor }) => {
+interface MenuBarProps {
+    editor: Editor | null;
+}
+
+const MenuBar = ({ editor }: MenuBarProps) =>{
     if (!editor) return null;
 
     return (
@@ -91,10 +96,11 @@ const MenuBar = ({ editor }) => {
                     if (value === 'paragraph') {
                         chain.setParagraph().run();
                     } else {
-                        const level = parseInt(value.replace('h', ''));
+                        const level = parseInt(value.replace('h', '')) as 1 | 2 | 3 | 4 | 5 | 6;
                         chain.toggleHeading({ level }).run();
                     }
                 }}
+
                 className="col-span-2 border-none w-16 bg-primary-100 text-sm border border-primary-900 focus:outline-none"
             >
                 <option value="paragraph">Normal</option>

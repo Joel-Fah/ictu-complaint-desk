@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { Complaint } from "@/types/complaint";
 import { getComplaints } from '@/lib/api';
 import { formatComplaintDate } from "@/lib/formatDate";
-import { useMemo } from "react";
+import axios from "axios";
 
 interface ComplaintsUIProps {
   onSelectItem: (item: Complaint) => void;
@@ -30,9 +30,14 @@ const ComplaintsUI = ({ onSelectItem }: ComplaintsUIProps) => {
           console.error('Invalid response:', data);
           setError('Unexpected data format');
         }
-      } catch (err: any) {
-        setError('Failed to fetch complaints');
-        console.error(err);
+      } catch (err: unknown) {
+        if (axios.isAxiosError(err)) {
+          console.error('Axios error:', err.message);
+          setError(err.response?.data?.detail || 'Failed to fetch complaints');
+        } else {
+          console.error('Unexpected error:', err);
+          setError('An unexpected error occurred');
+        }
       } finally {
         setIsLoading(false);
       }
