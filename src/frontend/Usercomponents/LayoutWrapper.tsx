@@ -10,15 +10,12 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
     const pathname = usePathname();
 
     const isRoot = pathname === "/";
-    const isLogin = pathname === "/login";
+    const isWiki = pathname === "/wiki";
 
-    if (isLogin) {
-        return <main>{children}</main>;
-    }
 
     return (
         <>
-            {isRoot ? <Navbar /> : <NavbarDashboard />}
+            {isRoot || isWiki ? <Navbar /> : <NavbarDashboard />}
             <main>{children}</main>
         </>
     );

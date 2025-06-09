@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Complaint } from "@/types/complaint";
 import ComplaintDetailSkeleton from "@/Usercomponents/ComplaintDetailSkeleton";
 import { useCategoryStore } from "@/stores/categoryStore";
@@ -8,10 +8,22 @@ interface ComplaintDetailProps {
     isLoading?: boolean;
 }
 
+// Move this out of the component to avoid redefining it on every render
+function isValidHTML(html: string): boolean {
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    return !doc.querySelector("parsererror");
+}
+
 const ComplaintDetail: React.FC<ComplaintDetailProps> = ({ complaint, isLoading = false }) => {
     const { categories } = useCategoryStore();
     const categoryId = complaint?.category ? Number(complaint.category) : -1;
-    const categoryName = categories[categoryId] ?? `Category ${complaint?.category}`;
+    const category = categories[categoryId] ?? `Category ${complaint?.category}`;
+    const categoryName = category?.name ?? "";
+
+    const safeHtml = useMemo(() => {
+        if (!complaint?.description) return null;
+        return isValidHTML(complaint.description) ? complaint.description : null;
+    }, [complaint?.description]);
 
     if (isLoading) return <ComplaintDetailSkeleton />;
 
@@ -52,25 +64,32 @@ const ComplaintDetail: React.FC<ComplaintDetailProps> = ({ complaint, isLoading 
 
             {/* Description */}
             <div className="prose max-w-none">
-                <p className="font-sans text-darkColor text-base whitespace-pre-wrap">
-                    {complaint.description || "No description provided."}
-                </p>
+                {safeHtml ? (
+                    <div
+                        className="font-sans text-darkColor text-base whitespace-pre-wrap"
+                        dangerouslySetInnerHTML={{ __html: safeHtml }}
+                    />
+                ) : (
+                    <p className="font-sans text-darkColor text-base whitespace-pre-wrap">
+                        {complaint.description || "No description provided."}
+                    </p>
+                )}
             </div>
 
             {/* Metadata */}
             <div className="pt-6 border-t border-gray-200 text-sm text-gray-500 flex flex-col sm:flex-row sm:justify-between gap-2">
-        <span>
-          Created:{" "}
-            {complaint.created_at && new Date(complaint.created_at).toLocaleString("en-US", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-            })}
-        </span>
                 <span>
-          Updated:{" "}
+                    Created:{" "}
+                    {complaint.created_at && new Date(complaint.created_at).toLocaleString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                    })}
+                </span>
+                <span>
+                    Updated:{" "}
                     {complaint.updated_at && new Date(complaint.updated_at).toLocaleString("en-US", {
                         year: "numeric",
                         month: "long",
@@ -78,7 +97,7 @@ const ComplaintDetail: React.FC<ComplaintDetailProps> = ({ complaint, isLoading 
                         hour: "2-digit",
                         minute: "2-digit",
                     })}
-        </span>
+                </span>
             </div>
         </div>
     );

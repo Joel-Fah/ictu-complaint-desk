@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { Complaint } from "@/types/complaint";
 import { getComplaints } from '@/lib/api';
 import { formatComplaintDate } from "@/lib/formatDate";
+import axios from "axios";
 
 interface ComplaintsUIProps {
   onSelectItem: (item: Complaint) => void;
@@ -29,9 +30,14 @@ const ComplaintsUI = ({ onSelectItem }: ComplaintsUIProps) => {
           console.error('Invalid response:', data);
           setError('Unexpected data format');
         }
-      } catch (err: any) {
-        setError('Failed to fetch complaints');
-        console.error(err);
+      } catch (err: unknown) {
+        if (axios.isAxiosError(err)) {
+          console.error('Axios error:', err.message);
+          setError(err.response?.data?.detail || 'Failed to fetch complaints');
+        } else {
+          console.error('Unexpected error:', err);
+          setError('An unexpected error occurred');
+        }
       } finally {
         setIsLoading(false);
       }
@@ -194,7 +200,7 @@ const ComplaintsUI = ({ onSelectItem }: ComplaintsUIProps) => {
 
           {/* Complaints List */}
           <div className="space-y-3 max-h-[calc(100vh-250px)] overflow-y-auto pr-2 rounded-[20px]">
-            {filteredComplaints.map((complaint) => (
+            {filteredComplaints.slice().reverse().map((complaint) => (
                 <div
                     key={complaint.id}
                     onClick={() => {
@@ -225,7 +231,7 @@ const ComplaintsUI = ({ onSelectItem }: ComplaintsUIProps) => {
                   </div>
 
                   <p className="text-[14px] ml-6 text-greyColor font-sans mb-3 truncate whitespace-nowrap overflow-hidden text-ellipsis pr-8">
-                    {complaint.description}
+                    {new DOMParser().parseFromString(complaint.description, "text/html").body.textContent || ""}
                   </p>
 
                   <div className="flex items-center justify-between ml-6">

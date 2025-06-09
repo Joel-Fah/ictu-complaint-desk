@@ -1,9 +1,18 @@
 'use client'
-import React, { useState } from 'react';
-import Button from '@/Usercomponents/Button'
+
+import React, { useEffect, useState } from 'react';
+import Button from '@/Usercomponents/Button';
 import Image from 'next/image';
 import RichTextEditor from "@/Usercomponents/RichTextEditor";
 import FileUploadPreview from "@/Usercomponents/FileUploadPreview";
+import { useUserStore } from '@/stores/userStore';
+import { useCategoryStore } from "@/stores/categoryStore";
+import { useCourseStore } from "@/stores/useCourseStore";
+import { getUserById, createComplaint } from "@/lib/api";
+import { toast } from "sonner";
+import ToastNotification from "@/Usercomponents/ToastNotifications";
+import { useRouter } from "next/navigation";
+import {withAuth} from "@/lib/withAuth";
 
 interface FormData {
     category: string;
@@ -15,227 +24,263 @@ interface FormData {
 }
 
 const ComplaintForm: React.FC = () => {
+    const { categories, fetchCategories } = useCategoryStore();
+    const { courses, fetchCourses } = useCourseStore();
     const [formData, setFormData] = useState<FormData>({
-        category: 'Missing grade',
-        semester: 'Spring',
-        complaintTitle: 'No grade for computational maths',
-        courseCode: 'MTH2222 Computational Maths',
+        category: '',
+        semester: '',
+        complaintTitle: '',
+        courseCode: '',
         description: '',
         attachments: []
     });
 
-    const handleInputChange = (field: keyof FormData, value: string) => {
-        setFormData(prev => ({
-            ...prev,
-            [field]: value
-        }));
+    const [selectedCategory, setSelectedCategory] = useState("");
+    const [selectedCourseId, setSelectedCourseId] = useState("");
+    const [lecturerName, setLecturerName] = useState("");
+    const [semester, setSemester] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showForm, setShowForm] = useState(false);
+
+    const [hasMounted, setHasMounted] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
+
+    const user = useUserStore((s) => s.user);
+    const currentYear = new Date().getFullYear();
+    const router = useRouter();
+
+    const selectedCourse = courses.find(c => c.id === Number(selectedCourseId));
+    const studentProfile = user?.profiles?.find(p => p.type === "student");
+    const studentNumber = studentProfile?.data?.student_number;
+    const isFormValid = Boolean(selectedCategory && selectedCourseId && semester && formData.complaintTitle.trim() && formData.description.trim());
+
+    useEffect(() => {
+        setHasMounted(true);
+        setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', () => setIsMobile(window.innerWidth < 768));
+        fetchCategories();
+        fetchCourses();
+        return () => window.removeEventListener('resize', () => null);
+    }, [fetchCategories, fetchCourses]);
+
+    useEffect(() => {
+        if (!selectedCourse) {
+            setLecturerName("");
+            return;
+        }
+        getUserById(selectedCourse.lecturer)
+            .then(lect => setLecturerName(`${lect.first_name} ${lect.last_name}`))
+            .catch(() => setLecturerName("Unknown"));
+    }, [selectedCourse]);
+
+    const goBack = () => router.back();
+
+    const handleInputChange = <K extends keyof FormData>(
+        field: K,
+        value: FormData[K]
+    ) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
     };
 
-    const handleFileUpload = (files: FileList | null) => {
-        if (files) {
-            setFormData(prev => ({
-                ...prev,
-                attachments: [...prev.attachments, ...Array.from(files)]
-            }));
+    const handleSubmit = async () => {
+        if (!isFormValid || isSubmitting) return;
+        setIsSubmitting(true);
+        try {
+            await createComplaint({
+                category: selectedCategory,
+                semester,
+                title: formData.complaintTitle,
+                course: parseInt(selectedCourseId),
+                description: formData.description,
+                student: user?.id
+            });
+            toast.custom(t => <ToastNotification type="success" title="Complaint filed!" subtitle="One step closer to peace of mind" onClose={() => toast.dismiss(t)} showClose />, { duration: 4000 });
+            goBack();
+        } catch {
+            toast.custom(t => <ToastNotification type="error" title="Something went wrong!" subtitle="Please try again." onClose={() => toast.dismiss(t)} showClose />, { duration: 4000 });
+            goBack();
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
-    return (
-        <div className="h-screen bg-gray-50 flex overflow-hidden">
-            {/* Left Sidebar */}
-            <div className="w-[400px] bg-primary-950 text-white p-6 flex-shrink-0">
-                <div className="mb-8">
-                    <Image
-                        src="/icons/arrow-left-03.svg"
-                        width={24}
-                        height={24}
-                        alt="Back icon"
-                    />
+    if (!hasMounted) return null;
 
-                    <h1 className="text-h1 font-bold mb-2 font-heading text-whiteColor">
+    return (
+        <div className="h-screen bg-gray-50 flex flex-col md:flex-row overflow-hidden relative">
+            {/* Left Sidebar */}
+            <div className={`
+        bg-primary-950 text-white p-4 sm:p-5 md:p-6 flex-shrink-0
+              w-full md:w-[400px] ${showForm ? "hidden md:block" : "block"}
+            `}>
+                <div className="mb-6 sm:mb-7 md:mb-8">
+                    <Image src="/icons/arrow-left-03.svg" width={24} height={24} alt="Back icon" onClick={goBack} />
+                    <h1 className="text-xl sm:text-2xl md:text-h1 font-bold mb-2 font-heading text-whiteColor">
                         You are submitting a new complaint
                     </h1>
-
-                    <p className="text-sm text-primary-50 leading-relaxed">
-                        This form is for you to get in touch with us.
-                        Briefly and clearly express your complaint or
-                        concern. If you have any supporting evidence/
-                        document, please do not forget to include as
-                        attached files.
+                    <p className="text-xs sm:text-sm text-primary-50 leading-relaxed">
+                        This form is for you to get in touch with us. Briefly and clearly express your complaint or concern. If you have any supporting evidence/documents, please include them.
                     </p>
                 </div>
 
-                <div className="flex flex-col items-start justify-center rounded-[20px] border border-primary-800 gap-2 px-5 py-4">
-                    <div className="text-sm text-primary-50">Submitting as:</div>
-                    <div className="text-xl font-heading font-semibold">
-                        Dajen Fah Joel (ICT20240004)
+                <div className="flex flex-col items-start justify-center rounded-[20px] border border-primary-800 gap-2 px-4 sm:px-5 py-3 sm:py-4">
+                    <div className="text-xs sm:text-sm text-primary-50">Submitting as:</div>
+                    <div className="text-lg sm:text-xl font-heading font-semibold">
+                        {user?.fullName?.split(" ").slice(0, 2).join(" ") ?? "User"} ({studentNumber})
                     </div>
                 </div>
 
-                <div className="mt-16">
-                    <h3 className="font-medium mb-3">Useful Resources</h3>
-                    <hr className="border-primary-50 mb-4" />
-                    <ul className="text-sm text-indigo-200 space-y-2 ">
-                        <li className="flex items-start space-x-2 gap-0.5">
-                            <Image src="/icons/help-circle.svg" alt={"question-mark icon"} height={16} width={16}/>
+                <div className="mt-10 sm:mt-12 md:mt-16">
+                    <h3 className="font-medium mb-2 sm:mb-3 text-sm sm:text-base">Useful Resources</h3>
+                    <hr className="border-primary-50 mb-3 sm:mb-4" />
+                    <ul className="text-xs sm:text-sm text-indigo-200 space-y-1.5 sm:space-y-2">
+                        <li className="flex items-start space-x-2">
+                            <Image src="/icons/help-circle.svg" height={16} width={16} alt="?" />
                             <p>How to properly submit complaints at ICTU</p>
                         </li>
-                        <li className="flex items-start space-x-2 gap-0.5">
-                            <Image src="/icons/help-circle.svg" alt={"question-mark icon"} height={16} width={16}/>
+                        <li className="flex items-start space-x-2">
+                            <Image src="/icons/help-circle.svg" height={16} width={16} alt="?" />
                             <p>Get to know the ICTU administration</p>
                         </li>
                     </ul>
                 </div>
             </div>
 
-            {/* Right Form Area */}
-            <div className="flex-1 overflow-y-auto p-8">
-                <div className="max-w-2xl mx-auto p-8">
-                    <h2 className="text-h1 font-semibold text-primary-950 mb-8">General Information</h2>
+            {!showForm && (
+                <button
+                    className="md:hidden fixed bottom-4 right-4 sm:bottom-6 sm:right-6 bg-primary-800 text-white px-5 py-2.5 sm:px-6 sm:py-3 rounded-full shadow-lg text-sm sm:text-base"
+                    onClick={() => setShowForm(true)}
+                >
+                    Next
+                </button>
+            )}
 
-                    <div className="space-y-6">
-                        {/* Category and Semester Row */}
-                        <div className="grid grid-cols-2 gap-6">
+            {showForm && (
+                <button
+                    className="md:hidden fixed bottom-4 left-4 sm:bottom-6 sm:left-6 bg-primary-800 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-full shadow-md border z-10 text-sm sm:text-base"
+                    onClick={() => setShowForm(false)}
+                >
+                    Back
+                </button>
+            )}
+
+            {/* Right Form Area */}
+            <div className={`flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 ${!showForm && isMobile ? "hidden" : "block w-full"}`}>
+                <div className="max-w-2xl mx-auto p-4 sm:p-6 md:p-8">
+                    <h2 className="text-xl sm:text-2xl md:text-h1 font-semibold text-primary-950 mb-6 sm:mb-7 md:mb-8">General Information</h2>
+
+                    <div className="space-y-5 sm:space-y-6">
+                        {/* Category + Semester */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
                             <div>
-                                <label className="text-sm text-primary-950 block mb-1">
-                                    Category
-                                </label>
+                                <label className="text-xs sm:text-sm text-primary-950 block mb-1">Category</label>
                                 <div className="relative">
                                     <select
-                                        id="category"
-                                        className="appearance-none w-full bg-transparent text-xl text-primary-950 border-0 border-b border-primary-950 focus:ring-0 focus:outline-none pr-6"
+                                        className="appearance-none w-full bg-transparent text-lg sm:text-xl text-primary-950 border-0 border-b border-primary-950 focus:ring-0 focus:outline-none pr-6"
+                                        value={selectedCategory}
+                                        onChange={e => setSelectedCategory(e.target.value)}
+                                        required
                                     >
-                                        <option>Missing grade</option>
-                                        <option>Course registration</option>
-                                        <option>Library fines</option>
+                                        <option value="" disabled>What type of complaint is it?</option>
+                                        {Object.values(categories).map(cat => (
+                                            <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                        ))}
                                     </select>
                                     <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none">
-                                        <Image
-                                        src="/icons/arrow-down-01.svg"
-                                        width={24}
-                                        height={24}
-                                        alt="arrow-right-icon"
-                                        />
+                                        <Image src="/icons/arrow-down-01.svg" width={24} height={24} alt="▼" />
                                     </div>
                                 </div>
                             </div>
 
                             <div>
-
-                                <div className="relative">
-                                    <label className="block text-sm text-primary-950 mb-1">
-                                        Semester
-                                    </label>
-
-                                    <div className="relative border-b border-primary-950">
-                                        <div className="flex items-center">
-                                            <select
-                                                id="semester"
-                                                className="appearance-none bg-transparent w-full text-xl text-primary-950 focus:outline-none"
-                                            >
-                                                <option value="spring">Spring</option>
-                                                <option value="fall">Fall</option>
-                                                <option value="spring">Summer</option>
-                                            </select>
-                                            <span className="text-sm text-orange-600 bg-orange-100 rounded-full px-2.5 py-0.5 mr-8">
-                                             2025
-                                            </span>
-
-                                            <div
-                                                className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 z-10">
-                                                <Image
-                                                    src="/icons/arrow-down-01.svg"
-                                                    width={24}
-                                                    height={24}
-                                                    alt="arrow-right-icon"
-                                                />
-                                            </div>
-                                        </div>
+                                <label className="text-xs sm:text-sm text-primary-950 block mb-1">Semester</label>
+                                <div className="relative border-b border-primary-950">
+                                    <select
+                                        className="appearance-none bg-transparent w-full text-lg sm:text-xl text-primary-950 focus:outline-none pr-6"
+                                        value={semester}
+                                        onChange={e => setSemester(e.target.value)}
+                                        required
+                                    >
+                                        <option value="" disabled>Select from list</option>
+                                        <option value="Spring">Spring</option>
+                                        <option value="Fall">Fall</option>
+                                        <option value="Summer">Summer</option>
+                                    </select>
+                                    <span className="absolute right-8 top-1 text-xs sm:text-sm text-orange-600 bg-orange-100 rounded-full px-2.5 py-0.5">{currentYear}</span>
+                                    <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                                        <Image src="/icons/arrow-down-01.svg" width={24} height={24} alt="▼" />
                                     </div>
-
                                 </div>
                             </div>
                         </div>
 
-                        {/* Complaint Title */}
+                        {/* Title */}
                         <div>
-                            <label className="block text-sm text-primary-950 mb-2">
-                                Complaint title
-                            </label>
+                            <label className="block text-xs sm:text-sm text-primary-950 mb-1.5 sm:mb-2">Complaint title</label>
                             <input
-                                type="text"
-                                className="border-b text-primary-950 font-sans text-xl border-primary-950 w-full p-3 appearance-none bg-transparent focus:ring-0 focus:outline-none"
+                                className="border-b text-primary-950 font-sans text-lg sm:text-xl border-primary-950 w-full p-2 sm:p-3 bg-transparent focus:outline-none"
                                 value={formData.complaintTitle}
-                                onChange={(e) => handleInputChange('complaintTitle', e.target.value)}
+                                onChange={e => handleInputChange('complaintTitle', e.target.value)}
+                                required
                             />
                         </div>
 
-                        {/* Course Code/Department */}
+                        {/* Course */}
                         <div>
-                            <label className="block text-sm text-primary-950 mb-2">
-                                Course concerned
-                            </label>
+                            <label className="block text-xs sm:text-sm text-primary-950 mb-1.5 sm:mb-2">Course concerned</label>
                             <div className="relative">
                                 <select
-                                    id="category"
-                                    className="appearance-none w-full bg-transparent text-xl text-primary-950 border-0 border-b border-primary-950 focus:ring-0 focus:outline-none pr-6"
+                                    className="appearance-none w-full bg-transparent text-lg sm:text-xl text-primary-950 border-0 border-b border-primary-950 focus:ring-0 focus:outline-none pr-6"
+                                    value={selectedCourseId}
+                                    onChange={e => setSelectedCourseId(e.target.value)}
+                                    required
                                 >
-                                    <option>MTH2222 Computational Maths</option>
-                                    <option>CSC2112 Computational Object Oriented Programming with Python</option>
-                                    <option>BMS2244 Civics and Ethics</option>
+                                    <option value="" disabled>For what course are you complaining?</option>
+                                    {courses.map(c => (
+                                        <option key={c.id} value={c.id}>{c.code} {c.title}</option>
+                                    ))}
                                 </select>
                                 <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none">
-                                    <Image
-                                        src="/icons/arrow-down-01.svg"
-                                        width={24}
-                                        height={24}
-                                        alt="arrow-right-icon"
-                                    />
+                                    <Image src="/icons/arrow-down-01.svg" width={24} height={24} alt="▼" />
                                 </div>
                             </div>
-                            <p className="text-xs text-orange-500 bg-orange-100 rounded-xl w-48 mt-2 py-2 px-2">
-                                Taught by: Engr. Andrew Agbor
-                            </p>
+                            {selectedCourse && (
+                                <p className="text-[10px] sm:text-xs text-orange-500 bg-orange-100 rounded-xl w-40 sm:w-48 mt-2 py-1.5 px-2">Taught by: {lecturerName}</p>
+                            )}
                         </div>
 
                         {/* Description */}
                         <div>
-                            <label className="block text-xl font-semibold text-primary-950 mb-8">
-                                Description
-                            </label>
-                            <RichTextEditor
-                                value={formData.description}
-                                onChange={(val) => handleInputChange("description", val)}
-                            />
-                            <p className="text-xs text-gray-500 mt-2 leading-relaxed">
+                            <label className="block text-lg sm:text-xl md:text-h1 font-semibold text-primary-950 mb-6 sm:mb-8">Description</label>
+                            <RichTextEditor value={formData.description} onChange={val => handleInputChange("description", val)} />
+                            <p className="text-[10px] sm:text-xs text-gray-500 mt-2 leading-relaxed">
                                 Kindly ensure that all complaint details are clearly explained, because resolving a complaint quickly depends on how clear it is. For this reason, Please ensure that all of required details related to the complaint are adequately provided above. Ensure that your complaint is adequately described. Use simple English to make your complaint easy to understand. Avoid using abbreviations that may not be understood by everyone. Use full sentences and proper punctuation. Spell out numbers less than ten (except when used in statistics, dates, or technical contexts). This will help in ensuring that your complaint is understood and resolved quickly.
                             </p>
                         </div>
 
-                        {/* Attachments */}
-                        <label className="block text-xl font-semibold text-primary-950 mb-8">
+                        {/* Attachments + Submit */}
+                        <label className="block text-lg sm:text-xl font-semibold text-primary-950 mb-6 sm:mb-8">
                             Attachment(s)
-                            <span className="text-primary-950 ml-1 text-sm bg-primary-50 px-1 rounded">1</span>
+                            <span className="text-primary-950 ml-1 text-[10px] sm:text-sm bg-primary-50 px-1 rounded">1</span>
                         </label>
-
-                        <div className="flex flex-row justify-between items-start gap-4">
+                        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                             <FileUploadPreview />
-
-                            {/* Submit Button */}
                             <Button
                                 type="submit"
-                                bgColor={"bg-primary-800"}
-                                textColor={"text-primary-50 text-xl font-medium"}
-                                text={"Submit complaint"}
-                                border={"border-none"}
-                                rightImageSrc={"icons/arrow-down-01-white.svg"}
+                                bgColor="bg-primary-800"
+                                textColor="text-primary-50 text-base sm:text-xl font-medium"
+                                onClick={handleSubmit}
+                                text="Submit complaint"
+                                border="border-none"
+                                rightImageSrc="icons/arrow-down-01-white.svg"
                                 rightImageWidth={18}
                                 rightImageHeight={19}
-                                rightImageAlt={"dropdown icon"}
-                                showRightSeparator={true}
-                                width={"w-[200px]"}
-                                padding={"px-[12px] py-[10px]"}
-                                borderRadius={"rounded-xl"}
+                                rightImageAlt=">"
+                                showRightSeparator
+                                width="w-full sm:w-[200px]"
+                                padding="px-3 sm:px-[12px] py-2.5 sm:py-[10px]"
+                                borderRadius="rounded-xl"
+                                disabled={!isFormValid || isSubmitting}
                             />
                         </div>
                     </div>
@@ -243,6 +288,6 @@ const ComplaintForm: React.FC = () => {
             </div>
         </div>
     );
-};
+}
 
-export default ComplaintForm;
+export default withAuth(ComplaintForm);

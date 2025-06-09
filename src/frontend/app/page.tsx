@@ -1,7 +1,6 @@
 'use client';
 import "../app/globals.css";
 import {withPublic} from "@/lib/withPublic";
-import Navbar from "@/Usercomponents/Navbar";
 import ComplaintBanner from "@/Usercomponents/ComplaintBanner";
 import LayeredImageSection from "@/Usercomponents/LayeredImageSection";
 import ProblemStatement from "@/Usercomponents/ProblemStatement";
