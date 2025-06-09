@@ -26,7 +26,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     },
-'supabase': dj_database_url.parse(os.getenv('SUPABASE_POSTGRESQL_URL')),
+    'supabase': dj_database_url.parse(os.getenv('SUPABASE_POSTGRESQL_URL')),
 }
 
 SITE_URL = 'http://127.0.0.1:8000/'
