@@ -168,7 +168,7 @@ class UserListCreateView(ListCreateAPIView):
     serializer_class = UserSerializer
     filter_backends = [SearchFilter]
     search_fields = ['username', 'email', 'first_name', 'last_name']
-    permission_classes = [IsAuthenticated]
+    permission_classes = []
 
 
 class ReminderViewSet(viewsets.ModelViewSet):
