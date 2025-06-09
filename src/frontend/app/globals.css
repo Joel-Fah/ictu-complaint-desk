@@ -9,7 +9,8 @@
   h3,
   h4,
   h5,
-  h6 {
+  h6,
+  label{
     font-family: "Pilcrow Rounded", sans-serif;
   }
   :root {
@@ -93,9 +94,10 @@
 
 @layer base {
   * {
-    @apply border-border;
+    @apply z-0;
   }
   body {
     @apply bg-background text-foreground;
+    @apply z-0;
   }
 }

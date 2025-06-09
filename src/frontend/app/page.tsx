@@ -1,7 +1,6 @@
 'use client';
 import "../app/globals.css";
 import {withPublic} from "@/lib/withPublic";
-import Navbar from "@/Usercomponents/Navbar";
 import ComplaintBanner from "@/Usercomponents/ComplaintBanner";
 import LayeredImageSection from "@/Usercomponents/LayeredImageSection";
 import ProblemStatement from "@/Usercomponents/ProblemStatement";
@@ -9,15 +8,10 @@ import Image from "next/image";
 import ComplaintsInsightsHeader from "@/Usercomponents/ComplaintsInsightsHeader";
 import StudentComplaintsCard from "@/Usercomponents/StudentComplaintsCard";
 import Footer from "@/Usercomponents/Footer";
-import NavbarDashboard from "@/Usercomponents/NavbarDashboard";
-import Sidebar from "@/Usercomponents/Sidebar";
 
 function Home() {
   return (
     <section>
-        <Navbar />
-        <NavbarDashboard />
-        <Sidebar />
         <ComplaintBanner
             smallText="You know what?"
             largeText="There's always a"

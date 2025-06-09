@@ -209,7 +209,7 @@ class Complaint(models.Model):
 
     slug = models.SlugField(
         max_length=255,
-        unique=True,
+        unique=False,
         verbose_name="Category Slug",
         editable=False,
         blank=False,
