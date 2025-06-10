@@ -4,11 +4,11 @@ import requests
 from allauth.socialaccount.models import SocialToken, SocialAccount
 from django.contrib.auth import get_user_model, logout
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from django.shortcuts import redirect
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, generics
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView, ListCreateAPIView, \
@@ -18,9 +18,9 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import Category, Reminder, Notification, Resolution, Complaint, Attachment
+from .models import Category, Reminder, Notification, Resolution, Complaint, Attachment, Course
 from .serializers import CategorySerializer, UserSerializer, ReminderSerializer, NotificationSerializer, \
-    ResolutionSerializer, ComplaintSerializer
+    ResolutionSerializer, ComplaintSerializer, CourseSerializer, StudentProfileSerializer
 
 # Create your views here.
 
@@ -221,3 +221,39 @@ class ResolutionListCreateView(ListCreateAPIView):
 class ResolutionRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
     queryset = Resolution.objects.all()
     serializer_class = ResolutionSerializer
+
+
+# Courses Views
+class CourseListCreateView(ListCreateAPIView):
+    queryset = Course.objects.all()
+    serializer_class = CourseSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [SearchFilter]
+    search_fields = ['code', 'title', 'lecturer__user__username']
+
+    def perform_create(self, serializer):
+        serializer.save(lecturer=self.request.user.lecturerprofile)
+
+
+class CourseDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = Course.objects.all()
+    serializer_class = CourseSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if hasattr(user, 'lecturerprofile'):
+            return self.queryset.filter(lecturer__user=user)
+        return self.queryset
+
+
+class StudentProfileUpdateView(generics.UpdateAPIView):
+    serializer_class = StudentProfileSerializer
+    permissions_classes = [IsAuthenticated]
+
+    def get_object(self):
+        user = self.request.user
+        if hasattr(user, 'studentprofile'):
+            return user.studentprofile
+        else:
+            raise Http404("Student profile does not exist.")

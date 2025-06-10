@@ -5,8 +5,9 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
 from django.dispatch import receiver
+from django.db.models.signals import post_save
 
-from core.models import StudentProfile, LecturerProfile, AdminProfile, Course, UserRole
+from core.models import StudentProfile, LecturerProfile, AdminProfile, Course, UserRole, Complaint, ComplaintAssignment
 from core.utils import match_email_to_csv, get_current_year
 
 # Create your signals here.
@@ -82,3 +83,24 @@ def auto_assign_role_and_profile(sender, request, user, **kwargs):
         user.secondary_role = None
         user.save()
         StudentProfile.objects.get_or_create(user=user)
+
+
+@receiver(post_save, sender=Complaint)
+def create_complaint_assignments(sender, instance, created, **kwargs):
+    if created:
+        # Assign complaint to admins based on the category
+        admins = instance.category.admins.all()
+        for admin in admins:
+            ComplaintAssignment.objects.create(
+                complaint=instance,
+                staff=admin.user,
+                message=f"You have been assigned to provide a resolution to '{instance.title}' before {instance.deadline}."
+            )
+
+        # Assign complaint to the lecturer of the selected course
+        if instance.course and instance.course.lecturer:
+            ComplaintAssignment.objects.create(
+                complaint=instance,
+                staff=instance.course.lecturer.user,
+                message=f"You have been assigned to provide a resolution to '{instance.title}' as the lecturer of the course '{instance.course.title}'."
+            )

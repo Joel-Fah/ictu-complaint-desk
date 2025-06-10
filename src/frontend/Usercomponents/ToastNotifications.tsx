@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { FC } from "react";
+import React, { FC } from "react";
 
 type Action = {
     label: string;
@@ -150,7 +150,7 @@ const ToastNotification: FC<ToastNotificationProps> = ({
                     type="button"
                 >
                     <Image
-                        src="/icons/cancel-circle.svg"
+                        src="/icons/cancel-01.svg"
                         alt="Close"
                         width={16}
                         height={16}

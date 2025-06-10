@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.admin.widgets import AdminFileWidget
 from django.contrib.auth import get_user_model
+
 from django.contrib.auth.admin import UserAdmin
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
@@ -85,8 +86,13 @@ class CustomAdminFileWidget(AdminFileWidget):
 # Register your models here.
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name']
+    list_display = ['id', 'name', 'get_admins']
     search_fields = ['name']
+
+    def get_admins(self, obj):
+        return ", ".join([admin.user.username for admin in obj.admins.all()])
+
+    get_admins.short_description = "Admins"
 
 
 @admin.register(Complaint)
@@ -94,7 +100,7 @@ class ComplaintAdmin(admin.ModelAdmin):
     list_display = ['id', 'student__username', 'title', 'status', 'semester_year']
     list_filter = ['category', 'status', 'type', 'is_anonymous']
     search_fields = ['title', 'description']
-    readonly_fields = ['created_at']
+    readonly_fields = ['deadline', 'created_at']
 
     def semester_year(self, obj):
         return f'{obj.semester} {obj.year}'

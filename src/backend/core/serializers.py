@@ -2,7 +2,7 @@ from allauth.socialaccount.models import SocialAccount
 from django.contrib.auth.views import get_user_model
 from rest_framework import serializers
 from core.models import Category, Complaint, Reminder, Notification, Resolution, StudentProfile, LecturerProfile, \
-    AdminProfile,Attachment
+    AdminProfile, Attachment, Course
 
 # Create your serializers here.
 
@@ -29,21 +29,31 @@ class AdminProfileSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     google_data = serializers.SerializerMethodField()
-    profile = serializers.SerializerMethodField()
+    profiles = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = '__all__'
         extra_kwargs = {'password': {'write_only': True}}
 
-    def get_profile(self, obj):
+    def get_profiles(self, obj):
+        profiles = []
         if hasattr(obj, 'studentprofile'):
-            return StudentProfileSerializer(obj.studentprofile).data
-        elif hasattr(obj, 'lecturerprofile'):
-            return LecturerProfileSerializer(obj.lecturerprofile).data
-        elif hasattr(obj, 'adminprofile'):
-            return AdminProfileSerializer(obj.adminprofile).data
-        return None
+            profiles.append({
+                'type': 'student',
+                'data': StudentProfileSerializer(obj.studentprofile).data
+            })
+        if hasattr(obj, 'lecturerprofile'):
+            profiles.append({
+                'type': 'lecturer',
+                'data': LecturerProfileSerializer(obj.lecturerprofile).data
+            })
+        if hasattr(obj, 'adminprofile'):
+            profiles.append({
+                'type': 'admin',
+                'data': AdminProfileSerializer(obj.adminprofile).data
+            })
+        return profiles
 
     def get_google_data(self, obj):
         try:
@@ -66,8 +76,10 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
         fields = '__all__'
 
+
 class AttachmentSerializer(serializers.ModelSerializer):
     complaint = serializers.SerializerMethodField()
+
     class Meta:
         model = Attachment
         fields = ['id', 'file_url', 'file_type', 'uploaded_at', 'complaint']
@@ -81,8 +93,6 @@ class ComplaintSerializer(serializers.ModelSerializer):
         model = Complaint
         fields = '__all__'
         read_only_fields = ['student', 'created_at', 'updated_at']
-
-
 
 
 class ReminderSerializer(serializers.ModelSerializer):
@@ -103,3 +113,11 @@ class ResolutionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Resolution
         fields = '__all__'
+
+
+# Courses Serializer
+class CourseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Course
+        fields = '__all__'
+        read_only_fields = ['created_at', 'updated_at']

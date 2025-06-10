@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import React, { FC } from 'react';
 
 // The actual reusable component with all props being customizable
 interface ProblemStatementProps {

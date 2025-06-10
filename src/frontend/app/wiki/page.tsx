@@ -3,7 +3,7 @@
 import React, { useEffect } from "react";
 import AOS from "aos";
 import "aos/dist/aos.css";
-import Navbar from "@/Usercomponents/Navbar";
+import Image from "next/image";
 
 const steps = [
     {
@@ -39,7 +39,6 @@ const Wiki = () => {
 
     return (
         <>
-            <Navbar />
             <div className="px-6 py-12 max-w-5xl mx-auto space-y-10">
                 <h2 className="text-3xl font-bold text-center">How It Works</h2>
 
@@ -57,9 +56,11 @@ const Wiki = () => {
 
                         <div className="flex-1 max-w-md w-full">
                             {step.mediaType === "image" ? (
-                                <img
+                                <Image
                                     src={step.mediaSrc}
                                     alt={step.title}
+                                    width={575}
+                                    height={348}
                                     className="rounded-xl shadow-md w-full object-cover"
                                 />
                             ) : (

@@ -1,14 +1,16 @@
 from datetime import timedelta
 
 from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.core.exceptions import ValidationError
 from django.db import models
 from enum import Enum
 from django.contrib.auth import get_user_model
 from rest_framework.exceptions import ValidationError
 import mimetypes
+from django.utils import timezone
+from slugify import slugify
 
 from core.utils import get_current_year
-from django.utils import timezone
 
 
 # Create your models here.
@@ -21,6 +23,17 @@ class UserRole(str, Enum):
     @classmethod
     def choices(cls):
         return [(tag, tag.value) for tag in cls]
+
+
+class OfficeChoices(str, Enum):
+    FINANCE_DEPARTMENT = "Finance Department"
+    CISCO_LAB = "Cisco Lab"
+    REGISTRAR_OFFICE = "Registrar Office"
+    FACULTY = "Faculty"
+
+    @classmethod
+    def choices(cls):
+        return [(choice.name, choice.value) for choice in cls]
 
 
 class SemesterChoices(models.TextChoices):
@@ -69,7 +82,7 @@ class StudentProfile(models.Model):
     user = models.OneToOneField(
         CustomUser,
         on_delete=models.CASCADE,
-        related_name='student_profile'
+        related_name='studentprofile'
     )
 
     student_number = models.CharField(
@@ -90,11 +103,12 @@ class AdminProfile(models.Model):
     user = models.OneToOneField(
         CustomUser,
         on_delete=models.CASCADE,
-        related_name='admin_profile'
+        related_name='adminprofile'
     )
 
     office = models.CharField(
-        max_length=100,
+        max_length=50,
+        choices=OfficeChoices.choices(),
         blank=False,
         null=False
     )
@@ -116,7 +130,7 @@ class LecturerProfile(models.Model):
     user = models.OneToOneField(
         CustomUser,
         on_delete=models.CASCADE,
-        related_name='lecturer_profile'
+        related_name='lecturerprofile'
     )
 
     def __str__(self):
@@ -168,6 +182,9 @@ class Course(models.Model):
         null=False
     )
 
+    def __str__(self):
+        return f"{self.code} - {self.title} ({self.semester} {self.year})"
+
 
 class Complaint(models.Model):
     """
@@ -186,7 +203,6 @@ class Complaint(models.Model):
         OPEN = "Open", "Open"
         IN_PROGRESS = "In Progress", "In Progress"
         RESOLVED = "Resolved", "Resolved"
-        CLOSED = "Closed", "Closed"
         ESCALATED = "Escalated", "Escalated"
 
     student = models.ForeignKey(
@@ -207,7 +223,7 @@ class Complaint(models.Model):
 
     slug = models.SlugField(
         max_length=255,
-        unique=True,
+        unique=False,
         verbose_name="Category Slug",
         editable=False,
         blank=False,
@@ -259,8 +275,8 @@ class Complaint(models.Model):
 
     deadline = models.DateTimeField(
         verbose_name="Deadline",
-        blank=False,
-        null=False
+        blank=True,
+        null=True
     )
 
     semester = models.CharField(
@@ -281,6 +297,14 @@ class Complaint(models.Model):
         null=False
     )
 
+    course = models.ForeignKey(
+        'Course',
+        on_delete=models.CASCADE,
+        related_name='courses',
+        verbose_name='Course',
+        help_text="The course for which a complaint was submitted",
+    )
+
     created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name="Created At",
@@ -294,7 +318,8 @@ class Complaint(models.Model):
     )
 
     def save(self, *args, **kwargs):
-        if not self.pk:  # Check if the object is being created (not updated)
+        self.slug = slugify(self.title)
+        if not self.pk:
             self.deadline = timezone.now() + timedelta(days=3)
         super().save(*args, **kwargs)
 
@@ -323,7 +348,7 @@ class ComplaintAssignment(models.Model):
         get_user_model(),
         on_delete=models.CASCADE,
         related_name="assigned_complaints",
-        limit_choices_to={'role__in': ['Lecturer', 'Admin Assistant', 'Complaint Coordinator']},
+        limit_choices_to={'role__in': ['Lecturer', 'Admin', 'Complaint Coordinator']},
         verbose_name="Staff",
         help_text="The staff member assigned to the complaint",
     )
@@ -340,6 +365,13 @@ class ComplaintAssignment(models.Model):
         help_text="The number of reminders sent to the staff member",
     )
 
+    message = models.TextField(
+        verbose_name="Message",
+        help_text="Message sent along with the assignment",
+        blank=True,
+        null=True
+    )
+
     created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name="Created At",
@@ -351,6 +383,11 @@ class ComplaintAssignment(models.Model):
         verbose_name="Updated At",
         help_text="Date and time when the assignment was updated"
     )
+
+    def save(self, *args, **kwargs):
+        if not self.message:
+            self.message = f"You have been assigned to provide a resolution to '{self.complaint.title}' before {self.complaint.deadline}."
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.complaint.title} assigned to {self.staff.username}"
@@ -377,6 +414,14 @@ class Category(models.Model):
         verbose_name="Description",
         blank=False,
         null=False
+    )
+
+    admins = models.ManyToManyField(
+        'AdminProfile',
+        related_name='categories',
+        verbose_name="Admins",
+        help_text="Admins responsible for this category",
+        blank=True
     )
 
     created_at = models.DateTimeField(
@@ -406,6 +451,7 @@ class Attachment(models.Model):
         verbose_name='Complaint',
         help_text='The complaint this attachment belongs to'
     )
+
     file_url = models.FileField(
         upload_to='attachments/%Y/%m/%d/', verbose_name='File URL',
         help_text='URL of the file', blank=True, null=True
@@ -488,7 +534,7 @@ class Resolution(models.Model):
         get_user_model(),
         on_delete=models.CASCADE,
         related_name="resolutions",
-        limit_choices_to={'role__in': ['Lecturer', 'Admin Assistant', 'Complaint Coordinator']},
+        limit_choices_to={'role__in': ['Lecturer', 'Admin', 'Complaint Coordinator']},
         verbose_name="Staff",
         help_text="The staff member who resolved the complaint",
     )
@@ -558,7 +604,7 @@ class Reminder(models.Model):
         get_user_model(),
         on_delete=models.CASCADE,
         related_name="reminders",
-        limit_choices_to={'role__in': ['Lecturer', 'Admin Assistant', 'Complaint Coordinator']},
+        limit_choices_to={'role__in': ['Lecturer', 'Admin', 'Complaint Coordinator']},
         verbose_name="Staff",
         help_text="The staff member to whom the reminder is sent",
     )
