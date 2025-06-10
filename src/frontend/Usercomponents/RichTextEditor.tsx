@@ -63,7 +63,7 @@ const RichTextEditor = ({ value, onChange }: { value: string; onChange: (html: s
     return (
         <div className='bg-primary-50'>
             <MenuBar editor={editor} />
-            <EditorContent required={true} editor={editor} spellCheck={true} className="prose max-w-none border bg-primary-50 h-[500px] p-10" />
+            <EditorContent required={true} editor={editor} spellCheck={true} className="prose H1 H2 H3 H4 H5 H6 max-w-none border bg-primary-50 h-[500px] p-10" />
         </div>
     );
 };

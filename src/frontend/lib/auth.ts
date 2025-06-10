@@ -1,6 +1,6 @@
 export const logout = async () => {
     try {
-        const response = await fetch('http://localhost:8000/api/auth/logout/', {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/logout/`, {
             method: 'GET',
             credentials: 'include',
         });
