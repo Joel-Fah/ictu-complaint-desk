@@ -86,8 +86,12 @@ class CustomAdminFileWidget(AdminFileWidget):
 # Register your models here.
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name']
+    list_display = ['id', 'name', 'get_admins']
     search_fields = ['name']
+
+    def get_admins(self, obj):
+        return ", ".join([admin.user.username for admin in obj.admins.all()])
+    get_admins.short_description = "Admins"
 
 
 @admin.register(Complaint)
