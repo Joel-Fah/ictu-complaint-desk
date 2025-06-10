@@ -141,19 +141,18 @@ class ComplaintPagination(PageNumberPagination):
 class ComplaintListCreateView(ListCreateAPIView):
     queryset = Complaint.objects.all().prefetch_related('attachments')
     serializer_class = ComplaintSerializer
-    #permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     pagination_class = ComplaintPagination
     filter_backends = [SearchFilter]
     search_fields = ['title', 'description', 'status']
 
     def perform_create(self, serializer):
         files = self.request.FILES.getlist('attachments')
-        allowed_file_types = ['image/jpeg', 'image/jpg', 'image/avif', 'image/tiff', 'image/png', 'application/pdf']  # Allowed MIME types
+        allowed_file_types = ['image/jpeg', 'image/jpg', 'image/avif', 'image/tiff', 'image/png',
+                              'application/pdf']  # Allowed MIME types
         max_file_size = 2 * 1024 * 1024  # 2 MB
         if len(files) > 2:
             raise ValueError("You can upload a maximum of 2 files.")
-
-
 
         for file in files:
             if file.content_type not in allowed_file_types:
@@ -164,6 +163,7 @@ class ComplaintListCreateView(ListCreateAPIView):
         complaint = serializer.save(student=self.request.user)
         for file in files:
             Attachment.objects.create(complaint=complaint, file_url=file)
+
 
 class ComplaintDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Complaint.objects.all().prefetch_related('attachments')
