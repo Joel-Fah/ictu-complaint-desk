@@ -213,4 +213,4 @@ SWAGGER_SETTINGS = {
 
 REDOC_SETTINGS = {
    'LAZY_RENDERING': False,
-}
+    }

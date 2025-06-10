@@ -18,7 +18,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import Category, Reminder, Notification, Resolution, Complaint
+from .models import Category, Reminder, Notification, Resolution, Complaint, Attachment
 from .serializers import CategorySerializer, UserSerializer, ReminderSerializer, NotificationSerializer, \
     ResolutionSerializer, ComplaintSerializer
 
@@ -139,19 +139,34 @@ class ComplaintPagination(PageNumberPagination):
 
 
 class ComplaintListCreateView(ListCreateAPIView):
-    queryset = Complaint.objects.all()
+    queryset = Complaint.objects.all().prefetch_related('attachments')
     serializer_class = ComplaintSerializer
-    permission_classes = [IsAuthenticated]
+    #permission_classes = [IsAuthenticated]
     pagination_class = ComplaintPagination
     filter_backends = [SearchFilter]
     search_fields = ['title', 'description', 'status']
 
     def perform_create(self, serializer):
-        serializer.save(student=self.request.user)
+        files = self.request.FILES.getlist('attachments')
+        allowed_file_types = ['image/jpeg', 'image/jpg', 'image/avif', 'image/tiff', 'image/png', 'application/pdf']  # Allowed MIME types
+        max_file_size = 2 * 1024 * 1024  # 2 MB
+        if len(files) > 2:
+            raise ValueError("You can upload a maximum of 2 files.")
 
+
+
+        for file in files:
+            if file.content_type not in allowed_file_types:
+                raise ValueError(f"File type {file.content_type} is not allowed.")
+            if file.size > max_file_size:
+                raise ValueError(f"File {file.name} exceeds the maximum size of 2 MB.")
+
+        complaint = serializer.save(student=self.request.user)
+        for file in files:
+            Attachment.objects.create(complaint=complaint, file_url=file)
 
 class ComplaintDetailView(RetrieveUpdateDestroyAPIView):
-    queryset = Complaint.objects.all()
+    queryset = Complaint.objects.all().prefetch_related('attachments')
     serializer_class = ComplaintSerializer
     permission_classes = [IsAuthenticated]
 
@@ -159,8 +174,8 @@ class ComplaintDetailView(RetrieveUpdateDestroyAPIView):
         user = self.request.user
         # Only allow students to see their own complaints
         if hasattr(user, 'studentprofile'):
-            return self.queryset.filter(student=user)
-        return self.queryset
+            return self.queryset.filter(student=user).prefetch_related('attachments')
+        return self.queryset.prefetch_related('attachments')
 
 
 class UserListCreateView(ListCreateAPIView):
