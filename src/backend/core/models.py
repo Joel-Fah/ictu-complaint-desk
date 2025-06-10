@@ -5,6 +5,8 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from enum import Enum
 from django.contrib.auth import get_user_model
+from rest_framework.exceptions import ValidationError
+import mimetypes
 from django.utils import timezone
 from slugify import slugify
 
@@ -442,6 +444,14 @@ class Attachment(models.Model):
     """
         Model representing an Attachment
     """
+    complaint = models.ForeignKey(
+        'Complaint',
+        on_delete=models.CASCADE,
+        related_name='attachments',
+        verbose_name='Complaint',
+        help_text='The complaint this attachment belongs to'
+    )
+
     file_url = models.FileField(
         upload_to='attachments/%Y/%m/%d/', verbose_name='File URL',
         help_text='URL of the file', blank=True, null=True
@@ -458,6 +468,12 @@ class Attachment(models.Model):
         verbose_name='Uploaded At',
         help_text='Date and time when the file was uploaded'
     )
+
+    def save(self, *args, **kwargs):
+        if self.file_url and not self.file_type:
+            mime_type, _ = mimetypes.guess_type(self.file_url.name)
+            self.file_type = mime_type or 'unknown'
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.file_url.name

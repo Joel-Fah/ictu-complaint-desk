@@ -7,7 +7,7 @@ from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
 from core.models import Category, Complaint, ComplaintAssignment, \
-    StudentProfile, LecturerProfile, AdminProfile, Course, Resolution, Reminder, Notification
+    StudentProfile, LecturerProfile, AdminProfile, Course, Resolution, Reminder, Notification, Attachment
 
 # Utilities
 User = get_user_model()
@@ -91,6 +91,7 @@ class CategoryAdmin(admin.ModelAdmin):
 
     def get_admins(self, obj):
         return ", ".join([admin.user.username for admin in obj.admins.all()])
+
     get_admins.short_description = "Admins"
 
 
@@ -103,6 +104,14 @@ class ComplaintAdmin(admin.ModelAdmin):
 
     def semester_year(self, obj):
         return f'{obj.semester} {obj.year}'
+
+
+@admin.register(Attachment)
+class AttachmentAdmin(admin.ModelAdmin):
+    list_display = ['id', 'complaint', 'file_url', 'file_type']
+    search_fields = ['file_url', 'complaint__title']
+    list_filter = ['file_type', 'uploaded_at']
+    readonly_fields = ['file_type']
 
 
 @admin.register(ComplaintAssignment)
