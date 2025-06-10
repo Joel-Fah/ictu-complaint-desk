@@ -12,7 +12,7 @@ interface ComplaintResponse {
 }
 
 const api = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api",
+    baseURL: process.env.NEXT_PUBLIC_API_URL,
     headers: {
         "Content-Type": "application/json",
     },
@@ -44,7 +44,6 @@ api.interceptors.response.use(
 
 // ======= AUTH =======
 {/**
-
  export const loginUser = async (data: any) => {
  return (await api.put("/auth/login", data)).data;
  };

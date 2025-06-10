@@ -6,6 +6,7 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import MenuIcon from '../public/icons/menu-11.svg';
 import XIcon from '../public/icons/cancel-01.svg';
+import {getBaseUrl} from "@/app/utils/getBaseUrl";
 
 const navLinks = [
     { href: "/", label: "Home", icon: "/icons/home-01.svg" },
@@ -16,6 +17,7 @@ export default function Navbar() {
     const pathname = usePathname();
     const [menuOpen, setMenuOpen] = useState(false);
     const toggleMenu = () => setMenuOpen((prev) => !prev);
+    const googleLoginUrl = `${getBaseUrl()}/accounts/google/login/?process=login`;
 
     const isActive = (href: string) => pathname === href;
 
@@ -54,7 +56,7 @@ export default function Navbar() {
                 {/* Sign In */}
                 <div className="flex items-center">
                     <Link
-                        href="http://localhost:8000/accounts/google/login/?process=login"
+                        href={googleLoginUrl}
                         className={`flex items-center text-whiteColor px-[16px] py-[8px] rounded-[16px] bg-primary-800 hover:bg-blue-700 transition gap-[10px]
                         }`}
                     >
@@ -89,7 +91,7 @@ export default function Navbar() {
                     ))}
 
                     <Link
-                        href="http://localhost:8000/accounts/google/login/?process=login"
+                        href={googleLoginUrl}
                         onClick={toggleMenu}
                         className={`flex items-center gap-2 px-4 py-2 rounded-[12px]
                         }`}

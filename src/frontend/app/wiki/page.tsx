@@ -7,26 +7,32 @@ import Image from "next/image";
 
 const steps = [
     {
-        title: "Step 1: Sign Up",
-        description: "Register using your university email address to create an account.",
+        title: "Step 1: Login In",
+        description: "Register using your ICT university email address to get started.",
         mediaType: "image",
         mediaSrc: "/images/dummy.jpg",
     },
     {
-        title: "Step 2: Log In",
-        description: "Use your credentials to log in and access your dashboard.",
+        title: "Step 2: How to submit a complaint",
+        description: "Click the New Complaint button on the bottom right of the dashboard, fill the form correctly and completely, you are good to go.",
         mediaType: "image",
         mediaSrc: "/images/dummy.jpg",
     },
     {
-        title: "Step 3: Submit a Complaint",
-        description: "Select a complaint category, describe your issue, and hit submit.",
+        title: "Step 3: How to check your complaint status",
+        description: "Select a complaint and under you will see its complaint status at the right most part of the dashboard.",
         mediaType: "image",
         mediaSrc: "/images/dummy.jpg",
     },
     {
-        title: "Step 4: Track Progress",
-        description: "Follow the progress of your complaint and receive feedback from staff.",
+        title: "Where your complaints go?",
+        description: "They are sent to people and/or entities in charge of that particular category like lecturer, administrators and so on.",
+        mediaType: "image",
+        mediaSrc: "/images/dummy.jpg",
+    },
+    {
+        title: "What happens after submission?",
+        description: "They move from person to person, entity to entity until your complaint is resolved.",
         mediaType: "image",
         mediaSrc: "/images/dummy.jpg",
     },

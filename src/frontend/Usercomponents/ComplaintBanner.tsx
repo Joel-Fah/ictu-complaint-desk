@@ -24,6 +24,7 @@ const ComplaintBanner: FC<ComplaintBannerProps> = ({
                                                        buttonHeight = '',
                                                        buttonWidth = '',
                                                        textSize = '',
+                                                       onButtonClick,
                                                    }) => {
     return (
         <div className="p-4 sm:p-6 md:p-8 rounded-lg w-full flex flex-col items-center max-w-screen-xl mx-auto">
@@ -45,6 +46,7 @@ const ComplaintBanner: FC<ComplaintBannerProps> = ({
                         textColor='text-whiteColor'
                         className={`gap-[10px]  ${buttonHeight}`}
                         borderRadius='rounded-[16px]'
+                        onClick={onButtonClick}
                         fontSize={textSize}
                     />
 
