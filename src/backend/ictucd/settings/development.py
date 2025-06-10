@@ -47,3 +47,6 @@ STORAGES = {
         "LOCATION": MEDIA_ROOT,
     },
 }
+
+# Frontend settings
+FRONTEND_URL = os.getenv('FRONTEND_URL_DEV', 'http://localhost:3000')

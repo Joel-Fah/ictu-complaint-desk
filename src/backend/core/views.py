@@ -2,6 +2,7 @@ import json
 
 import requests
 from allauth.socialaccount.models import SocialToken, SocialAccount
+from django.conf import settings
 from django.contrib.auth import get_user_model, logout
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, Http404
@@ -50,27 +51,19 @@ class UserDetailView(RetrieveUpdateAPIView):
 @login_required
 def google_login_callback(request):
     user = request.user
-
     social_accounts = SocialAccount.objects.filter(user=user, provider='google')
-    print(f'Social Account for user >>> {social_accounts}')
-
     social_account = social_accounts.first()
+
     if not social_account:
-        print('No social account found for user')
-        # return JsonResponse({'error': 'No social account found for user'}, status=404)
-        return redirect('http://localhost:3000/login/callback/?error=NoSocialAccount')
+        return redirect(f'{settings.FRONTEND_URL}/login/callback/?error=NoSocialAccount')
 
     token = SocialToken.objects.get(account=social_account, account__provider='google')
-
     if token:
-        print(f'Google token found >>> {token}')
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
-        return redirect(f'http://localhost:3000/login/callback/?access_token={access_token}')
+        return redirect(f'{settings.FRONTEND_URL}/login/callback/?access_token={access_token}')
     else:
-        print(f'No Google token found for user >>> {user}')
-        # return JsonResponse({'error': 'No token found for user'}, status=404)
-        return redirect('http://localhost:3000/login/callback/?error=NoGoogleToken')
+        return redirect(f'{settings.FRONTEND_URL}/login/callback/?error=NoGoogleToken')
 
 
 @csrf_exempt
