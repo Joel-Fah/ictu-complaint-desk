@@ -1,12 +1,15 @@
 import json
 
 import requests
+from collections import defaultdict
 from allauth.socialaccount.models import SocialToken, SocialAccount
 from django.conf import settings
 from django.contrib.auth import get_user_model, logout
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, Http404
 from django.shortcuts import redirect
+from django.db.models import Count, F, ExpressionWrapper, OuterRef, Subquery, Avg, DurationField
+from rest_framework.views import APIView
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 from rest_framework import viewsets, permissions, generics
@@ -250,3 +253,112 @@ class StudentProfileUpdateView(generics.UpdateAPIView):
             return user.studentprofile
         else:
             raise Http404("Student profile does not exist.")
+
+
+class ComplaintsPerSemesterAnalyticsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Assumes Complaint model has 'semester' and 'year' fields
+        data = (
+            Complaint.objects
+            .values('semester', 'year')
+            .annotate(count=Count('id'))
+            .order_by('year', 'semester')
+        )
+        labels = [f"{item['semester']} {item['year']}" for item in data]
+        counts = [item['count'] for item in data]
+        return Response({
+            "labels": labels,
+            "datasets": [
+                {
+                    "label": "Complaints",
+                    "data": counts
+                }
+            ]
+        })
+
+
+class ComplaintsPerCategoryPerSemesterAnalyticsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Aggregate complaints by category, semester, and year
+        data = (
+            Complaint.objects
+            .values('category__name', 'semester', 'year')
+            .annotate(count=Count('id'))
+            .order_by('year', 'semester', 'category__name')
+        )
+
+        # Collect all unique semesters
+        semesters = sorted({f"{item['semester']} {item['year']}" for item in data})
+        categories = sorted({item['category__name'] for item in data})
+
+        # Prepare a mapping: category -> [counts per semester]
+        counts_by_category = defaultdict(lambda: [0] * len(semesters))
+        semester_index = {sem: idx for idx, sem in enumerate(semesters)}
+
+        for item in data:
+            sem_label = f"{item['semester']} {item['year']}"
+            idx = semester_index[sem_label]
+            counts_by_category[item['category__name']][idx] = item['count']
+
+        datasets = [
+            {
+                "label": category,
+                "data": counts_by_category[category]
+            }
+            for category in categories
+        ]
+
+        return Response({
+            "labels": semesters,
+            "datasets": datasets
+        })
+
+class AvgResolutionTimePerSemesterAnalyticsView(APIView):
+    permission_classes = []
+
+    def get(self, request):
+        # Subquery: earliest resolution time for each complaint
+        earliest_resolution = Resolution.objects.filter(
+            complaint=OuterRef('pk')
+        ).order_by('created_at').values('created_at')[:1]
+
+        # Annotate complaints with their earliest resolution time
+        complaints = Complaint.objects.annotate(
+            resolved_at=Subquery(earliest_resolution)
+        ).exclude(resolved_at__isnull=True)
+
+        # Calculate resolution time as a duration
+        complaints = complaints.annotate(
+            resolution_time=ExpressionWrapper(
+                F('resolved_at') - F('created_at'),
+                output_field=DurationField()
+            )
+        )
+
+        # Group by semester/year and calculate average resolution time (as duration)
+        data = (
+            complaints
+            .values('semester', 'year')
+            .annotate(avg_resolution=Avg('resolution_time'))
+            .order_by('year', 'semester')
+        )
+
+        labels = [f"{item['semester']} {item['year']}" for item in data]
+        avg_days = [
+            round(item['avg_resolution'].total_seconds() / 86400, 2) if item['avg_resolution'] else 0
+            for item in data
+        ]
+
+        return Response({
+            "labels": labels,
+            "datasets": [
+                {
+                    "label": "Avg Resolution Time (days)",
+                    "data": avg_days
+                }
+            ]
+        })
