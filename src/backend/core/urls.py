@@ -10,7 +10,8 @@ from .views import ComplaintListCreateView, ComplaintDetailView, StudentProfileU
 from .views import HomeView, UserCreate, google_login_callback, validate_google_token, google_logout, \
     CategoryListCreateView, CategoryDetailView, UserListCreateView, UserDetailView, ReminderViewSet, \
     NotificationViewSet, ResolutionListCreateView, ResolutionRetrieveUpdateDestroyView, CourseListCreateView, \
-    CourseDetailView
+    CourseDetailView, ComplaintsPerSemesterAnalyticsView, ComplaintsPerCategoryPerSemesterAnalyticsView, \
+    AvgResolutionTimePerSemesterAnalyticsView
 
 # Create your urls here.
 
@@ -78,5 +79,19 @@ urlpatterns = [
     # courses
     path('courses/', CourseListCreateView.as_view(), name='course-list-create'),
     path('courses/<int:pk>/', CourseDetailView.as_view(), name='course-detail'),
+
+    # Analytics
+    path('analytics/complaints-per-semester/', ComplaintsPerSemesterAnalyticsView.as_view(),
+         name='complaints-per-semester'),
+    path(
+        'analytics/complaints-per-category-per-semester/',
+        ComplaintsPerCategoryPerSemesterAnalyticsView.as_view(),
+        name='complaints-per-category-per-semester'
+    ),
+    path(
+        'analytics/avg-resolution-time-per-semester/',
+        AvgResolutionTimePerSemesterAnalyticsView.as_view(),
+        name='avg-resolution-time-per-semester'
+    ),
 ]
 urlpatterns += router.urls
