@@ -93,11 +93,7 @@
 
 
 @layer base {
-  * {
-    @apply z-0;
-  }
   body {
     @apply bg-background text-foreground;
-    @apply z-0;
   }
 }

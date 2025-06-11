@@ -12,7 +12,7 @@ import {logout} from "@/lib/auth";
 
 const navLinks = [
   { href: "/dashboard", label: "Personal", icon: "/icons/user-lock-01.svg" },
-  { href: "/dashboard/community", label: "Community", icon: "/icons/user-multiple-stroke-rounded-1.svg" },
+  { href: "/community", label: "Community", icon: "/icons/user-multiple-stroke-rounded-1.svg" },
 ];
 
 const NavbarDashboard = () => {
@@ -57,7 +57,7 @@ const NavbarDashboard = () => {
                     <Link
                         key={href}
                         href={href}
-                        className={`flex items-center space-x-1 w-[123px] h-[40px] px-4 py-2 rounded-[16px] text-sm transition gap-[10px] ${
+                        className={`flex items-center space-x-1 w-[140px] h-[40px] px-4 py-2 rounded-[16px] text-sm transition gap-[10px] ${
                             isActive(href) ? "bg-primary-800 text-white" : "text-primary-50 hover:text-whiteColor"
                         }`}
                     >
