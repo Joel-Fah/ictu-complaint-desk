@@ -11,7 +11,6 @@ import {
     DrawerDescription,
     DrawerFooter,
     DrawerHeader,
-    DrawerTitle,
     DrawerTrigger,
 } from "@/components/ui/drawer"
 import { Input } from "@/components/ui/input"
@@ -19,23 +18,24 @@ import { Label } from "@/components/ui/label"
 import { toast } from 'sonner';
 import {updateStudentProfile} from "@/lib/api";
 import ToastNotification from "@/Usercomponents/ToastNotifications";
+import {DialogTitle} from "@/components/ui/dialog";
 
-export function DrawerDialogDemo() {
+export function DrawerDialogDemo({ onSuccess }: { onSuccess?: () => void }) {
     const [open, setOpen] = React.useState(false)
 
     return (
-        <Drawer open={open} onOpenChange={setOpen}>
+        <Drawer open={open} onOpenChange={setOpen} direction="bottom">
             <DrawerTrigger asChild>
                 <Button variant="outline" className="border-primary-950 rounded-[20px]">Enter Your ICTU Matricule</Button>
             </DrawerTrigger>
             <DrawerContent>
                 <DrawerHeader className="text-left bg-primary-50 rounded-t-[20px]">
-                    <DrawerTitle>Complete Profile</DrawerTitle>
+                    <DialogTitle>Complete Profile</DialogTitle>
                     <DrawerDescription>
                         This helps us track which complaints belong to you. Click Save changes when you&apos;re done.
                     </DrawerDescription>
                 </DrawerHeader>
-                <ProfileForm className="px-4 bg-primary-50" />
+                <ProfileForm className="px-4 bg-primary-50" onSuccess={onSuccess} />
                 <DrawerFooter className="pt-2 bg-primary-50 rounded-b-[20px]">
                     <DrawerClose asChild>
                         <Button variant="outline" className="border-primary-950 hover:bg-greyColor">Cancel</Button>
@@ -46,7 +46,7 @@ export function DrawerDialogDemo() {
     )
 }
 
-function ProfileForm({ className }: React.ComponentProps<"form">) {
+function ProfileForm({ className, onSuccess }: React.ComponentProps<"form"> & { onSuccess?: () => void }) {
     const [studentNumber, setStudentNumber] = React.useState("");
     const [loading, setLoading] = React.useState(false);
 
@@ -64,6 +64,7 @@ function ProfileForm({ className }: React.ComponentProps<"form">) {
                     showClose
                 />
             ), { duration: 4000 });
+            if (onSuccess) onSuccess();
         } catch (err) {
             toast.custom((t) => (
                 <ToastNotification
