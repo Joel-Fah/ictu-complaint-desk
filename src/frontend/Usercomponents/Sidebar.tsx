@@ -108,7 +108,7 @@ const ComplaintsUI = ({ onSelectItem }: ComplaintsUIProps) => {
           {/* Filter Dropdowns */}
           <div className="flex gap-2">
             {/* Status Filter */}
-            <div className="relative z-20">
+            <div className="relative z-[5]">
               <button
                   onClick={() => {
                     setStatusDropdownOpen(!statusDropdownOpen);
@@ -145,7 +145,7 @@ const ComplaintsUI = ({ onSelectItem }: ComplaintsUIProps) => {
             </div>
 
             {/* Value Filter */}
-            <div className="relative z-20">
+            <div className="relative z-[5]">
               <button
                   onClick={() => {
                     setValueDropdownOpen(!valueDropdownOpen);
@@ -200,12 +200,12 @@ const ComplaintsUI = ({ onSelectItem }: ComplaintsUIProps) => {
 
           {/* Complaints List */}
           <div className="space-y-3 max-h-[calc(100vh-250px)] overflow-y-auto pr-2 rounded-[20px]">
-            {filteredComplaints.slice().reverse().map((complaint) => (
+            {filteredComplaints.slice().reverse().map((complaint, index) => (
                 <div
                     key={complaint.id}
                     onClick={() => {
-                      onSelectItem(complaint)
-                      setSelectedComplaintId(complaint.id)
+                      onSelectItem(complaint);
+                      setSelectedComplaintId(complaint.id);
                     }}
                     className={`px-[16px] py-[21px] rounded-[20px] transition-all duration-300 cursor-pointer mb-1.5 ${
                         selectedComplaintId === complaint.id
@@ -215,7 +215,9 @@ const ComplaintsUI = ({ onSelectItem }: ComplaintsUIProps) => {
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <span className="text-[18px] leading-[20px] font-heading font-medium text-darkColor">{complaint.id}.</span>
+                <span className="text-[18px] leading-[20px] font-heading font-medium text-darkColor">
+                    {filteredComplaints.length - index}.
+                </span>
                       <h3 className="text-[18px] font-medium text-darkColor leading-[20px] flex-1 font-sans">
                         {complaint.title}
                       </h3>
@@ -223,7 +225,7 @@ const ComplaintsUI = ({ onSelectItem }: ComplaintsUIProps) => {
                     <button className="ml-2">
                       <Image
                           src="/icons/more-horizontal.svg"
-                          alt='Option icon'
+                          alt="Option icon"
                           height={24}
                           width={24}
                       />
@@ -236,14 +238,14 @@ const ComplaintsUI = ({ onSelectItem }: ComplaintsUIProps) => {
 
                   <div className="flex items-center justify-between ml-6">
                     <div className="flex items-center gap-2">
-                  <span className={`text-xs font-sans flex flex-row items-center justify-center px-[6px] py-[3px] gap-1 rounded-[8px] ${getStatusColor(complaint.status)}`}>
+                <span className={`text-xs font-sans flex flex-row items-center justify-center px-[6px] py-[3px] gap-1 rounded-[8px] ${getStatusColor(complaint.status)}`}>
                     <div>{getStatusIcon(complaint.status)}</div>
-                    {complaint.status}
-                  </span>
+                  {complaint.status}
+                </span>
                       <div className="flex items-center gap-1 text-xs text-[#050041] text-opacity-[50%] font-sans">
                         <Image
                             src="/icons/clock-02.svg"
-                            alt='Option icon'
+                            alt="Clock icon"
                             height={12}
                             width={12}
                         />

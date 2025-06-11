@@ -69,7 +69,7 @@ const ComplaintForm: React.FC = () => {
             return;
         }
         getUserById(selectedCourse.lecturer)
-            .then(lect => setLecturerName(`${lect.first_name} ${lect.last_name}`))
+            .then(lect => setLecturerName(`${lect.firstName} ${lect.lastName}`))
             .catch(() => setLecturerName("Unknown"));
     }, [selectedCourse]);
 
@@ -218,11 +218,16 @@ const ComplaintForm: React.FC = () => {
                         <div>
                             <label className="block text-xs sm:text-sm text-primary-950 mb-1.5 sm:mb-2">Complaint title</label>
                             <input
-                                className="border-b text-primary-950 font-sans text-lg sm:text-xl border-primary-950 w-full p-2 sm:p-3 bg-transparent focus:outline-none"
+                                type="text"
+                                className="appearance-none w-full bg-transparent text-lg sm:text-xl text-primary-950 border-0 border-b border-primary-950 focus:ring-0 focus:outline-none pr-6"
                                 value={formData.complaintTitle}
-                                onChange={e => handleInputChange('complaintTitle', e.target.value)}
-                                required
+                                onChange={e => handleInputChange('complaintTitle', e.target.value.slice(0, 55))}
+                                maxLength={55}
+                                placeholder="What are you complaining about?"
+                                required={true}
                             />
+                            <p className="text-xs text-gray-500 mt-1">{formData.complaintTitle.length}/55 characters</p>
+
                         </div>
 
                         {/* Course */}
@@ -252,7 +257,10 @@ const ComplaintForm: React.FC = () => {
                         {/* Description */}
                         <div>
                             <label className="block text-lg sm:text-xl md:text-h1 font-semibold text-primary-950 mb-6 sm:mb-8">Description</label>
-                            <RichTextEditor value={formData.description} onChange={val => handleInputChange("description", val)} />
+                            <RichTextEditor
+                                value={formData.description}
+                                onChange={val => handleInputChange('description', val.slice(0, 500))}
+                            />
                             <p className="text-[10px] sm:text-xs text-gray-500 mt-2 leading-relaxed">
                                 Kindly ensure that all complaint details are clearly explained, because resolving a complaint quickly depends on how clear it is. For this reason, Please ensure that all of required details related to the complaint are adequately provided above. Ensure that your complaint is adequately described. Use simple English to make your complaint easy to understand. Avoid using abbreviations that may not be understood by everyone. Use full sentences and proper punctuation. Spell out numbers less than ten (except when used in statistics, dates, or technical contexts). This will help in ensuring that your complaint is understood and resolved quickly.
                             </p>
