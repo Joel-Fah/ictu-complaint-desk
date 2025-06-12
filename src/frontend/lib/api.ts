@@ -115,6 +115,27 @@ export const getComplaints = async (): Promise<Complaint[]> => {
     }
 };
 
+export const getComplaintsByUser = async (userId: number): Promise<Complaint[]> => {
+    try {
+        const response = await api.get<ComplaintResponse>(`/complaints/?userId=${userId}`);
+        return response.data.results;
+    } catch (err) {
+        console.error("Error fetching user complaints:", err);
+        throw new Error("Failed to fetch user complaints");
+    }
+};
+
+
+export const getComplaintById = async (id: number): Promise<Complaint> => {
+    try {
+        const response = await api.get<Complaint>(`/complaints/${id}/`);
+        return response.data;
+    } catch (err) {
+        console.error(`Error fetching complaint with ID ${id}:`, err);
+        throw new Error('Failed to fetch complaint');
+    }
+};
+
 type ComplaintAPIErrorResponse = {
     detail?: string;
     [key: string]: string[] | string | undefined;

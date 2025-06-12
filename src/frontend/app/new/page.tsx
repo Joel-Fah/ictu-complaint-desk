@@ -63,15 +63,29 @@ const ComplaintForm: React.FC = () => {
         return () => window.removeEventListener('resize', () => null);
     }, [fetchCategories, fetchCourses]);
 
+    console.log(selectedCourse?.lecturer?.user);
+
+    const lecturerUserId = selectedCourse?.lecturer?.user;
+
     useEffect(() => {
-        if (!selectedCourse) {
+        if (typeof lecturerUserId !== 'number') {
             setLecturerName("");
             return;
         }
-        getUserById(selectedCourse.lecturer)
-            .then(lect => setLecturerName(`${lect.firstName} ${lect.lastName}`))
-            .catch(() => setLecturerName("Unknown"));
-    }, [selectedCourse]);
+
+        getUserById(lecturerUserId)
+            .then((lect) => {
+                const name = `${lect.firstName} ${lect.lastName}`;
+                setLecturerName(name);
+            })
+            .catch((err) => {
+                console.error("Error fetching lecturer:", err);
+                setLecturerName("Unknown");
+            });
+    }, [lecturerUserId]);
+
+
+
 
     const goBack = () => router.back();
 

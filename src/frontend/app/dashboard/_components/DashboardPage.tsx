@@ -26,8 +26,6 @@ function DashboardPage() {
     const [selectedItem, setSelectedItem] = useState<Complaint | null>(null);
     const [isMobile, setIsMobile] = useState(false);
 
-    const userName = user?.fullName;
-    console.log(userName);
 
     const studentProfile = user?.profiles?.find(p => p.type === "student");
     const studentNumber = studentProfile?.data?.student_number;

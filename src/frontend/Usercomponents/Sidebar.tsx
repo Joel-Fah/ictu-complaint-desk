@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Complaint } from "@/types/complaint";
-import { getComplaints } from '@/lib/api';
+import { getComplaintsByUser} from '@/lib/api';
 import { formatComplaintDate } from "@/lib/formatDate";
+import {useUserStore} from "@/stores/userStore";
 import axios from "axios";
 
 interface ComplaintsUIProps {
@@ -18,12 +19,13 @@ const ComplaintsUI = ({ onSelectItem }: ComplaintsUIProps) => {
   const [valueDropdownOpen, setValueDropdownOpen] = useState(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const userId = useUserStore((state) => state.user?.id);
 
 
   useEffect(() => {
     const fetchComplaints = async () => {
       try {
-        const data = await getComplaints();
+        const data = await getComplaintsByUser(Number(userId));
         if (Array.isArray(data)) {
           setComplaints(data);
         } else {
