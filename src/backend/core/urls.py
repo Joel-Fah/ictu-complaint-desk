@@ -6,7 +6,7 @@ from rest_framework import permissions
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .views import ComplaintListCreateView, ComplaintDetailView, StudentProfileUpdateView
+from .views import ComplaintListCreateView, ComplaintDetailView, StudentProfileUpdateView, UserRetrieveView
 from .views import HomeView, UserCreate, google_login_callback, validate_google_token, google_logout, \
     CategoryListCreateView, CategoryDetailView, UserListCreateView, UserDetailView, ReminderViewSet, \
     NotificationViewSet, ResolutionListCreateView, ResolutionRetrieveUpdateDestroyView, CourseListCreateView, \
@@ -64,7 +64,8 @@ urlpatterns = [
 
     # Users
     path('users/', UserListCreateView.as_view(), name='user-list-create'),
-    path('users/<int:pk>/', UserDetailView.as_view(), name='user-detail'),
+    path('users/me/', UserDetailView.as_view(), name='user-detail'),
+    path('users/<int:pk>/', UserRetrieveView.as_view(), name='user-me'),
 
     # student profile
     path('users/students/profile/', StudentProfileUpdateView.as_view(), name='student-profile-update'),

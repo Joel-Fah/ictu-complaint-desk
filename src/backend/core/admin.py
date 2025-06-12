@@ -137,9 +137,9 @@ class CourseAdmin(admin.ModelAdmin):
 
 @admin.register(Resolution)
 class ResolutionAdmin(admin.ModelAdmin):
-    list_display = ['complaint', 'staff', 'response', 'created_at']
-    list_filter = ['staff']
-    search_fields = ['response', 'complaint__title']
+    list_display = ['complaint', 'resolved_by', 'is_reviewed']
+    list_filter = ['resolved_by', 'created_at', 'resolved_by']
+    search_fields = ['comments', 'complaint__title']
     readonly_fields = ['created_at', 'updated_at']
 
 

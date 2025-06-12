@@ -14,6 +14,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 from rest_framework import viewsets, permissions, generics
 from rest_framework.decorators import action
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.filters import SearchFilter
 from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView, ListCreateAPIView, \
     RetrieveUpdateDestroyAPIView
@@ -188,6 +189,17 @@ class UserListCreateView(ListCreateAPIView):
     search_fields = ['username', 'email', 'first_name', 'last_name']
     permission_classes = [IsAuthenticated]
 
+class UserRetrieveView(RetrieveUpdateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+
+class UserRetrieveView(RetrieveUpdateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
 
 class ReminderViewSet(viewsets.ModelViewSet):
     queryset = Reminder.objects.all().order_by('-sent_at')
@@ -218,7 +230,17 @@ class ResolutionListCreateView(ListCreateAPIView):
     queryset = Resolution.objects.all()
     serializer_class = ResolutionSerializer
     filter_backends = [SearchFilter]
-    search_fields = ['complaint__title', 'staff__username', 'response']
+    search_fields = ['complaint__title', 'resolved_by__username', 'comments']
+
+    def perform_create(self, serializer):
+        complaint = serializer.validated_data['complaint']
+        admin_profile = self.request.user.adminprofile
+
+        # Check if the admin is assigned to the complaint
+        if not complaint.assignments.filter(staff=self.request.user).exists():
+            raise PermissionDenied("You can only resolve complaints assigned to you.")
+
+        serializer.save(resolved_by=admin_profile)
 
 
 class ResolutionRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
