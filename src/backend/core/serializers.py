@@ -117,6 +117,7 @@ class ResolutionSerializer(serializers.ModelSerializer):
 
 # Courses Serializer
 class CourseSerializer(serializers.ModelSerializer):
+    lecturer = LecturerProfileSerializer(read_only=True)
     class Meta:
         model = Course
         fields = '__all__'
