@@ -182,6 +182,18 @@ class Course(models.Model):
         null=False
     )
 
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Created At",
+        help_text="Date and time when the course was created"
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Updated At",
+        help_text="Date and time when the course was updated"
+    )
+
     def __str__(self):
         return f"{self.code} - {self.title} ({self.semester} {self.year})"
 
@@ -530,16 +542,31 @@ class Resolution(models.Model):
         help_text="The complaint being assigned",
     )
 
-    staff = models.ForeignKey(
-        get_user_model(),
+    resolved_by = models.ForeignKey(
+        AdminProfile,
         on_delete=models.CASCADE,
-        related_name="resolutions",
-        limit_choices_to={'role__in': ['Lecturer', 'Admin', 'Complaint Coordinator']},
-        verbose_name="Staff",
-        help_text="The staff member who resolved the complaint",
+        related_name="resolved_resolutions",
+        verbose_name="Resolved by",
+        help_text="The admin who resolved the complaint",
     )
 
-    response = models.CharField(
+    reviewed_by = models.ForeignKey(
+        AdminProfile,
+        on_delete=models.CASCADE,
+        related_name="reviewed_resolutions",
+        verbose_name="Reviewed by",
+        help_text="The admin who reviewed the resolution",
+        null=True,
+        blank=True,
+    )
+
+    is_reviewed = models.BooleanField(
+        default=False,
+        verbose_name="Is Reviewed",
+        help_text="Whether the resolution has been reviewed",
+    )
+
+    comments = models.TextField(
         max_length=255,
         verbose_name='Response',
         help_text='response to complaint',
@@ -559,8 +586,44 @@ class Resolution(models.Model):
         help_text='Date and time when the resolution was updated'
     )
 
+    attendance_mark = models.PositiveIntegerField(
+        verbose_name='Attendance Mark',
+        null=True,
+        blank=True
+    )
+
+    assignment_mark = models.PositiveIntegerField(
+        verbose_name='Assignment Mark',
+        null=True,
+        blank=True
+    )
+
+    ca_mark = models.PositiveIntegerField(
+        verbose_name='CA Mark',
+        null=True,
+        blank=True
+    )
+
+    final_mark = models.PositiveIntegerField(
+        verbose_name='Final Mark',
+        null=True,
+        blank=True
+    )
+
+    def save(self, *args, **kwargs):
+        # Ensure `reviewed_by` is either a Complaint Coordinator or Registrar Office admin
+        if self.is_reviewed and self.reviewed_by:
+            if (
+                    self.reviewed_by.user.role != UserRole.COMPLAINT_COORDINATOR
+                    and self.reviewed_by.office != OfficeChoices.REGISTRAR_OFFICE
+            ):
+                raise ValidationError(
+                    "Only Complaint Coordinators or Admins from the Registrar Office can review resolutions."
+                )
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return f"Resolution for {self.complaint.title} by {self.staff.username}"
+        return f"Resolution for {self.complaint.title} by {self.resolved_by.username}"
 
 
 class Notification(models.Model):
