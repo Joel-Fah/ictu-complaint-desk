@@ -135,12 +135,19 @@ class ComplaintPagination(PageNumberPagination):
 
 
 class ComplaintListCreateView(ListCreateAPIView):
-    queryset = Complaint.objects.all().prefetch_related('attachments')
+    queryset = Complaint.objects.all().order_by('-created_at').prefetch_related('attachments')
     serializer_class = ComplaintSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = ComplaintPagination
     filter_backends = [SearchFilter]
     search_fields = ['title', 'description', 'status']
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        user_id = self.request.query_params.get('userId')
+        if user_id:
+            queryset = queryset.filter(student__id=user_id)
+        return queryset
 
     def perform_create(self, serializer):
         files = self.request.FILES.getlist('attachments')
@@ -162,7 +169,7 @@ class ComplaintListCreateView(ListCreateAPIView):
 
 
 class ComplaintDetailView(RetrieveUpdateDestroyAPIView):
-    queryset = Complaint.objects.all().prefetch_related('attachments')
+    queryset = Complaint.objects.all().order_by('-created_at').prefetch_related('attachments')
     serializer_class = ComplaintSerializer
     permission_classes = [IsAuthenticated]
 
@@ -316,6 +323,7 @@ class ComplaintsPerCategoryPerSemesterAnalyticsView(APIView):
             "labels": semesters,
             "datasets": datasets
         })
+
 
 class AvgResolutionTimePerSemesterAnalyticsView(APIView):
     permission_classes = []
