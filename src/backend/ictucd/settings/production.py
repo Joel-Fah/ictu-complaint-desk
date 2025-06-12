@@ -59,3 +59,6 @@ STORAGES = {
 
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
+
+# Frontend
+FRONTEND_URL = os.getenv('FRONTEND_URL_PROD', 'https://ictu-complaint-desk.vercel.app')

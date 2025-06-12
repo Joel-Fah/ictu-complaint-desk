@@ -50,7 +50,7 @@ function Home() {
             rightColumnClassName="rounded-[55px]"
             rightColumnContent={
                 <Image
-                    src="/images/muslim-girl.svg"
+                    src="/images/black-girl.jpg"
                     alt="Students discussing concerns"
                     className="w-full h-full object-cover"
                     width={575}
@@ -79,7 +79,7 @@ function Home() {
             rightColumnClassName="rounded-[55px]"
             rightColumnContent={
                 <Image
-                    src="/images/student-in-library.svg"
+                    src="/images/students-2.jpg"
                     alt="Students discussing concerns"
                     className="w-full h-full object-cover"
                     width={575}

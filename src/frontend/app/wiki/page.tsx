@@ -9,20 +9,20 @@ const steps = [
     {
         title: "Step 1: Login In",
         description: "Register using your ICT university email address to get started.",
-        mediaType: "image",
-        mediaSrc: "/images/dummy.jpg",
+        mediaType: "video",
+        mediaSrc: "/videos/how-to-login.mp4",
     },
     {
         title: "Step 2: How to submit a complaint",
         description: "Click the New Complaint button on the bottom right of the dashboard, fill the form correctly and completely, you are good to go.",
-        mediaType: "image",
-        mediaSrc: "/images/dummy.jpg",
+        mediaType: "video",
+        mediaSrc: "/videos/how-to-submit-a-complaint.mp4",
     },
     {
         title: "Step 3: How to check your complaint status",
         description: "Select a complaint and under you will see its complaint status at the right most part of the dashboard.",
         mediaType: "image",
-        mediaSrc: "/images/dummy.jpg",
+        mediaSrc: "/images/status.png",
     },
     {
         title: "Where your complaints go?",
@@ -72,8 +72,12 @@ const Wiki = () => {
                             ) : (
                                 <video
                                     src={step.mediaSrc}
-                                    controls
+                                    controls={false}
                                     className="rounded-xl shadow-md w-full"
+                                    loop={true}
+                                    autoPlay={true}
+                                    muted={true}
+                                    playsInline={true}
                                 />
                             )}
                         </div>
