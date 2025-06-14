@@ -1,5 +1,5 @@
 "use client";
-<<<<<<< HEAD
+
 import { useRouter } from "next/navigation";
 import React from 'react';
 import Link from "next/link";
@@ -184,7 +184,7 @@ const NavbarDashboard: React.FC<NavbarDashboardProps> = () => {
 };
 
 export default NavbarDashboard;
-=======
+
 
 import { usePathname } from "next/navigation";
 import React, {useEffect, useState} from "react";
@@ -366,4 +366,4 @@ const NavbarDashboard = () => {
 };
 
 export default NavbarDashboard;
->>>>>>> 7b32ef82e65d2cafc28c764b5d04e1ff63c5d65d
+
