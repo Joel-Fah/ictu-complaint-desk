@@ -1,0 +1,78 @@
+.tiptap {
+    min-height: 450px;
+    border: none;
+    outline: none;
+}
+.menu-bar {
+    margin-bottom: 10px;
+}
+.menu-bar button {
+    margin-right: 5px;
+}
+.menu-bar button.is-active {
+    background-color: #e4edff;
+}
+.H1 h1 {
+    font-size: 32px;
+    line-height: 56px;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.H2 h2 {
+    font-size: 24px;
+    line-height: 32px;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.H3 h3{
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 400;
+    margin-bottom: 0.4rem;
+}
+.H4 h4{
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 300;
+    margin-bottom: 0.2rem;
+}
+.H5 h5{
+    font-size: 12px;
+    line-height: 20px;
+    font-weight: 200;
+    margin-bottom: 0.3rem;
+}
+.H6 h6 {
+    font-size: 10px;
+    line-height: 16px;
+    font-weight: 200;
+    margin-bottom: 0.3rem;
+}
+
+ol {
+    padding-left: 15px;
+    list-style-type: decimal;
+    font-size: medium;
+}
+ol li {
+    padding-left: 15px;
+    list-style-type: decimal;
+}
+ul {
+    padding-left: 15px;
+    list-style-type: disc;
+    font-size: medium;
+}
+ul li {
+    padding-left: 15px;
+    list-style-type: disc;
+}
+.is-editor-empty::before {
+    content: attr(data-placeholder);
+    float: left;
+    color: #a0aec0;
+    pointer-events: none;
+    height: 0;
+}

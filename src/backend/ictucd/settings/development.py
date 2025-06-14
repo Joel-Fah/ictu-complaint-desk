@@ -1,3 +1,4 @@
+import dj_database_url
 from dotenv import load_dotenv
 
 from .base import *
@@ -25,14 +26,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     },
-    'postgres': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'postgres',
-        'PASSWORD': os.environ.get('DB_PASSWORD'),
-        'HOST': 'localhost',
-        'PORT': '5432'
-    },
+    'supabase': dj_database_url.parse(os.getenv('SUPABASE_POSTGRESQL_URL')),
 }
 
 SITE_URL = 'http://127.0.0.1:8000/'
@@ -42,4 +36,17 @@ SITE_URL = 'http://127.0.0.1:8000/'
 
 STATIC_URL = 'theme/static/'
 MEDIA_URL = '/media/'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Whitenoise settings
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "LOCATION": MEDIA_ROOT,
+    },
+}
+
+# Frontend settings
+FRONTEND_URL = os.getenv('FRONTEND_URL_DEV', 'http://localhost:3000')

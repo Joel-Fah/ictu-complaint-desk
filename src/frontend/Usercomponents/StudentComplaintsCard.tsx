@@ -3,14 +3,18 @@
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
 
 // Load odometer dynamically to avoid SSR issues
 const Odometer = dynamic(() => import('react-odometerjs'), { ssr: false });
 
 export default function StudentComplaintsCard() {
     const [hasAnimated, setHasAnimated] = useState(false);
+    const [typedText, setTypedText] = useState("");
+    const fullText = "Top Complaints";
     const containerRef = useRef<HTMLDivElement | null>(null);
 
+    // Observer for animation trigger
     useEffect(() => {
         const observer = new IntersectionObserver(
             ([entry]) => {
@@ -33,6 +37,20 @@ export default function StudentComplaintsCard() {
         return () => observer.disconnect();
     }, [hasAnimated]);
 
+    // Typewriter effect for heading
+    useEffect(() => {
+        if (hasAnimated) {
+            let index = 0;
+            const interval = setInterval(() => {
+                setTypedText(fullText.slice(0, index + 1));
+                index++;
+                if (index === fullText.length) clearInterval(interval);
+            }, 100); // speed of typing
+
+            return () => clearInterval(interval);
+        }
+    }, [hasAnimated]);
+
     return (
         <section
             ref={containerRef}
@@ -43,7 +61,7 @@ export default function StudentComplaintsCard() {
                 <div className="w-full md:w-1/2">
                     <div className="relative w-full aspect-[3/4] rounded-[2rem] overflow-hidden">
                         <Image
-                            src="/images/dummy.jpg"
+                            src="/images/students.jpg"
                             alt="Students discussing complaints"
                             fill
                             className="object-cover"
@@ -59,7 +77,7 @@ export default function StudentComplaintsCard() {
                             <Odometer
                                 value={hasAnimated ? 46.32 : 0}
                                 format="(,ddd).dd"
-                                duration={2000}
+                                duration={3000}
                             />
                             %
                         </h2>
@@ -73,7 +91,7 @@ export default function StudentComplaintsCard() {
                             <Odometer
                                 value={hasAnimated ? 2 : 0}
                                 format="d"
-                                duration={2000}
+                                duration={3000}
                             />{" "}
                             out of 5
                         </h2>
@@ -83,15 +101,44 @@ export default function StudentComplaintsCard() {
                         </p>
                     </div>
 
+                    {/* Top Complaints */}
                     <div>
-                        <h2 className="text-5xl sm:text-6xl font-medium">Top complaints</h2>
-                        <ul className="list-disc pl-5 mt-2 text-darkColor text-body sm:text-base space-y-1">
-                            <li>Missing grades</li>
-                            <li>No CA mark</li>
-                            <li>Unsatisfied with final grade</li>
-                            <li>Grade not updated after review</li>
-                            <li>Delay in grade publication</li>
-                        </ul>
+                        <h2 className="text-5xl sm:text-6xl font-medium whitespace-nowrap">
+                            {typedText}
+                        </h2>
+
+                        <motion.ul
+                            className="list-disc pl-5 mt-2 text-darkColor text-body sm:text-base space-y-1"
+                            initial="hidden"
+                            animate={hasAnimated ? "visible" : "hidden"}
+                            variants={{
+                                visible: {
+                                    transition: {
+                                        staggerChildren: 0.15,
+                                    },
+                                },
+                                hidden: {},
+                            }}
+                        >
+                            {[
+                                "Missing grades",
+                                "No CA mark",
+                                "Unsatisfied with final grade",
+                                "Grade not updated after review",
+                                "Delay in grade publication",
+                            ].map((item, index) => (
+                                <motion.li
+                                    key={index}
+                                    variants={{
+                                        hidden: { opacity: 0, x: 50 },
+                                        visible: { opacity: 1, x: 0 },
+                                    }}
+                                    transition={{ duration: 0.6, ease: "easeOut" }}
+                                >
+                                    {item}
+                                </motion.li>
+                            ))}
+                        </motion.ul>
                     </div>
                 </div>
             </div>

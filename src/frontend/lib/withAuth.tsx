@@ -10,7 +10,7 @@ export function withAuth<P extends object>(Component: React.ComponentType<P>) {
         useEffect(() => {
             const token = getAccessToken();
             if (!token) {
-                router.push('/login');
+                router.push('/');
             }
         }, [router]);
 

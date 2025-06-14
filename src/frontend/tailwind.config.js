@@ -65,11 +65,11 @@ module.exports = {
   				'Archivo',
   				'sans-serif'
   			],
-  			heading: [
-  				'Pilcrow Rounded"',
-  				'sans-serif'
-  			],
-  			sansItalic: [
+			heading: [
+				'Pilcrow Rounded',
+				'sans-serif'
+			],
+			sansItalic: [
   				'Archivo-Italic',
   				'sans-serif'
   			]

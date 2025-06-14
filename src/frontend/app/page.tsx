@@ -1,7 +1,6 @@
 'use client';
 import "../app/globals.css";
 import {withPublic} from "@/lib/withPublic";
-import Navbar from "@/Usercomponents/Navbar";
 import ComplaintBanner from "@/Usercomponents/ComplaintBanner";
 import LayeredImageSection from "@/Usercomponents/LayeredImageSection";
 import ProblemStatement from "@/Usercomponents/ProblemStatement";
@@ -9,6 +8,7 @@ import Image from "next/image";
 import ComplaintsInsightsHeader from "@/Usercomponents/ComplaintsInsightsHeader";
 import StudentComplaintsCard from "@/Usercomponents/StudentComplaintsCard";
 import Footer from "@/Usercomponents/Footer";
+<<<<<<< HEAD
 import NavbarDashboard from "@/Usercomponents/NavbarDashboard";
 import Sidebar from "@/Usercomponents/Sidebar";
 
@@ -19,13 +19,19 @@ import Sidebar from "@/Usercomponents/Sidebar";
 
 
 
+=======
+import {getBaseUrl} from "@/app/utils/getBaseUrl";
+>>>>>>> 7b32ef82e65d2cafc28c764b5d04e1ff63c5d65d
 
 function Home() {
   return (
     <section>
+<<<<<<< HEAD
         <Navbar />
         <NavbarDashboard />
         <Sidebar />
+=======
+>>>>>>> 7b32ef82e65d2cafc28c764b5d04e1ff63c5d65d
         <ComplaintBanner
             smallText="You know what?"
             largeText="There's always a"
@@ -34,7 +40,7 @@ function Home() {
             sideText="File in your complaints now"
             buttonHeight='h-[42px]'
             buttonWidth= 'w-[152px]'
-            onButtonClick={() => console.log('Button clicked!')}
+            onButtonClick={() => {window.location.href = `${getBaseUrl()}/accounts/google/login/?process=login`;}}
         />
        
     
@@ -60,10 +66,10 @@ function Home() {
             descriptionColor="text-darkColor"
 
             // Optional right column content
-            rightColumnClassName="bg-greyColor rounded-[55px]"
+            rightColumnClassName="rounded-[55px]"
             rightColumnContent={
                 <Image
-                    src="/images/dummy.jpg"
+                    src="/images/black-girl.jpg"
                     alt="Students discussing concerns"
                     className="w-full h-full object-cover"
                     width={575}
@@ -74,9 +80,9 @@ function Home() {
 
         <ProblemStatement
             // Text content
-            labelText="Problem statement"
-            titleText="Addressing the concern of student complaint at the ICT University"
-            descriptionText="University students have a superpower: complaining (and rightfully so!). Whether it's about a missing grade, a Wi-Fi outage, or the legendary unavailability of a lecturer, complaints pile up faster than class assignments. But where do these complaints go? The WhatsApp group? Tech admin's desk, never to be seen again?"
+            labelText="Solution Proposal"
+            titleText="A Complaint Resolution System tailored for the ICT University"
+            descriptionText='Enter our Complaint Resolution System (CRS) – a simple, structured way for students to submit, track, and resolve issues with real-time updates. No more "I sent an email, and no one replied!" frustrations. Just an efficient, no-nonsense complaint management system built for The ICT University.'
             labelSize='20px'
 
             rightColumnRatio="medium"  // Options: "small", "medium", "large"
@@ -89,10 +95,10 @@ function Home() {
             descriptionColor="text-darkColor"
 
             // Optional right column content
-            rightColumnClassName="bg-greyColor rounded-[55px]"
+            rightColumnClassName="rounded-[55px]"
             rightColumnContent={
                 <Image
-                    src="/images/dummy.jpg"
+                    src="/images/students-2.jpg"
                     alt="Students discussing concerns"
                     className="w-full h-full object-cover"
                     width={575}
@@ -116,7 +122,7 @@ function Home() {
             largeText="There's always a"
             largeTextHighlight="Complaint"
             sideText="A better way"
-            onButtonClick={() => console.log('Button clicked!')}
+            onButtonClick={() => {window.location.href = `${getBaseUrl()}/accounts/google/login/?process=login`;}}
             buttonText='Start complaining right now'
             buttonHeight='h-[42px]'
             buttonWidth= 'w-[246px]'
