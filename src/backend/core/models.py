@@ -1,9 +1,14 @@
 from datetime import timedelta
 
 from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.core.exceptions import ValidationError
 from django.db import models
 from enum import Enum
 from django.contrib.auth import get_user_model
+from rest_framework.exceptions import ValidationError
+import mimetypes
+from django.utils import timezone
+from slugify import slugify
 
 from core.utils import get_current_year
 
@@ -18,6 +23,17 @@ class UserRole(str, Enum):
     @classmethod
     def choices(cls):
         return [(tag, tag.value) for tag in cls]
+
+
+class OfficeChoices(str, Enum):
+    FINANCE_DEPARTMENT = "Finance Department"
+    CISCO_LAB = "Cisco Lab"
+    REGISTRAR_OFFICE = "Registrar Office"
+    FACULTY = "Faculty"
+
+    @classmethod
+    def choices(cls):
+        return [(choice.name, choice.value) for choice in cls]
 
 
 class SemesterChoices(models.TextChoices):
@@ -66,7 +82,7 @@ class StudentProfile(models.Model):
     user = models.OneToOneField(
         CustomUser,
         on_delete=models.CASCADE,
-        related_name='student_profile'
+        related_name='studentprofile'
     )
 
     student_number = models.CharField(
@@ -87,11 +103,12 @@ class AdminProfile(models.Model):
     user = models.OneToOneField(
         CustomUser,
         on_delete=models.CASCADE,
-        related_name='admin_profile'
+        related_name='adminprofile'
     )
 
     office = models.CharField(
-        max_length=100,
+        max_length=50,
+        choices=OfficeChoices.choices(),
         blank=False,
         null=False
     )
@@ -113,7 +130,7 @@ class LecturerProfile(models.Model):
     user = models.OneToOneField(
         CustomUser,
         on_delete=models.CASCADE,
-        related_name='lecturer_profile'
+        related_name='lecturerprofile'
     )
 
     def __str__(self):
@@ -165,6 +182,21 @@ class Course(models.Model):
         null=False
     )
 
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Created At",
+        help_text="Date and time when the course was created"
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Updated At",
+        help_text="Date and time when the course was updated"
+    )
+
+    def __str__(self):
+        return f"{self.code} - {self.title} ({self.semester} {self.year})"
+
 
 class Complaint(models.Model):
     """
@@ -183,7 +215,6 @@ class Complaint(models.Model):
         OPEN = "Open", "Open"
         IN_PROGRESS = "In Progress", "In Progress"
         RESOLVED = "Resolved", "Resolved"
-        CLOSED = "Closed", "Closed"
         ESCALATED = "Escalated", "Escalated"
 
     student = models.ForeignKey(
@@ -204,7 +235,7 @@ class Complaint(models.Model):
 
     slug = models.SlugField(
         max_length=255,
-        unique=True,
+        unique=False,
         verbose_name="Category Slug",
         editable=False,
         blank=False,
@@ -256,8 +287,8 @@ class Complaint(models.Model):
 
     deadline = models.DateTimeField(
         verbose_name="Deadline",
-        blank=False,
-        null=False
+        blank=True,
+        null=True
     )
 
     semester = models.CharField(
@@ -278,6 +309,14 @@ class Complaint(models.Model):
         null=False
     )
 
+    course = models.ForeignKey(
+        'Course',
+        on_delete=models.CASCADE,
+        related_name='courses',
+        verbose_name='Course',
+        help_text="The course for which a complaint was submitted",
+    )
+
     created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name="Created At",
@@ -291,8 +330,9 @@ class Complaint(models.Model):
     )
 
     def save(self, *args, **kwargs):
-        if not self.pk:  # Check if the object is being created (not updated)
-            self.deadline = self.created_at + timedelta(days=3)
+        self.slug = slugify(self.title)
+        if not self.pk:
+            self.deadline = timezone.now() + timedelta(days=3)
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -320,7 +360,7 @@ class ComplaintAssignment(models.Model):
         get_user_model(),
         on_delete=models.CASCADE,
         related_name="assigned_complaints",
-        limit_choices_to={'role__in': ['Lecturer', 'Admin Assistant', 'Complaint Coordinator']},
+        limit_choices_to={'role__in': ['Lecturer', 'Admin', 'Complaint Coordinator']},
         verbose_name="Staff",
         help_text="The staff member assigned to the complaint",
     )
@@ -337,6 +377,13 @@ class ComplaintAssignment(models.Model):
         help_text="The number of reminders sent to the staff member",
     )
 
+    message = models.TextField(
+        verbose_name="Message",
+        help_text="Message sent along with the assignment",
+        blank=True,
+        null=True
+    )
+
     created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name="Created At",
@@ -348,6 +395,11 @@ class ComplaintAssignment(models.Model):
         verbose_name="Updated At",
         help_text="Date and time when the assignment was updated"
     )
+
+    def save(self, *args, **kwargs):
+        if not self.message:
+            self.message = f"You have been assigned to provide a resolution to '{self.complaint.title}' before {self.complaint.deadline}."
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.complaint.title} assigned to {self.staff.username}"
@@ -376,6 +428,14 @@ class Category(models.Model):
         null=False
     )
 
+    admins = models.ManyToManyField(
+        'AdminProfile',
+        related_name='categories',
+        verbose_name="Admins",
+        help_text="Admins responsible for this category",
+        blank=True
+    )
+
     created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name="Created At",
@@ -396,6 +456,14 @@ class Attachment(models.Model):
     """
         Model representing an Attachment
     """
+    complaint = models.ForeignKey(
+        'Complaint',
+        on_delete=models.CASCADE,
+        related_name='attachments',
+        verbose_name='Complaint',
+        help_text='The complaint this attachment belongs to'
+    )
+
     file_url = models.FileField(
         upload_to='attachments/%Y/%m/%d/', verbose_name='File URL',
         help_text='URL of the file', blank=True, null=True
@@ -412,6 +480,12 @@ class Attachment(models.Model):
         verbose_name='Uploaded At',
         help_text='Date and time when the file was uploaded'
     )
+
+    def save(self, *args, **kwargs):
+        if self.file_url and not self.file_type:
+            mime_type, _ = mimetypes.guess_type(self.file_url.name)
+            self.file_type = mime_type or 'unknown'
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.file_url.name
@@ -468,16 +542,31 @@ class Resolution(models.Model):
         help_text="The complaint being assigned",
     )
 
-    staff = models.ForeignKey(
-        get_user_model(),
+    resolved_by = models.ForeignKey(
+        AdminProfile,
         on_delete=models.CASCADE,
-        related_name="resolutions",
-        limit_choices_to={'role__in': ['Lecturer', 'Admin Assistant', 'Complaint Coordinator']},
-        verbose_name="Staff",
-        help_text="The staff member who resolved the complaint",
+        related_name="resolved_resolutions",
+        verbose_name="Resolved by",
+        help_text="The admin who resolved the complaint",
     )
 
-    response = models.CharField(
+    reviewed_by = models.ForeignKey(
+        AdminProfile,
+        on_delete=models.CASCADE,
+        related_name="reviewed_resolutions",
+        verbose_name="Reviewed by",
+        help_text="The admin who reviewed the resolution",
+        null=True,
+        blank=True,
+    )
+
+    is_reviewed = models.BooleanField(
+        default=False,
+        verbose_name="Is Reviewed",
+        help_text="Whether the resolution has been reviewed",
+    )
+
+    comments = models.TextField(
         max_length=255,
         verbose_name='Response',
         help_text='response to complaint',
@@ -497,8 +586,44 @@ class Resolution(models.Model):
         help_text='Date and time when the resolution was updated'
     )
 
+    attendance_mark = models.PositiveIntegerField(
+        verbose_name='Attendance Mark',
+        null=True,
+        blank=True
+    )
+
+    assignment_mark = models.PositiveIntegerField(
+        verbose_name='Assignment Mark',
+        null=True,
+        blank=True
+    )
+
+    ca_mark = models.PositiveIntegerField(
+        verbose_name='CA Mark',
+        null=True,
+        blank=True
+    )
+
+    final_mark = models.PositiveIntegerField(
+        verbose_name='Final Mark',
+        null=True,
+        blank=True
+    )
+
+    def save(self, *args, **kwargs):
+        # Ensure `reviewed_by` is either a Complaint Coordinator or Registrar Office admin
+        if self.is_reviewed and self.reviewed_by:
+            if (
+                    self.reviewed_by.user.role != UserRole.COMPLAINT_COORDINATOR
+                    and self.reviewed_by.office != OfficeChoices.REGISTRAR_OFFICE
+            ):
+                raise ValidationError(
+                    "Only Complaint Coordinators or Admins from the Registrar Office can review resolutions."
+                )
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return f"Resolution for {self.complaint.title} by {self.staff.username}"
+        return f"Resolution for {self.complaint.title} by {self.resolved_by.username}"
 
 
 class Notification(models.Model):
@@ -542,7 +667,7 @@ class Reminder(models.Model):
         get_user_model(),
         on_delete=models.CASCADE,
         related_name="reminders",
-        limit_choices_to={'role__in': ['Lecturer', 'Admin Assistant', 'Complaint Coordinator']},
+        limit_choices_to={'role__in': ['Lecturer', 'Admin', 'Complaint Coordinator']},
         verbose_name="Staff",
         help_text="The staff member to whom the reminder is sent",
     )

@@ -2,7 +2,7 @@ from allauth.socialaccount.models import SocialAccount
 from django.contrib.auth.views import get_user_model
 from rest_framework import serializers
 from core.models import Category, Complaint, Reminder, Notification, Resolution, StudentProfile, LecturerProfile, \
-    AdminProfile
+    AdminProfile, Attachment, Course, UserRole, OfficeChoices
 
 # Create your serializers here.
 
@@ -29,21 +29,31 @@ class AdminProfileSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     google_data = serializers.SerializerMethodField()
-    profile = serializers.SerializerMethodField()
+    profiles = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = '__all__'
         extra_kwargs = {'password': {'write_only': True}}
 
-    def get_profile(self, obj):
+    def get_profiles(self, obj):
+        profiles = []
         if hasattr(obj, 'studentprofile'):
-            return StudentProfileSerializer(obj.studentprofile).data
-        elif hasattr(obj, 'lecturerprofile'):
-            return LecturerProfileSerializer(obj.lecturerprofile).data
-        elif hasattr(obj, 'adminprofile'):
-            return AdminProfileSerializer(obj.adminprofile).data
-        return None
+            profiles.append({
+                'type': 'student',
+                'data': StudentProfileSerializer(obj.studentprofile).data
+            })
+        if hasattr(obj, 'lecturerprofile'):
+            profiles.append({
+                'type': 'lecturer',
+                'data': LecturerProfileSerializer(obj.lecturerprofile).data
+            })
+        if hasattr(obj, 'adminprofile'):
+            profiles.append({
+                'type': 'admin',
+                'data': AdminProfileSerializer(obj.adminprofile).data
+            })
+        return profiles
 
     def get_google_data(self, obj):
         try:
@@ -67,12 +77,22 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class AttachmentSerializer(serializers.ModelSerializer):
+    complaint = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Attachment
+        fields = ['id', 'file_url', 'file_type', 'uploaded_at', 'complaint']
+
+
 # Complaint Serializer
 class ComplaintSerializer(serializers.ModelSerializer):
+    attachments = AttachmentSerializer(many=True, read_only=True)
+
     class Meta:
         model = Complaint
         fields = '__all__'
-        read_only_fields = ['user', 'created_at', 'updated_at']
+        read_only_fields = ['student', 'created_at', 'updated_at']
 
 
 class ReminderSerializer(serializers.ModelSerializer):
@@ -90,6 +110,59 @@ class NotificationSerializer(serializers.ModelSerializer):
 
 
 class ResolutionSerializer(serializers.ModelSerializer):
+    resolved_by = serializers.PrimaryKeyRelatedField(queryset=AdminProfile.objects.all())
+    reviewed_by = serializers.PrimaryKeyRelatedField(queryset=AdminProfile.objects.all(), required=False,
+                                                     allow_null=True)
+
     class Meta:
         model = Resolution
         fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        complaint = None
+        if self.instance and hasattr(self.instance, 'complaint'):
+            complaint = self.instance.complaint
+        elif getattr(self, 'initial_data', {}).get('complaint'):
+            try:
+                complaint_id = self.initial_data.get('complaint')
+                complaint = Complaint.objects.get(pk=complaint_id)
+            except Complaint.DoesNotExist:
+                pass
+
+        category = getattr(complaint, 'category', None)
+        allowed_fields = set()
+        if category == 'No CA Mark':
+            allowed_fields = {'attendance_mark', 'assignment_mark', 'ca_mark'}
+        elif category == 'Missing Grade':
+            allowed_fields = {'attendance_mark', 'assignment_mark', 'exam_mark', 'final_mark'}
+        elif category == 'No Exam Mark':
+            allowed_fields = {'exam_mark', 'final_mark'}
+        elif category == 'Not Satisfied With Final Grade':
+            allowed_fields = set()
+
+        always_keep = {'id', 'complaint', 'resolved_by', 'reviewed_by', 'is_reviewed'}
+        for field in list(self.fields):
+            if field not in allowed_fields and field not in always_keep:
+                self.fields.pop(field)
+
+    def validate(self, data):
+        if data.get('is_reviewed') and data.get('reviewed_by'):
+            admin_profile = data['reviewed_by']
+            if (
+                    admin_profile.user.role != UserRole.COMPLAINT_COORDINATOR
+                    and admin_profile.office != OfficeChoices.REGISTRAR_OFFICE
+            ):
+                raise serializers.ValidationError(
+                    "Only Complaint Coordinators or Admins from the Registrar Office can review resolutions."
+                )
+        return data
+
+
+# Courses Serializer
+class CourseSerializer(serializers.ModelSerializer):
+    lecturer = LecturerProfileSerializer(read_only=True)
+    class Meta:
+        model = Course
+        fields = '__all__'
+        read_only_fields = ['created_at', 'updated_at']

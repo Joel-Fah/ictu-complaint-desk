@@ -49,6 +49,7 @@ module.exports = {
     "./app/**/*.{js,ts,jsx,tsx}",
     "./pages/**/*.{js,ts,jsx,tsx}",
     "./Usercomponents/**/*.{js,ts,jsx,tsx}",
+		"./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
   	extend: {
@@ -57,11 +58,11 @@ module.exports = {
   				'Archivo',
   				'sans-serif'
   			],
-  			heading: [
-  				'Pilcrow Rounded"',
-  				'sans-serif'
-  			],
-  			sansItalic: [
+			heading: [
+				'Pilcrow Rounded',
+				'sans-serif'
+			],
+			sansItalic: [
   				'Archivo-Italic',
   				'sans-serif'
   			]

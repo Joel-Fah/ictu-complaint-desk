@@ -24,7 +24,7 @@ const ComplaintsInsightsHeader: FC<ComplaintsInsightsHeaderProps> = ({
                                                                          // Text defaults
                                                                          labelText = "Complaints Insights",
                                                                          headingText = "What the numbers say!",
-                                                                         descriptionText = "We carried out a qualitative and quantitative survey on students and the administration of the ICT University to have a clearly understanding of how tough it is for them to handle their complaints from each ones perspective.",
+                                                                         descriptionText = "We carried out a qualitative and quantitative survey on students and the administration of the ICT University to have a clearly understanding of how tough it is for them to handle their complaints from each one's perspective.",
 
                                                                          // Styling defaults
                                                                          backgroundColor = " ",

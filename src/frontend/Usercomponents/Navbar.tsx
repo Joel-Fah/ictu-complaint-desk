@@ -6,6 +6,7 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import MenuIcon from '../public/icons/menu-11.svg';
 import XIcon from '../public/icons/cancel-01.svg';
+import {getBaseUrl} from "@/app/utils/getBaseUrl";
 
 const navLinks = [
     { href: "/", label: "Home", icon: "/icons/home-01.svg" },
@@ -16,11 +17,12 @@ export default function Navbar() {
     const pathname = usePathname();
     const [menuOpen, setMenuOpen] = useState(false);
     const toggleMenu = () => setMenuOpen((prev) => !prev);
+    const googleLoginUrl = `${getBaseUrl()}/accounts/google/login/?process=login`;
 
     const isActive = (href: string) => pathname === href;
 
     return (
-        <nav className="sticky top-0 left-0 right-0 z-50 w-full bg-primary-950 text-whiteColor px-6 md:px-[100px] py-[16px] flex items-center justify-between">
+        <nav className="sticky top-0 left-0 right-0 z-20 w-full bg-primary-950 text-whiteColor px-6 md:px-[100px] py-[16px] flex items-center justify-between">
             {/* Logo */}
             <div className="flex items-center space-x-2">
                 <Image
@@ -54,9 +56,8 @@ export default function Navbar() {
                 {/* Sign In */}
                 <div className="flex items-center">
                     <Link
-                        href="/login"
-                        className={`flex items-center text-whiteColor px-[16px] py-[8px] rounded-[16px] bg-primary-800 hover:bg-blue-700 transition gap-[10px] ${
-                            isActive("/login") ? "ring-2 ring-[#E4EDFF] ring-opacity-40" : ""
+                        href={googleLoginUrl}
+                        className={`flex items-center text-whiteColor px-[16px] py-[8px] rounded-[16px] bg-primary-800 hover:bg-blue-700 transition gap-[10px]
                         }`}
                     >
                         <Image src="/icons/login-03.svg" alt="Sign In Icon" width={24} height={24} />
@@ -74,7 +75,7 @@ export default function Navbar() {
 
             {/* Mobile Sidebar */}
             {menuOpen && (
-                <div className="sm:hidden fixed top-16 left-0 right-0 bg-primary-950 text-white flex flex-col space-y-4 px-6 py-4 shadow-md z-40 animate-slide-down">
+                <div className="sm:hidden fixed top-16 left-0 right-0 bg-primary-950 text-white flex flex-col space-y-4 px-6 py-4 shadow-md z-20 animate-slide-down">
                     {navLinks.map(({ href, label, icon }) => (
                         <Link
                             key={href}
@@ -90,10 +91,9 @@ export default function Navbar() {
                     ))}
 
                     <Link
-                        href="/login"
+                        href={googleLoginUrl}
                         onClick={toggleMenu}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-[12px] ${
-                            isActive("/login") ? "bg-[#E4EDFF] bg-opacity-[20%]" : ""
+                        className={`flex items-center gap-2 px-4 py-2 rounded-[12px]
                         }`}
                     >
                         <Image src="/icons/login-03.svg" alt="Sign In Icon" width={24} height={24} />

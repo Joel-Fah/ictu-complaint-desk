@@ -18,12 +18,27 @@ type ButtonProps = {
     fontFamily?: string;
     text?: string;
     strongText?: string;
-    imageSrc?: string;
-    imageAlt?: string;
-    imageWidth?: number;
-    imageHeight?: number;
-    imageClassName?: string;
+
+    // Images on left and/or right
+    leftImageSrc?: string;
+    leftImageAlt?: string;
+    leftImageWidth?: number;
+    leftImageHeight?: number;
+    leftImageClassName?: string;
+
+    rightImageSrc?: string;
+    rightImageAlt?: string;
+    rightImageWidth?: number;
+    rightImageHeight?: number;
+    rightImageClassName?: string;
+
+    // Separators flags
+    showLeftSeparator?: boolean;
+    showRightSeparator?: boolean;
+
     spanClassName?: string;
+    children?: React.ReactNode;
+    disabled?: boolean;
 };
 
 export default function Button({
@@ -36,37 +51,82 @@ export default function Button({
                                    borderRadius = "rounded-md",
                                    textColor = "text-black",
                                    bgColor = "bg-white",
-                                   hoverBgColor = " ",
+                                   hoverBgColor = "",
                                    fontSize = "text-base",
                                    fontFamily = "font-sans",
                                    text = "Click Me",
                                    strongText,
-                                   imageSrc,
-                                   imageAlt = "",
-                                   imageWidth = 24,
-                                   imageHeight = 24,
-                                   imageClassName = "",
+
+                                   leftImageSrc,
+                                   leftImageAlt = "",
+                                   leftImageWidth = 24,
+                                   leftImageHeight = 24,
+                                   leftImageClassName = "",
+
+                                   rightImageSrc,
+                                   rightImageAlt = "",
+                                   rightImageWidth = 24,
+                                   rightImageHeight = 24,
+                                   rightImageClassName = "",
+
+                                   showLeftSeparator = false,
+                                   showRightSeparator = false,
+
                                    spanClassName = "",
+                                   children,
+                                   disabled = false,
                                }: ButtonProps) {
+    // Simple separator style, can be customized or moved to CSS file
+    const separator = (
+        <span className="mx-2 border-l border-gray-300 h-6" aria-hidden="true" />
+    );
+
     return (
         <button
             type={type}
             onClick={onClick}
-            className={`flex items-center justify-center ${width} ${padding} ${border} ${borderRadius} ${textColor} ${bgColor} ${hoverBgColor} ${className}`}
+            disabled={disabled}
+            className={`flex items-center justify-center ${width} ${padding} ${border} ${borderRadius} ${textColor} ${bgColor} ${hoverBgColor} ${
+                disabled ? "opacity-50 cursor-not-allowed" : ""
+            } ${className}`}
         >
-            {imageSrc && (
-                <Image
-                    src={imageSrc}
-                    alt={imageAlt}
-                    width={imageWidth}
-                    height={imageHeight}
-                    className={`mr-3 ${imageClassName}`}
-                />
+            {/* Left image */}
+            {leftImageSrc && (
+                <>
+                    <Image
+                        src={leftImageSrc}
+                        alt={leftImageAlt}
+                        width={leftImageWidth}
+                        height={leftImageHeight}
+                        className={leftImageClassName}
+                    />
+                    {showLeftSeparator && separator}
+                </>
             )}
+
+            {/* Text */}
             <span className={`${fontSize} ${fontFamily} ${spanClassName}`}>
-        {text}
+        {children ?? (
+            <>
+                {text}
                 {strongText && <strong> {strongText}</strong>}
+            </>
+        )}
       </span>
+
+            {/* Right separator and image */}
+            {rightImageSrc && (
+                <>
+                    {showRightSeparator && separator}
+                    <Image
+                        src={rightImageSrc}
+                        alt={rightImageAlt}
+                        width={rightImageWidth}
+                        height={rightImageHeight}
+                        className={rightImageClassName}
+                    />
+                </>
+            )}
         </button>
     );
 }

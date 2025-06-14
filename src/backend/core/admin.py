@@ -1,12 +1,13 @@
 from django.contrib import admin
 from django.contrib.admin.widgets import AdminFileWidget
 from django.contrib.auth import get_user_model
+
 from django.contrib.auth.admin import UserAdmin
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
 from core.models import Category, Complaint, ComplaintAssignment, \
-    StudentProfile, LecturerProfile, AdminProfile, Course, Resolution, Reminder, Notification
+    StudentProfile, LecturerProfile, AdminProfile, Course, Resolution, Reminder, Notification, Attachment
 
 # Utilities
 User = get_user_model()
@@ -85,8 +86,13 @@ class CustomAdminFileWidget(AdminFileWidget):
 # Register your models here.
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name']
+    list_display = ['id', 'name', 'get_admins']
     search_fields = ['name']
+
+    def get_admins(self, obj):
+        return ", ".join([admin.user.username for admin in obj.admins.all()])
+
+    get_admins.short_description = "Admins"
 
 
 @admin.register(Complaint)
@@ -94,10 +100,18 @@ class ComplaintAdmin(admin.ModelAdmin):
     list_display = ['id', 'student__username', 'title', 'status', 'semester_year']
     list_filter = ['category', 'status', 'type', 'is_anonymous']
     search_fields = ['title', 'description']
-    readonly_fields = ['created_at']
+    readonly_fields = ['deadline', 'created_at']
 
     def semester_year(self, obj):
         return f'{obj.semester} {obj.year}'
+
+
+@admin.register(Attachment)
+class AttachmentAdmin(admin.ModelAdmin):
+    list_display = ['id', 'complaint', 'file_url', 'file_type']
+    search_fields = ['file_url', 'complaint__title']
+    list_filter = ['file_type', 'uploaded_at']
+    readonly_fields = ['file_type']
 
 
 @admin.register(ComplaintAssignment)
@@ -123,9 +137,9 @@ class CourseAdmin(admin.ModelAdmin):
 
 @admin.register(Resolution)
 class ResolutionAdmin(admin.ModelAdmin):
-    list_display = ['complaint', 'staff', 'response', 'created_at']
-    list_filter = ['staff']
-    search_fields = ['response', 'complaint__title']
+    list_display = ['complaint', 'resolved_by', 'is_reviewed']
+    list_filter = ['resolved_by', 'created_at', 'resolved_by']
+    search_fields = ['comments', 'complaint__title']
     readonly_fields = ['created_at', 'updated_at']
 
 
