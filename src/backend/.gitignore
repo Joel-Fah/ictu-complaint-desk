@@ -183,6 +183,5 @@ cython_debug/
 *.sqlite-journal
 *.sqlite-wal
 *.sqlite-shm
-
-# Node modules
-node_modules/
+/node_modules/
+media/
