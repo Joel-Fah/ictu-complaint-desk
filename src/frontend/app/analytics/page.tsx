@@ -12,7 +12,6 @@ import {
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 
-// Register ChartJS components
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -22,7 +21,6 @@ ChartJS.register(
   Legend
 );
 
-// Type for API response (adjust according to your actual API structure)
 interface SemesterComplaints {
   semester: string;  // e.g., "Spring 2023", "Fall 2023"
   total_complaints: number;
@@ -72,13 +70,13 @@ export default function ComplaintsPerSemesterChart() {
     fetchData();
   }, []);
 
-  // Chart configuration
+  
   const options = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        display: false // Hide legend since we only have one dataset
+        display: false 
       },
       title: {
         display: true,
@@ -110,7 +108,7 @@ export default function ComplaintsPerSemesterChart() {
           }
         },
         ticks: {
-          precision: 0 // Show whole numbers only
+          precision: 0 
         }
       },
       x: {
@@ -125,7 +123,6 @@ export default function ComplaintsPerSemesterChart() {
     }
   };
 
-  // Loading state
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -134,7 +131,6 @@ export default function ComplaintsPerSemesterChart() {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
@@ -143,7 +139,6 @@ export default function ComplaintsPerSemesterChart() {
     );
   }
 
-  // Empty state
   if (!chartData) {
     return (
       <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
