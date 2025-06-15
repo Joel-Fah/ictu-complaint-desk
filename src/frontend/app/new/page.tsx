@@ -26,6 +26,7 @@ interface FormData {
 const ComplaintForm: React.FC = () => {
     const { categories, fetchCategories } = useCategoryStore();
     const { courses, fetchCourses } = useCourseStore();
+    const [attachments, setAttachments] = useState<File[]>([]);
     const [formData, setFormData] = useState<FormData>({
         category: '',
         semester: '',
@@ -63,7 +64,6 @@ const ComplaintForm: React.FC = () => {
         return () => window.removeEventListener('resize', () => null);
     }, [fetchCategories, fetchCourses]);
 
-    console.log(selectedCourse?.lecturer?.user);
 
     const lecturerUserId = selectedCourse?.lecturer?.user;
 
@@ -106,7 +106,8 @@ const ComplaintForm: React.FC = () => {
                 title: formData.complaintTitle,
                 course: parseInt(selectedCourseId),
                 description: formData.description,
-                student: user?.id
+                student: user?.id,
+                attachments,
             });
             toast.custom(t => <ToastNotification type="success" title="Complaint filed!" subtitle="One step closer to peace of mind" onClose={() => toast.dismiss(t)} showClose />, { duration: 4000 });
             goBack();
@@ -283,10 +284,10 @@ const ComplaintForm: React.FC = () => {
                         {/* Attachments + Submit */}
                         <label className="block text-lg sm:text-xl font-semibold text-primary-950 mb-6 sm:mb-8">
                             Attachment(s)
-                            <span className="text-primary-950 ml-1 text-[10px] sm:text-sm bg-primary-50 px-1 rounded">1</span>
+                            <span className="text-primary-950 ml-1 text-[10px] sm:text-sm bg-primary-50 px-1 rounded">{attachments.length}</span>
                         </label>
                         <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-                            <FileUploadPreview />
+                            <FileUploadPreview onFilesChange={setAttachments} />
                             <Button
                                 type="submit"
                                 bgColor="bg-primary-800"

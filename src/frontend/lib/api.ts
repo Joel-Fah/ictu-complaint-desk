@@ -125,6 +125,18 @@ export const getComplaintsByUser = async (userId: number): Promise<Complaint[]> 
     }
 };
 
+export const getComplaintsAssigned = async (userId: number): Promise<Complaint[]> => {
+    try {
+        const response = await api.get<ComplaintResponse>(`/complaints/?userId=${userId}`);
+        return response.data.results;
+    } catch (err) {
+        console.error("Error fetching user complaints:", err);
+        throw new Error("Failed to fetch user complaints");
+    }
+};
+
+
+
 
 export const getComplaintById = async (id: number): Promise<Complaint> => {
     try {
@@ -240,6 +252,9 @@ export const updateStudentProfile = async (data: { student_number: string }) => 
     return (await api.patch("/users/students/profile/", data)).data;
 };
 export const getUserById = async (id: number | string): Promise<User> => {
+    if (!id || isNaN(Number(id))) {
+        throw new Error("Invalid user ID passed to getUserById: " + id);
+    }
     const raw = (await api.get(`/users/${id}/`)).data;
     const extra = raw.google_data?.extra_data || {};
     return {

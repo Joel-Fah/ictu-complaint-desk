@@ -1,11 +1,13 @@
-import React, { useMemo } from "react";
+import React, {useEffect, useMemo, useState} from "react";
 import { Complaint } from "@/types/complaint";
 import ComplaintDetailSkeleton from "@/Usercomponents/ComplaintDetailSkeleton";
 import { useCategoryStore } from "@/stores/categoryStore";
+import {getUserById} from "@/lib/api";
 
 interface ComplaintDetailProps {
     complaint: Complaint | null;
     isLoading?: boolean;
+    role?: string; // Optional, if you need to handle role-specific logic
 }
 
 // Move this out of the component to avoid redefining it on every render
@@ -14,11 +16,38 @@ function isValidHTML(html: string): boolean {
     return !doc.querySelector("parsererror");
 }
 
-const ComplaintDetail: React.FC<ComplaintDetailProps> = ({ complaint, isLoading = false }) => {
+const ComplaintDetail: React.FC<ComplaintDetailProps> = ({ complaint, isLoading = false, role }) => {
     const { categories } = useCategoryStore();
+    const [studentName, setStudentName] = useState("");
+    const [studentNumber, setStudentNumber] = useState("");
     const categoryId = complaint?.category ? Number(complaint.category) : -1;
     const category = categories[categoryId] ?? `Category ${complaint?.category}`;
     const categoryName = category?.name ?? "";
+    const studentId = complaint?.student
+
+
+    useEffect(() => {
+        if (typeof studentId !== 'number') {
+            setStudentName("");
+            return;
+        }
+
+        getUserById(studentId)
+            .then((student) => {
+                const name = `${student.firstName} ${student.lastName}`;
+                const profile = student.profiles.find(p=> p.type === "student");
+                const studentNumber = profile?.data?.student_number || "";
+                setStudentNumber(studentNumber);
+                setStudentName(name);
+            })
+            .catch((err) => {
+                console.error("Error fetching student:", err);
+                setStudentName('Unknown');
+                setStudentNumber('');
+            });
+    }, [studentId]);
+
+
 
     const safeHtml = useMemo(() => {
         if (!complaint?.description) return null;
@@ -37,6 +66,12 @@ const ComplaintDetail: React.FC<ComplaintDetailProps> = ({ complaint, isLoading 
 
     return (
         <div className="bg-white p-4 w-full max-w-4xl mx-auto space-y-6">
+            {role != "student" && (
+                <div>
+                    <p className="text-lg sm:text-xl font-heading text-primary-950 font-medium" >Submitted by: {studentName}</p>
+                    <p className="text-lg sm:text-xl font-heading text-primary-950 font-medium" >with Student Number: {studentNumber}</p>
+                </div>
+            )}
             {/* Header */}
             <div>
                 <h1 className="text-3xl sm:text-4xl lg:text-[48px] font-heading text-darkColor">

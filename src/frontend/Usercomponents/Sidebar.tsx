@@ -1,20 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Complaint } from "@/types/complaint";
-import { getComplaintsByUser} from '@/lib/api';
+import { getComplaintsByUser, getComplaints, getComplaintsAssigned } from '@/lib/api';
 import { formatComplaintDate } from "@/lib/formatDate";
 import {useUserStore} from "@/stores/userStore";
 import axios from "axios";
+import { useMemo } from 'react';
 
 interface ComplaintsUIProps {
   onSelectItem: (item: Complaint) => void;
+  statusFilter: string;
+  role?: string;
 }
 
-const ComplaintsUI = ({ onSelectItem }: ComplaintsUIProps) => {
+const ComplaintsUI = ({ onSelectItem, statusFilter, role }: ComplaintsUIProps) => {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [selectedComplaintId, setSelectedComplaintId] = useState<number | null>(null);
-  const [statusFilter, setStatusFilter] = useState('Open');
-  const [valueFilter, setValueFilter] = useState('Value');
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
   const [valueDropdownOpen, setValueDropdownOpen] = useState(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -25,7 +26,14 @@ const ComplaintsUI = ({ onSelectItem }: ComplaintsUIProps) => {
   useEffect(() => {
     const fetchComplaints = async () => {
       try {
-        const data = await getComplaintsByUser(Number(userId));
+        let data: Complaint[] = [];
+        if (role === 'admin') {
+          data = await getComplaints();
+        } else if (role === 'lecturer') {
+            data = await getComplaintsAssigned(Number(userId));
+        }else {
+            data = await getComplaintsByUser(Number(userId));
+        }
         if (Array.isArray(data)) {
           setComplaints(data);
         } else {
@@ -46,11 +54,13 @@ const ComplaintsUI = ({ onSelectItem }: ComplaintsUIProps) => {
     };
 
     fetchComplaints();
-  }, []);
+  }, [role, userId]);
 
-  const filteredComplaints = statusFilter === 'All'
-      ? complaints
-      : complaints.filter(c => c.status === statusFilter);
+  const filteredComplaints = useMemo(() => {
+    return statusFilter === 'All'
+        ? complaints
+        : complaints.filter(c => c.status === statusFilter);
+  }, [complaints, statusFilter]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -95,96 +105,6 @@ const ComplaintsUI = ({ onSelectItem }: ComplaintsUIProps) => {
             />
         )}
 
-        {/* Header */}
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center gap-2 mb-4">
-            <Image
-                src="/icons/preference-horizontal.svg"
-                alt='Filter icon'
-                height={24}
-                width={24}
-            />
-            <span className="text-h2 font-semibold text-primary-950">Filters</span>
-          </div>
-
-          {/* Filter Dropdowns */}
-          <div className="flex gap-2">
-            {/* Status Filter */}
-            <div className="relative z-[5]">
-              <button
-                  onClick={() => {
-                    setStatusDropdownOpen(!statusDropdownOpen);
-                    setValueDropdownOpen(false);
-                  }}
-                  className="flex items-center gap-[10px] px-[8px] py-[8px] w-[145px] h-[36px] text-sm border border-primary-950 rounded-[12px] bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <span className="text-primary-950 text-opacity-[80%] text-body font-sans">Status:</span>
-                <span className="text-primary-950 font-medium font-sans truncate text-ellipsis">{statusFilter}</span>
-                <Image
-                    src="/icons/arrow-down-01.svg"
-                    alt='Dropdown icon'
-                    height={18}
-                    width={18}
-                />
-              </button>
-
-              {statusDropdownOpen && (
-                  <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg z-20">
-                    {['All', 'Open', 'In Progress', 'Escalated', 'Resolved'].map((status) => (
-                        <button
-                            key={status}
-                            onClick={() => {
-                              setStatusFilter(status);
-                              setStatusDropdownOpen(false);
-                            }}
-                            className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50"
-                        >
-                          {status}
-                        </button>
-                    ))}
-                  </div>
-              )}
-            </div>
-
-            {/* Value Filter */}
-            <div className="relative z-[5]">
-              <button
-                  onClick={() => {
-                    setValueDropdownOpen(!valueDropdownOpen);
-                    setStatusDropdownOpen(false);
-                  }}
-                  className="flex items-center w-[136px] h-[36px] gap-[10px] truncate px-[8px] py-[8px] text-sm border border-primary-950 rounded-[12px] bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <span className="text-gray-600">Filter:</span>
-                <span className="text-gray-900 truncate overflow-hidden text-ellipsis">{valueFilter}</span>
-                <Image
-                    src="/icons/arrow-down-01.svg"
-                    alt='Dropdown icon'
-                    height={18}
-                    width={18}
-                />
-              </button>
-
-              {valueDropdownOpen && (
-                  <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg z-20">
-                    {['Value', 'Date', 'Priority', 'Category'].map((filter) => (
-                        <button
-                            key={filter}
-                            onClick={() => {
-                              setValueFilter(filter);
-                              setValueDropdownOpen(false);
-                            }}
-                            className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50"
-                        >
-                          {filter}
-                        </button>
-                    ))}
-                  </div>
-              )}
-            </div>
-          </div>
-        </div>
-
         {/* My Complaints Section */}
         <div className="p-4">
           <div className="flex items-center gap-2 mb-4">
@@ -215,7 +135,7 @@ const ComplaintsUI = ({ onSelectItem }: ComplaintsUIProps) => {
                             : 'hover:bg-white hover:shadow-lg'
                     }`}
                 >
-                  <div className="flex items-start justify-between mb-2">
+                <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-2">
                 <span className="text-[18px] leading-[20px] font-heading font-medium text-darkColor">
                     {filteredComplaints.length - index}.
