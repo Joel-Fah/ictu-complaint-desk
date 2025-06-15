@@ -23,9 +23,9 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import Category, Reminder, Notification, Resolution, Complaint, Attachment, Course
+from .models import Category, Reminder, Notification, Resolution, Complaint, Attachment, Course, ComplaintAssignment
 from .serializers import CategorySerializer, UserSerializer, ReminderSerializer, NotificationSerializer, \
-    ResolutionSerializer, ComplaintSerializer, CourseSerializer, StudentProfileSerializer
+    ResolutionSerializer, ComplaintSerializer, CourseSerializer, StudentProfileSerializer, ComplaintAssignmentSerializer
 
 # Create your views here.
 
@@ -147,8 +147,8 @@ class ComplaintListCreateView(ListCreateAPIView):
         queryset = super().get_queryset()
         user_id = self.request.query_params.get('userId')
         if user_id:
-            queryset = queryset.filter(student__id=user_id)
-        return queryset
+            queryset = queryset.filter(student__id=user_id).prefetch_related('attachments')
+        return queryset.prefetch_related('attachments')
 
     def perform_create(self, serializer):
         files = self.request.FILES.getlist('attachments')
@@ -182,16 +182,42 @@ class ComplaintDetailView(RetrieveUpdateDestroyAPIView):
         return self.queryset.prefetch_related('attachments')
 
 
+class ComplaintAssignmentListView(ListCreateAPIView):
+    queryset = ComplaintAssignment.objects.all().select_related('complaint', 'staff').prefetch_related(
+        'complaint__attachments')
+    serializer_class = ComplaintAssignmentSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [SearchFilter]
+    search_fields = ['complaint__title', 'staff__username']
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        user_id = self.request.query_params.get('userId')
+        if user_id:
+            # Only allow if user is lecturer or admin
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            try:
+                user = User.objects.get(pk=user_id)
+                if hasattr(user, 'lecturerprofile') or hasattr(user, 'adminprofile'):
+                    queryset = queryset.filter(staff__id=user_id)
+                else:
+                    queryset = queryset.none()
+            except User.DoesNotExist:
+                queryset = queryset.none()
+        return queryset
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsFacultyAdmin()]
+        return super().get_permissions()
+
+
 class UserListCreateView(ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     filter_backends = [SearchFilter]
     search_fields = ['username', 'email', 'first_name', 'last_name']
-    permission_classes = [IsAuthenticated]
-
-class UserRetrieveView(RetrieveUpdateAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
 
@@ -285,7 +311,7 @@ class StudentProfileUpdateView(generics.UpdateAPIView):
 
 
 class ComplaintsPerSemesterAnalyticsView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = []
 
     def get(self, request):
         # Assumes Complaint model has 'semester' and 'year' fields
@@ -309,7 +335,7 @@ class ComplaintsPerSemesterAnalyticsView(APIView):
 
 
 class ComplaintsPerCategoryPerSemesterAnalyticsView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = []
 
     def get(self, request):
         # Aggregate complaints by category, semester, and year

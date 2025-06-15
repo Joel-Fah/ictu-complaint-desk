@@ -2,7 +2,7 @@ from allauth.socialaccount.models import SocialAccount
 from django.contrib.auth.views import get_user_model
 from rest_framework import serializers
 from core.models import Category, Complaint, Reminder, Notification, Resolution, StudentProfile, LecturerProfile, \
-    AdminProfile, Attachment, Course, UserRole, OfficeChoices
+    AdminProfile, Attachment, Course, UserRole, OfficeChoices, ComplaintAssignment
 
 # Create your serializers here.
 
@@ -78,7 +78,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class AttachmentSerializer(serializers.ModelSerializer):
-    complaint = serializers.SerializerMethodField()
+    complaint = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Attachment
@@ -94,6 +94,12 @@ class ComplaintSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ['student', 'created_at', 'updated_at']
 
+class ComplaintAssignmentSerializer(serializers.ModelSerializer):
+    complaint = ComplaintSerializer(read_only=True)
+
+    class Meta:
+        model = ComplaintAssignment
+        fields = '__all__'
 
 class ReminderSerializer(serializers.ModelSerializer):
     class Meta:
