@@ -220,6 +220,11 @@ class UserListCreateView(ListCreateAPIView):
     search_fields = ['username', 'email', 'first_name', 'last_name']
     permission_classes = [IsAuthenticated]
 
+class UserRetrieveView(RetrieveUpdateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
 
 class UserRetrieveView(RetrieveUpdateAPIView):
     queryset = User.objects.all()
