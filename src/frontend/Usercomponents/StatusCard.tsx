@@ -28,6 +28,7 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
     const user = useUserStore((state) => state.user);
     const adminProfile = user?.profiles?.find(p => p.type === "admin");
     const adminOffice = adminProfile?.data?.office || "Registrar's Office";
+    const [isReviewed, setIsReviewed] = useState(false);
     const [selectedDeadline, setSelectedDeadline] = useState<string | undefined>(selectedItem?.deadline); // from selectedItem.deadline
     const { categories, fetchCategories } = useCategoryStore();
     const [selectedCategory, setSelectedCategory] = useState<number>(Number(selectedItem?.category)); // pull from selectedItem.category
@@ -206,7 +207,7 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
                     <textarea
                         className="w-full border border-gray-300 rounded-lg p-2 text-sm"
                         rows={3}
-                        placeholder="Enter a message or commemnt..."
+                        placeholder="Enter a message or comment..."
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
                     />
@@ -346,6 +347,87 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
 
 
 
+
+            {role === "admin" && adminOffice === "Registrar Office" && (
+                <div className="mt-6 space-y-4">
+                    {/* Registrar Review Checkbox */}
+                    <label className="flex items-center space-x-2">
+                        <input
+                            type="checkbox"
+                            checked={isReviewed}
+                            onChange={(e) => {
+                                setIsReviewed(e.target.checked);
+                                if (e.target.checked) {
+                                    setFormData(prev => ({
+                                        ...prev,
+                                        is_reviewed: true,
+                                        reviewed_by_id: user.id,
+                                    }));
+                                } else {
+                                    setFormData(prev => ({
+                                        ...prev,
+                                        is_reviewed: false,
+                                        reviewed_by_id: null,
+                                    }));
+                                }
+                            }}
+                        />
+                        <span>Mark as Reviewed</span>
+                    </label>
+
+                    {/* Message / Comment */}
+                    <textarea
+                        className="w-full border border-gray-300 rounded-lg p-2 text-sm"
+                        rows={3}
+                        placeholder="Enter a comment..."
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                    />
+
+                    {/* Submit Button */}
+                    <button
+                        className="w-full bg-green-700 text-white rounded-lg py-2 font-medium hover:bg-green-800"
+                        onClick={async () => {
+                            if (!selectedItem || !user) return;
+
+                            try {
+                                // PATCH resolution
+                                await updateResolution(selectedItem.id, {
+                                    is_reviewed: isReviewed,
+                                    reviewed_by_id: isReviewed ? user.id : null,
+                                    resolved_by_id: user.id,
+                                    comments: message,
+                                });
+
+                                // Update complaint status to "Resolved"
+                                await updateComplaint(selectedItem.id, {
+                                    status: "Resolved",
+                                });
+
+                                // Notify student
+                                if (typeof selectedItem.student === "number") {
+                                    await createNotification({
+                                        recipient_id: selectedItem.student,
+                                        message: "Your complaint has been reviewed and resolved by the Registrar's Office.",
+                                    });
+                                }
+
+                                toast.success("Complaint reviewed and resolved.");
+                                setTimeout(() => router.push("/dashboard"), 3000);
+                            } catch (error) {
+                                console.error("Registrar review failed:", error);
+                                toast.error("Something went wrong!");
+                            }
+                        }}
+                    >
+                        Submit Resolution
+                    </button>
+                </div>
+            )}
+
+
+
+
             {/* Extra for Admin */}
             {role === "admin" && (
                 <div className="mt-6 space-y-4">
@@ -464,13 +546,13 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
                                     });
                                 }
 
-                                toast.success("Complaint processed and notifications sent.");
+                                toast.custom(t => <ToastNotification type="success" title="Thank you!" subtitle="" onClose={() => toast.dismiss(t)} showClose />, { duration: 2000 });
                                 setTimeout(() => {
                                     router.push("/dashboard");
                                 }, 3000);
                             } catch (error) {
                                 console.error("Admin processing failed:", error);
-                                toast.error("Something went wrong!");
+                                toast.custom(t => <ToastNotification type="error" title="Something went wrong!" subtitle="" onClose={() => toast.dismiss(t)} showClose />, { duration: 2000 });
                             }
                         }}
                     >

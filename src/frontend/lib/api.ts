@@ -206,12 +206,14 @@ export const createComplaint = async (
 
 export const updateComplaint = async (data: {
     id: number;
+    status?: string;
     category: number;
     deadline: string;
 }) => {
     const response = await api.patch(`/complaints/${data.id}/`, {
         category: data.category,
         deadline: data.deadline,
+        status: data.status,
     });
     return response.data;
 };
@@ -296,6 +298,8 @@ export const createResolution = async (data: {
 export const updateResolution = async (
     id: number,
     data: {
+        is_reviewed?: boolean;
+        reviewed_by_id?: number | undefined;
         attendance_mark: string;
         assignment_mark: string;
         ca_mark: string;
