@@ -6,3 +6,4 @@ const AnalyticPage = () => {
     )
 }
 export default AnalyticPage;
+

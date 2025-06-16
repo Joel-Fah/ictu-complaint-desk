@@ -18,7 +18,8 @@ export interface Complaint {
 
 export interface Attachment {
     id: number;
-    file: string; // URL to file
+    file_url: string; // URL to file
+    file_type: string; // e.g., 'image/png', 'application/pdf'
     complaint: number;
     uploaded_at: string;
 }
