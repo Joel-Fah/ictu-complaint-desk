@@ -110,6 +110,7 @@ function Home() {
             textSize='text-button-primary'
         />
 
+
         <Footer
         leftContent={
             <>
