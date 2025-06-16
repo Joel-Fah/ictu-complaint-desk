@@ -61,7 +61,13 @@ def auto_assign_role_and_profile(sender, request, user, **kwargs):
         user.role = UserRole.ADMIN
         user.secondary_role = None
         user.save()
-        AdminProfile.objects.get_or_create(user=user, defaults=admin_row)
+        AdminProfile.objects.get_or_create(
+            user=user,
+            defaults={
+                'office': admin_row.get('office', ''),
+                'function': admin_row.get('function', '')
+            }
+        )
     elif is_lecturer:
         user.role = UserRole.LECTURER
         user.secondary_role = None

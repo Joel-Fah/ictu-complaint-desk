@@ -2,6 +2,7 @@ interface ProfileData {
     id: number;
     student_number: string;
     user: number;
+    office: string;
 }
 
 interface Profile {
@@ -23,6 +24,7 @@ export interface User {
     dateJoined: string;
     googleUid: string;
     domain: string;
-    role: 'Student' | 'Lecturer' | 'Admin';
+    role: 'Student' | 'Lecturer' | 'Admin' | 'Complaint Coordinator';
+    secondary_role?: 'Complaint Coordinator' | 'Lecturer' | 'Admin';
     profiles: Profile[];
 }

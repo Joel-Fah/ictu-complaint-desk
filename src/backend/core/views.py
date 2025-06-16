@@ -22,10 +22,12 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
-from .models import Category, Reminder, Notification, Resolution, Complaint, Attachment, Course
+from .models import Category, Reminder, Notification, Resolution, Complaint, Attachment, Course, ComplaintAssignment
 from .serializers import CategorySerializer, UserSerializer, ReminderSerializer, NotificationSerializer, \
-    ResolutionSerializer, ComplaintSerializer, CourseSerializer, StudentProfileSerializer
+    ResolutionSerializer, ComplaintSerializer, CourseSerializer, StudentProfileSerializer, ComplaintAssignmentSerializer
 
 # Create your views here.
 
@@ -38,12 +40,23 @@ class HomeView(TemplateView):
 
 # Authentication View
 class UserCreate(CreateAPIView):
+    """
+        post:
+        Register a new user.
+    """
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
 
 
 class UserDetailView(RetrieveUpdateAPIView):
+    """
+        get:
+        Retrieve the current user's details.
+
+        put/patch:
+        Update the current user's details.
+    """
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
@@ -115,17 +128,48 @@ def google_logout(request):
 
 # Categories Views
 class CategoryListCreateView(ListCreateAPIView):
+    """
+        get:
+        List all categories. Supports search by name using the `search` query parameter.
+
+        post:
+        Create a new category.
+    """
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = []
+    permission_classes = [IsAuthenticated]
     filter_backends = [SearchFilter]
     search_fields = ['name']
 
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'search',
+                openapi.IN_QUERY,
+                description="Search categories by name",
+                type=openapi.TYPE_STRING,
+                required=False
+            ),
+        ]
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
 
 class CategoryDetailView(RetrieveUpdateDestroyAPIView):
+    """
+        get:
+        Retrieve a category by ID.
+
+        put/patch:
+        Update a category by ID.
+
+        delete:
+        Delete a category by ID.
+    """
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = []
+    permission_classes = [IsAuthenticated]
 
 
 # Complaint Views
@@ -136,6 +180,16 @@ class ComplaintPagination(PageNumberPagination):
 
 
 class ComplaintListCreateView(ListCreateAPIView):
+    """
+        get:
+        List all complaints.
+        Query params:
+          - userId: Filter complaints by student user ID.
+
+        post:
+        Create a new complaint.
+        Attachments: Up to 2 files (images or PDF, max 2MB each).
+    """
     queryset = Complaint.objects.all().order_by('-created_at').prefetch_related('attachments')
     serializer_class = ComplaintSerializer
     permission_classes = [IsAuthenticated]
@@ -143,12 +197,33 @@ class ComplaintListCreateView(ListCreateAPIView):
     filter_backends = [SearchFilter]
     search_fields = ['title', 'description', 'status']
 
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'userId',
+                openapi.IN_QUERY,
+                description="Filter complaints by student user ID",
+                type=openapi.TYPE_STRING,
+                required=False
+            ),
+            openapi.Parameter(
+                'search',
+                openapi.IN_QUERY,
+                description="Search complaints by title, description, or status",
+                type=openapi.TYPE_STRING,
+                required=False
+            ),
+        ]
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
     def get_queryset(self):
         queryset = super().get_queryset()
         user_id = self.request.query_params.get('userId')
         if user_id:
-            queryset = queryset.filter(student__id=user_id)
-        return queryset
+            queryset = queryset.filter(student__id=user_id).prefetch_related('attachments')
+        return queryset.prefetch_related('attachments')
 
     def perform_create(self, serializer):
         files = self.request.FILES.getlist('attachments')
@@ -170,6 +245,17 @@ class ComplaintListCreateView(ListCreateAPIView):
 
 
 class ComplaintDetailView(RetrieveUpdateDestroyAPIView):
+    """
+        get:
+        Retrieve a complaint by ID.
+        Students can only access their own complaints.
+
+        put/patch:
+        Update a complaint by ID.
+
+        delete:
+        Delete a complaint by ID.
+    """
     queryset = Complaint.objects.all().order_by('-created_at').prefetch_related('attachments')
     serializer_class = ComplaintSerializer
     permission_classes = [IsAuthenticated]
@@ -182,26 +268,126 @@ class ComplaintDetailView(RetrieveUpdateDestroyAPIView):
         return self.queryset.prefetch_related('attachments')
 
 
+class ComplaintAssignmentListView(ListCreateAPIView):
+    """
+        get:
+        List complaint assignments.
+        Query params:
+          - userId: Filter assignments by staff user ID (lecturer or admin).
+          - complaintId: Filter assignments by complaint ID.
+
+        post:
+        Create a new complaint assignment.
+        Only Faculty Admins can create assignments.
+    """
+    queryset = ComplaintAssignment.objects.all().select_related('complaint', 'staff').prefetch_related(
+        'complaint__attachments')
+    serializer_class = ComplaintAssignmentSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [SearchFilter]
+    search_fields = ['complaint__title', 'staff__username']
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'userId',
+                openapi.IN_QUERY,
+                description="Filter assignments by staff user ID (lecturer or admin)",
+                type=openapi.TYPE_STRING,
+                required=False
+            ),
+            openapi.Parameter(
+                'complaintId',
+                openapi.IN_QUERY,
+                description="Filter assignments by complaint ID",
+                type=openapi.TYPE_STRING,
+                required=False
+            ),
+            openapi.Parameter(
+                'search',
+                openapi.IN_QUERY,
+                description="Search assignments by complaint title or staff username",
+                type=openapi.TYPE_STRING,
+                required=False
+            ),
+        ]
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        user_id = self.request.query_params.get('userId')
+        complaint_id = self.request.query_params.get('complaintId')
+
+        if user_id:
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            try:
+                user = User.objects.get(pk=user_id)
+                if hasattr(user, 'lecturerprofile') or hasattr(user, 'adminprofile'):
+                    queryset = queryset.filter(staff__id=user_id)
+                else:
+                    return queryset.none()
+            except User.DoesNotExist:
+                return queryset.none()
+
+        if complaint_id:
+            queryset = queryset.filter(complaint__id=complaint_id)
+
+        return queryset
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsFacultyAdmin()]
+        return super().get_permissions()
+
+
 class UserListCreateView(ListCreateAPIView):
+    """
+        get:
+        List all users. Supports search by username, email, first name, or last name.
+
+        post:
+        Create a new user.
+    """
     queryset = User.objects.all()
     serializer_class = UserSerializer
     filter_backends = [SearchFilter]
     search_fields = ['username', 'email', 'first_name', 'last_name']
     permission_classes = [IsAuthenticated]
 
-class UserRetrieveView(RetrieveUpdateAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
-
 
 class UserRetrieveView(RetrieveUpdateAPIView):
+    """
+        get:
+        Retrieve the current user's details.
+
+        put/patch:
+        Update the current user's details.
+    """
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
 
 class ReminderViewSet(viewsets.ModelViewSet):
+    """
+        list:
+        List all reminders. Supports search by complaint title or staff username.
+
+        create:
+        Create a new reminder.
+
+        retrieve:
+        Retrieve a reminder by ID.
+
+        update/partial_update:
+        Update a reminder by ID.
+
+        destroy:
+        Delete a reminder by ID.
+    """
     queryset = Reminder.objects.all().order_by('-sent_at')
     serializer_class = ReminderSerializer
     filter_backends = [SearchFilter]
@@ -209,6 +395,19 @@ class ReminderViewSet(viewsets.ModelViewSet):
 
 
 class NotificationViewSet(viewsets.ModelViewSet):
+    """
+        list:
+        List notifications for the current user.
+
+        create:
+        Create a notification for the current user.
+
+        retrieve:
+        Retrieve a notification by ID.
+
+        mark_as_read:
+        Mark a notification as read (POST to /notifications/{id}/mark_as_read/).
+    """
     serializer_class = NotificationSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -227,6 +426,13 @@ class NotificationViewSet(viewsets.ModelViewSet):
 
 
 class ResolutionListCreateView(ListCreateAPIView):
+    """
+        get:
+        List all resolutions. Supports search by complaint title, resolved by username, or comments.
+
+        post:
+        Create a new resolution for a complaint assigned to the current admin.
+    """
     queryset = Resolution.objects.all()
     serializer_class = ResolutionSerializer
     filter_backends = [SearchFilter]
@@ -244,12 +450,29 @@ class ResolutionListCreateView(ListCreateAPIView):
 
 
 class ResolutionRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
+    """
+        get:
+        Retrieve a resolution by ID.
+
+        put/patch:
+        Update a resolution by ID.
+
+        delete:
+        Delete a resolution by ID.
+    """
     queryset = Resolution.objects.all()
     serializer_class = ResolutionSerializer
 
 
 # Courses Views
 class CourseListCreateView(ListCreateAPIView):
+    """
+        get:
+        List all courses. Supports search by code, title, or lecturer username.
+
+        post:
+        Create a new course (lecturer only).
+    """
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
     permission_classes = [IsAuthenticated]
@@ -261,6 +484,17 @@ class CourseListCreateView(ListCreateAPIView):
 
 
 class CourseDetailView(RetrieveUpdateDestroyAPIView):
+    """
+        get:
+        Retrieve a course by ID.
+        Lecturers see only their own courses.
+
+        put/patch:
+        Update a course by ID.
+
+        delete:
+        Delete a course by ID.
+    """
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
     permission_classes = [IsAuthenticated]
@@ -273,6 +507,10 @@ class CourseDetailView(RetrieveUpdateDestroyAPIView):
 
 
 class StudentProfileUpdateView(generics.UpdateAPIView):
+    """
+        put/patch:
+        Update the current user's student profile.
+    """
     serializer_class = StudentProfileSerializer
     permissions_classes = [IsAuthenticated]
 
@@ -285,7 +523,11 @@ class StudentProfileUpdateView(generics.UpdateAPIView):
 
 
 class ComplaintsPerSemesterAnalyticsView(APIView):
-    permission_classes = [IsAuthenticated]
+    """
+        get:
+        Get the number of complaints per semester and year (for analytics).
+    """
+    permission_classes = []
 
     def get(self, request):
         # Assumes Complaint model has 'semester' and 'year' fields
@@ -309,7 +551,11 @@ class ComplaintsPerSemesterAnalyticsView(APIView):
 
 
 class ComplaintsPerCategoryPerSemesterAnalyticsView(APIView):
-    permission_classes = [IsAuthenticated]
+    """
+        get:
+        Get the number of complaints per category, per semester and year (for analytics).
+    """
+    permission_classes = []
 
     def get(self, request):
         # Aggregate complaints by category, semester, and year
@@ -348,6 +594,10 @@ class ComplaintsPerCategoryPerSemesterAnalyticsView(APIView):
 
 
 class AvgResolutionTimePerSemesterAnalyticsView(APIView):
+    """
+        get:
+        Get the average resolution time (in days) per semester and year (for analytics).
+    """
     permission_classes = []
 
     def get(self, request):

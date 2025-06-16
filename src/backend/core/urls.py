@@ -11,7 +11,7 @@ from .views import HomeView, UserCreate, google_login_callback, validate_google_
     CategoryListCreateView, CategoryDetailView, UserListCreateView, UserDetailView, ReminderViewSet, \
     NotificationViewSet, ResolutionListCreateView, ResolutionRetrieveUpdateDestroyView, CourseListCreateView, \
     CourseDetailView, ComplaintsPerSemesterAnalyticsView, ComplaintsPerCategoryPerSemesterAnalyticsView, \
-    AvgResolutionTimePerSemesterAnalyticsView
+    AvgResolutionTimePerSemesterAnalyticsView, ComplaintAssignmentListView
 
 # Create your urls here.
 
@@ -94,5 +94,8 @@ urlpatterns = [
         AvgResolutionTimePerSemesterAnalyticsView.as_view(),
         name='avg-resolution-time-per-semester'
     ),
+
+    # Assignment
+path('assignments/', ComplaintAssignmentListView.as_view(), name='complaint-assignment-list'),
 ]
 urlpatterns += router.urls
