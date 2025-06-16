@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { getCourses } from "@/lib/api";
+import { getCourses } from "../lib/api";
 
 type Course = {
     id: number;

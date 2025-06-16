@@ -1,8 +1,8 @@
 import axios, {isAxiosError} from 'axios';
-import { getAccessToken, removeAccessToken } from "@/lib/token";
-import { Complaint, CreateComplaintJSONPayload, CreateComplaintFormDataPayload } from "@/types/complaint";
-import {Category} from "@/types/category";
-import type { User } from "@/types/user";
+import { getAccessToken, removeAccessToken } from "../lib/token";
+import { Complaint, CreateComplaintJSONPayload, CreateComplaintFormDataPayload } from "../types/complaint";
+import {Category} from "../types/category";
+import type { User } from "../types/user";
 
 interface ComplaintResponse {
     count: number;

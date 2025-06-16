@@ -1,165 +1,81 @@
+// app/analytics/page.tsx
 'use client';
-
-import { useEffect, useState } from 'react';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js';
+import { useState, useEffect } from 'react';
 import { Bar } from 'react-chartjs-2';
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
+export default function AnalyticsPage() {
+  const [chartData, setChartData] = useState(null);
+  const [filters, setFilters] = useState({
+    semester: '',
+    startDate: '',
+    endDate: ''
+  });
 
-interface SemesterComplaints {
-  semester: string;  // e.g., "Spring 2023", "Fall 2023"
-  total_complaints: number;
-}
+  const fetchData = async () => {
+    try {
+      // Build query params
+      const params = new URLSearchParams();
+      if (filters.semester) params.append('semester', filters.semester);
+      if (filters.startDate) params.append('startDate', filters.startDate);
+      if (filters.endDate) params.append('endDate', filters.endDate);
 
-export default function ComplaintsPerSemesterChart() {
-  const [chartData, setChartData] = useState<{
-    labels: string[];
-    datasets: {
-      label: string;
-      data: number[];
-      backgroundColor: string;
-      borderColor: string;
-      borderWidth: number;
-    }[];
-  } | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+      const res = await fetch(`/api/analytics/complaints-per-semester?${params}`);
+      const data = await res.json();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch('/analytics/complaints-per-semester/');
-        if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
-        
-        const data: SemesterComplaints[] = await response.json();
-
-        // Transform data for Chart.js
-        setChartData({
-          labels: data.map(item => item.semester),
-          datasets: [{
-            label: 'Number of Complaints',
-            data: data.map(item => item.total_complaints),
-            backgroundColor: 'rgba(59, 130, 246, 0.7)', // Blue with transparency
-            borderColor: 'rgba(59, 130, 246, 1)',
-            borderWidth: 1
-          }]
-        });
-
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load data');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: false 
-      },
-      title: {
-        display: true,
-        text: 'Complaints per Semester',
-        font: {
-          size: 18
-        },
-        padding: {
-          top: 10,
-          bottom: 20
-        }
-      },
-      tooltip: {
-        callbacks: {
-          label: (context: any) => {
-            return `${context.parsed.y} complaints`;
-          }
-        }
-      }
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        title: {
-          display: true,
-          text: 'Number of Complaints',
-          font: {
-            weight: 'bold'
-          }
-        },
-        ticks: {
-          precision: 0 
-        }
-      },
-      x: {
-        title: {
-          display: true,
-          text: 'Semester',
-          font: {
-            weight: 'bold'
-          }
-        }
-      }
+      setChartData({
+        labels: data.map(item => item.semester),
+        datasets: [{
+          label: 'Complaints',
+          data: data.map(item => item.total_complaints),
+          backgroundColor: 'rgba(59, 130, 246, 0.7)'
+        }]
+      });
+    } catch (error) {
+      console.error("Fetch failed:", error);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-pulse text-gray-500">Loading semester data...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-        <strong>Error: </strong> {error}
-      </div>
-    );
-  }
-
-  if (!chartData) {
-    return (
-      <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
-        No semester complaint data available.
-      </div>
-    );
-  }
+  useEffect(() => { fetchData(); }, [filters]);
 
   return (
-    <div className="p-6 bg-white rounded-lg shadow">
-      <h2 className="text-xl font-semibold mb-4">Semester Complaints Overview</h2>
-      <div className="h-[450px]"> {/* Fixed height container */}
-        <Bar 
-          options={options} 
-          data={chartData} 
-          redraw={true}
+    <div className="p-6">
+      {/* Filter Controls */}
+      <div className="flex gap-4 mb-6 flex-wrap">
+        <select
+          value={filters.semester}
+          onChange={(e) => setFilters({...filters, semester: e.target.value})}
+          className="border p-2 rounded"
+        >
+          <option value="">All Semesters</option>
+          <option value="Spring 2023">Spring 2024</option>
+          <option value="Fall 2023">Fall 2024</option>
+					<option value="Summer 2023">Summer 2024</option>
+        </select>
+        
+        <input
+          type="date"
+          value={filters.startDate}
+          onChange={(e) => setFilters({...filters, startDate: e.target.value})}
+          className="border p-2 rounded"
+        />
+        
+        <input
+          type="date"
+          value={filters.endDate}
+          onChange={(e) => setFilters({...filters, endDate: e.target.value})}
+          className="border p-2 rounded"
         />
       </div>
-      <p className="text-sm text-gray-500 mt-2">
-        Shows total complaints received per academic semester.
-      </p>
+
+      {/* Chart */}
+      {chartData ? (
+        <Bar 
+          data={chartData}
+          options={{ responsive: true }}
+        />
+      ) : (
+        <p>Loading data...</p>
+      )}
     </div>
   );
 }

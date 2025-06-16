@@ -1,8 +1,8 @@
 // userStore.ts
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { User } from "@/types/user";
-import { getUserById } from "@/lib/api";
+import type { User } from "../types/user";
+import { getUserById } from "../lib/api";
 
 interface UserState {
     user: User | null;

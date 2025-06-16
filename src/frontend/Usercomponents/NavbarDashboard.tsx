@@ -6,8 +6,8 @@ import Link from "next/link";
 import { Bell, Mail, Users, User, Home, MessageSquare, LayoutDashboard, ChevronDown, LogOut } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Image from "next/image";
-import { useUserStore } from "@/stores/userStore";
-import { logout } from "@/lib/auth";
+import { useUserStore } from "../stores/userStore";
+import { logout } from "../lib/auth";
 
 const navLinks = [
   { href: "/personal", label: "Personal", icon: "/icons/user-lock-01.svg" },
