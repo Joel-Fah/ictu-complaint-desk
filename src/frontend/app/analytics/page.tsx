@@ -1,6 +1,9 @@
-const AnalyticsPage = () => {
+import AnalyticPageContent from "@/Usercomponents/AnalyticPageContent"
+
+const AnalyticPage = () => {
     return (
-        <div>Analytics</div>
+        <AnalyticPageContent />
     )
 }
-export default AnalyticsPage;
+export default AnalyticPage;
+
