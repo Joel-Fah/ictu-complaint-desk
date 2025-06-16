@@ -9,6 +9,7 @@ import { useUserStore } from "@/stores/userStore";
 import MenuIcon from "/public/icons/menu-11.svg";
 import XIcon from "/public/icons/cancel-01.svg";
 import {logout} from "@/lib/auth";
+import { useFilterStore } from "@/stores/filterStore";
 
 const navLinks = [
   { href: "/dashboard", label: "Personal", icon: "/icons/user-lock-01.svg" },
@@ -16,7 +17,10 @@ const navLinks = [
 ];
 
 const NavbarDashboard = () => {
-  const pathname = usePathname();
+    const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
+    const [statusFilter, setStatusFilter] = useState("All");
+    const setFilter = useFilterStore((state) => state.setFilter);
+    const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const toggleMenu = () => setMenuOpen((prev) => !prev);
   const user = useUserStore((state) => state.user);
@@ -67,6 +71,48 @@ const NavbarDashboard = () => {
                 ))}
             </div>
         </div>
+
+
+          {/* Filter Dropdowns */}
+          <div className="flex gap-2">
+              {/* Status Filter */}
+              <div className="relative z-[5]">
+                  <button
+                      onClick={() => {
+                          setStatusDropdownOpen(!statusDropdownOpen);
+                      }}
+                      className="flex items-center gap-[10px] px-[8px] py-[8px] w-[145px] h-[36px] text-sm border border-primary-950 rounded-[12px] bg-primary-950 hover:bg-primary-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                      <span className="text-white text-body font-sans">Status:</span>
+                      <span className="text-white font-medium font-sans truncate text-ellipsis">{statusFilter}</span>
+                      <Image
+                          src="/icons/arrow-down-01.svg"
+                          alt='Dropdown icon'
+                          height={18}
+                          width={18}
+                      />
+                  </button>
+
+                  {statusDropdownOpen && (
+                      <div className="absolute top-full left-0 mt-1 w-full bg-primary-950 border border-gray-200 rounded-md shadow-lg z-20">
+                          {['All', 'Open', 'In Progress', 'Escalated', 'Resolved'].map((status) => (
+                              <button
+                                  key={status}
+                                  onClick={() => {
+                                      setStatusFilter(status);       // Update local display
+                                      setFilter(status);            // ✅ Update Zustand store
+                                      setStatusDropdownOpen(false); // Close dropdown
+                                  }}
+                                  className="w-full text-left px-3 py-2 text-sm hover:bg-primary-800 focus:outline-none focus:bg-primary-800"
+                              >
+                                  {status}
+                              </button>
+                          ))}
+                      </div>
+                  )}
+              </div>
+
+          </div>
 
 
         {/* Right: Profile and Icons (Desktop) */}
