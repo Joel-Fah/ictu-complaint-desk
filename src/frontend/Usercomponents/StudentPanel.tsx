@@ -6,7 +6,19 @@ import StatusCard from "@/Usercomponents/StatusCard";
 import Image from "next/image";
 import {DrawerDialogDemo} from "@/Usercomponents/DrawerDialog";
 import Button from "@/Usercomponents/Button";
+import { useEffect, useState } from "react";
+import {getAssignmentFromComplaint, getUserById} from "@/lib/api";
 
+interface Assignment {
+    id: number;
+    complaint: Complaint;
+    assigned_at: string;
+    reminder_count: number;
+    message: string;
+    created_at: string;
+    updated_at: string;
+    staff: number;
+}
 
 
 interface StudentPanelProps {
@@ -32,6 +44,32 @@ const StudentPanel = ({
                           fetchUser,
                       }: StudentPanelProps) => {
     const router = useRouter(); // ✅ place it here
+    const [assignedTo, setAssignedTo] = useState<
+        { fullName: string; picture: string; role: string; complaintId?: number }[]
+    >([]);
+
+
+    useEffect(() => {
+        if (!selectedItem?.id) {
+            setAssignedTo([]);
+            return;
+        }
+
+        getAssignmentFromComplaint(selectedItem.id)//need this from backend
+            .then((assignments: Assignment[]) =>
+                Promise.all(assignments.map(async (a) => {
+                    const staff = await getUserById(a.staff);
+                    return {
+                        fullName: `${staff.firstName} ${staff.lastName}`,
+                        picture: staff.picture || "/default-avatar.png",
+                        role: staff.role || "Staff",
+                        complaintId: selectedItem.id,
+                    };
+                }))
+            )
+            .then(setAssignedTo)
+            .catch(() => setAssignedTo([]));
+    }, [selectedItem?.id]);
 
     return (
         <>
@@ -61,7 +99,7 @@ const StudentPanel = ({
                         <ComplaintDetail complaint={selectedItem} role="student" />
                         {isMobile && selectedItem && (
                             <div className="mt-4">
-                                <StatusCard status={selectedItem.status} assignedTo={[]} role="student" />
+                                <StatusCard status={selectedItem.status} assignedTo={assignedTo} role="student" />
                             </div>
                         )}
                     </div>
@@ -70,7 +108,7 @@ const StudentPanel = ({
 
             {!isMobile && selectedItem && (
                 <div className="w-[300px] p-4 border-l overflow-y-auto mt-[64px]">
-                    <StatusCard status={selectedItem.status} assignedTo={[]} role="student" />
+                    <StatusCard status={selectedItem.status} assignedTo={assignedTo} role="student" />
                 </div>
             )}
 

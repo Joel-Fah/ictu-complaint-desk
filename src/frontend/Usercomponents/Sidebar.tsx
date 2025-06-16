@@ -26,11 +26,11 @@ const ComplaintsUI = ({ onSelectItem, statusFilter, role }: ComplaintsUIProps) =
   useEffect(() => {
     const fetchComplaints = async () => {
       try {
-        let data: Complaint[] = [];
+        let data: Complaint[];
         if (role === 'admin') {
           data = await getComplaints();
         } else if (role === 'lecturer') {
-            data = await getComplaintsAssigned(Number(userId));
+            data = await getComplaintsAssigned(Number(userId));// this returns complaint assignments not the complaints themselves you get that by data.complaint
         }else {
             data = await getComplaintsByUser(Number(userId));
         }
