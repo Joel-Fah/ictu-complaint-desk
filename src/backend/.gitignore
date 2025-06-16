@@ -184,3 +184,4 @@ cython_debug/
 *.sqlite-wal
 *.sqlite-shm
 /node_modules/
+media/
