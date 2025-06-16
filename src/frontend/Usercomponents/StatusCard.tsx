@@ -412,6 +412,16 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
                                     });
                                 }
 
+                                const assignedStaff = selectedItem.assignments?.map(a => a.staff_id) ?? [];
+                                await Promise.all(
+                                    assignedStaff.map(staffId =>
+                                        createNotification({
+                                            recipient_id: staffId,
+                                            message: `Complaint ${selectedItem.id} has been reviewed and resolved by the Registrar.`,
+                                        })
+                                    )
+                                );
+
                                 toast.success("Complaint reviewed and resolved.");
                                 setTimeout(() => router.push("/dashboard"), 3000);
                             } catch (error) {
@@ -420,7 +430,7 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
                             }
                         }}
                     >
-                        Submit Resolution
+                        Resolve
                     </button>
                 </div>
             )}
