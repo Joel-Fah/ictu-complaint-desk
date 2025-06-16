@@ -189,8 +189,8 @@ const ComplaintDetail: React.FC<ComplaintDetailProps> = ({ complaint, isLoading 
                     })}
                 </span>
                 <span>
-                    Updated:{" "}
-                    {complaint.updated_at && new Date(complaint.updated_at).toLocaleString("en-US", {
+                    Deadline:{" "}
+                    {complaint.deadline && new Date(complaint.deadline).toLocaleString("en-US", {
                         year: "numeric",
                         month: "long",
                         day: "numeric",

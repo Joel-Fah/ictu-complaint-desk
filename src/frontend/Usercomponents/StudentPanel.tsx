@@ -8,6 +8,8 @@ import {DrawerDialogDemo} from "@/Usercomponents/DrawerDialog";
 import Button from "@/Usercomponents/Button";
 import { useEffect, useState } from "react";
 import {getAssignmentFromComplaint, getUserById} from "@/lib/api";
+import {getAllStaff} from "@/lib/api";
+import {User} from "@/types/user";
 
 interface Assignment {
     id: number;
@@ -47,6 +49,13 @@ const StudentPanel = ({
     const [assignedTo, setAssignedTo] = useState<
         { fullName: string; picture: string; role: string; complaintId?: number }[]
     >([]);
+    const [allStaff, setAllStaff] = useState<User[]>([]);
+
+    useEffect(() => {
+        getAllStaff()
+            .then(setAllStaff)
+            .catch(() => setAllStaff([]));
+    }, []);
 
 
     useEffect(() => {
@@ -99,7 +108,7 @@ const StudentPanel = ({
                         <ComplaintDetail complaint={selectedItem} role="student" />
                         {isMobile && selectedItem && (
                             <div className="mt-4">
-                                <StatusCard status={selectedItem.status} assignedTo={assignedTo} role="student" />
+                                <StatusCard status={selectedItem.status} assignedTo={assignedTo} role="student" selectedItem={selectedItem} allStaff={allStaff} />
                             </div>
                         )}
                     </div>
@@ -108,7 +117,7 @@ const StudentPanel = ({
 
             {!isMobile && selectedItem && (
                 <div className="w-[300px] p-4 border-l overflow-y-auto mt-[64px]">
-                    <StatusCard status={selectedItem.status} assignedTo={assignedTo} role="student" />
+                    <StatusCard status={selectedItem.status} assignedTo={assignedTo} role="student" selectedItem={selectedItem} allStaff={allStaff} />
                 </div>
             )}
 

@@ -5,7 +5,7 @@ import {withAuth} from "@/lib/withAuth";
 import Image from "next/image";
 import {Complaint} from "@/types/complaint";
 
-type Role = "student" | "lecturer" | "admin";
+type Role = "student" | "lecturer" | "admin" | "complaint_coordinator";
 
 interface RolePanelProps {
     role: Role;

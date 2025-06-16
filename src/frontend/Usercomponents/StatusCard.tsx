@@ -1,8 +1,13 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import Image from "next/image";
-import {createAssignment, createNotification, createResolution } from "@/lib/api";
+import {createAssignment, createNotification, createResolution, updateComplaint, updateResolution} from "@/lib/api";
 import {toast} from "sonner";
 import ToastNotification from "@/Usercomponents/ToastNotifications";
+import {Complaint} from "@/types/complaint";
+import {useUserStore} from "@/stores/userStore";
+import {User} from "@/types/user";
+import {useRouter} from "next/navigation";
+import { useCategoryStore } from "@/stores/categoryStore";
 
 interface AssignedPerson {
     fullName: string;
@@ -15,9 +20,18 @@ interface StatusCardProps {
     status: string;
     assignedTo: AssignedPerson[];
     role?: string;
+    selectedItem?: Complaint;
+    allStaff?: User[];
 }
 
-const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role }) => {
+const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selectedItem, allStaff }) => {
+    const user = useUserStore((state) => state.user);
+    const adminProfile = user?.profiles?.find(p => p.type === "admin");
+    const adminOffice = adminProfile?.data?.office || "Registrar's Office";
+    const [selectedDeadline, setSelectedDeadline] = useState<string | undefined>(selectedItem?.deadline); // from selectedItem.deadline
+    const { categories, fetchCategories } = useCategoryStore();
+    const [selectedCategory, setSelectedCategory] = useState<number>(Number(selectedItem?.category)); // pull from selectedItem.category
+    const router = useRouter();
     const [message, setMessage] = useState("");
     const [showResolutionForm, setShowResolutionForm] = useState(false);
     const [formData, setFormData] = useState({
@@ -27,6 +41,12 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role }) => 
         final_mark: ""
     });
     const [selectedStaffIds, setSelectedStaffIds] = useState<number[]>([]);
+    const formFilled = Object.values(formData).some(value => value.trim() !== "");
+
+    useEffect(() => {
+        fetchCategories();
+    }, [fetchCategories]);
+
 
 
     const getStatusStyles = () => {
@@ -41,6 +61,35 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role }) => 
                 return "bg-primary-50 border-info text-info";
         }
     };
+
+    const handleComplaintUpdate = async () => {
+        if (!selectedItem || !selectedCategory || !selectedDeadline || !message.trim()) return;
+
+        try {
+            await updateComplaint({
+                id: selectedItem.id,
+                category: selectedCategory,
+                deadline: selectedDeadline,
+            });
+
+            // Example for sending notification to student
+            if (typeof selectedItem.student === "number") {
+                await createNotification({
+                    recipient_id: selectedItem.student,
+                    message: "The complaint coordinator update the category and/or deadline of your complaint to better suit fast resolution"
+                });
+            }
+
+            toast.custom(t => <ToastNotification type="success" title="Thank you!" subtitle="Complaint Updated" onClose={() => toast.dismiss(t)} showClose />, { duration: 2000 });
+            setTimeout(() => {
+                router.push("/dashboard"); // using Next.js router
+            }, 3000);
+        } catch (error) {
+            console.error("Error updating complaint:", error);
+            toast.custom(t => <ToastNotification type="error" title="Something went wrong!" subtitle="" onClose={() => toast.dismiss(t)} showClose />, { duration: 2000 });
+        }
+    };
+
 
     const getStatusIcon = () => {
         switch (status.toLowerCase()) {
@@ -69,7 +118,7 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role }) => 
     };
 
     return (
-        <div className="w-full max-w-md sm:max-w-sm lg:max-w-xs mx-auto px-4">
+        <div className="w-full max-w-md sm:max-w-sm lg:max-w-xs mx-auto px-4 overflow-y-auto">
             {/* Status Section */}
             <div className="mb-6">
                 <h2 className="text-lg sm:text-xl font-heading text-greyColor mb-4">Status</h2>
@@ -157,7 +206,7 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role }) => 
                     <textarea
                         className="w-full border border-gray-300 rounded-lg p-2 text-sm"
                         rows={3}
-                        placeholder="Enter a message..."
+                        placeholder="Enter a message or commemnt..."
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
                     />
@@ -171,15 +220,20 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role }) => 
                             setSelectedStaffIds(selected);
                         }}
                     >
-                        {allStaff
-                            .filter((staff) =>
-                                showResolutionForm || staff.adminprofile?.office !== "Registrar's Office"
-                            )
-                            .map((staff) => (
-                                <option key={staff.id} value={staff.id}>
-                                    {staff.username} - {staff.adminprofile?.office}
+                        {(allStaff ?? []).map((staff) => {
+                            const staffAdminProfile = staff.profiles?.find(p => p.type === "admin");
+                            const staffOffice = staffAdminProfile?.data?.office || adminOffice;
+                            const isRegistrar = staffOffice === "Registrar Office";
+                            return (
+                                <option
+                                    key={staff.id}
+                                    value={staff.id}
+                                    disabled={!formFilled && isRegistrar}
+                                >
+                                    {staff.username} - {staffOffice}
                                 </option>
-                            ))}
+                            );
+                        })}
                     </select>
 
                     {/* Submit */}
@@ -187,8 +241,6 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role }) => 
                         className="w-full bg-green-600 text-white rounded-lg py-2 font-medium hover:bg-green-700"
                         onClick={async () => {
                             if (!message.trim() || !selectedItem || !user) return;
-
-                            const formFilled = formData.attendance_mark || formData.assignment_mark || formData.ca_mark || formData.final_mark;
 
                             try {
                                 // Case: Resolution form was filled
@@ -206,36 +258,39 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role }) => 
                                         await createNotification({ recipient_id: id, message });
                                     }));
 
-                                    // Notify student
-                                    await createNotification({
-                                        recipient_id: selectedItem.student,
-                                        message: "Your complaint is currently at the registrars office awaiting approval..."
-                                    });
+                                    // Before sending notification to student
+                                    if (typeof selectedItem.student === "number") {
+                                        await createNotification({
+                                            recipient_id: selectedItem.student,
+                                            message: "Your complaint is currently at the Registrar's Office awaiting approval before the resolution can be sent to you"
+                                        });
+                                    }
 
                                 } else {
                                     // Case: Only message provided
-                                    const filteredStaff = allStaff.filter(
-                                        (s) =>
-                                            selectedStaffIds.includes(s.id) &&
-                                            s.adminprofile?.office !== "Registrar's Office"
-                                    );
-
-                                    await Promise.all(filteredStaff.map(async (staff) => {
-                                        await createNotification({ recipient_id: staff.id, message });
+                                    // just use selectedStaffIds
+                                    await Promise.all(selectedStaffIds.map(async (id) => {
+                                        await createNotification({ recipient_id: id, message });
                                     }));
 
                                     // Notify student
-                                    await createNotification({
-                                        recipient_id: selectedItem.student,
-                                        message: "Your complaint is still in progress"
-                                    });
+                                    // Before sending notification to student
+                                    if (typeof selectedItem.student === "number") {
+                                        await createNotification({
+                                            recipient_id: selectedItem.student,
+                                            message: "Your complaint is still in progress"
+                                        });
+                                    }
                                 }
 
-                                toast.custom(t => <ToastNotification type="success" title="Thank you!" subtitle="" onClose={() => toast.dismiss(t)} showClose />, { duration: 4000 });
+                                toast.custom(t => <ToastNotification type="success" title="Thank you!" subtitle="" onClose={() => toast.dismiss(t)} showClose />, { duration: 2000 });
+                                setTimeout(() => {
+                                    router.push("/dashboard"); // using Next.js router
+                                }, 3000);
 
                             } catch (err) {
                                 console.error("Error processing lecturer action:", err);
-                                toast.custom(t => <ToastNotification type="error" title="Complaint filed!" subtitle="" onClose={() => toast.dismiss(t)} showClose />, { duration: 4000 });
+                                toast.custom(t => <ToastNotification type="error" title="Something went wrong!" subtitle="" onClose={() => toast.dismiss(t)} showClose />, { duration: 2000 });
                             }
                         }}
                     >
@@ -245,12 +300,98 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role }) => 
             )}
 
 
+            {role === "complaint_coordinator" && (
+                <div className="mt-6 space-y-4">
+                    <h3 className="font-heading text-md text-greyColor">Update Complaint Details</h3>
+
+                    <div>
+                        <label className="block mb-1 text-sm font-medium text-greyColor">Category</label>
+                        <select
+                            className="w-full border border-gray-300 rounded-lg p-2 text-sm"
+                            value={selectedCategory}
+                            onChange={(e) => setSelectedCategory(Number(e.target.value))}
+                        >
+                            {Object.values(categories).map(cat => (
+                                <option key={cat.id} value={cat.id}>{cat.name}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block mb-1 text-sm font-medium text-greyColor">Deadline</label>
+                        <input
+                            type="date"
+                            className="w-full border border-gray-300 rounded-lg p-2 text-sm"
+                            value={selectedDeadline}
+                            onChange={(e) => setSelectedDeadline(e.target.value)}
+                        />
+                    </div>
+
+                    <textarea
+                        className="w-full border border-gray-300 rounded-lg p-2 text-sm"
+                        rows={3}
+                        placeholder="Enter a message to notify the student..."
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                    />
+
+                    <button
+                        className="w-full bg-blue-600 text-white rounded-lg py-2 font-medium hover:bg-blue-700"
+                        onClick={handleComplaintUpdate}
+                    >
+                        Update Complaint
+                    </button>
+                </div>
+            )}
+
+
+
             {/* Extra for Admin */}
             {role === "admin" && (
                 <div className="mt-6 space-y-4">
-                    <button className="w-full bg-primary-700 text-white rounded-lg py-2 font-medium">
-                        Add Assignment
+                    {/* Toggle Resolution Form */}
+                    <button
+                        className="w-full bg-primary-700 text-white rounded-lg py-2 font-medium"
+                        onClick={() => setShowResolutionForm(!showResolutionForm)}
+                    >
+                        {showResolutionForm ? "Hide Resolution Form" : "Fill Resolution Form"}
                     </button>
+
+                    {/* Resolution Form */}
+                    {showResolutionForm && (
+                        <>
+                            <input
+                                type="number"
+                                placeholder="Attendance Mark"
+                                className="w-full border rounded-lg p-2 text-sm"
+                                value={formData.attendance_mark}
+                                onChange={(e) => setFormData({ ...formData, attendance_mark: e.target.value })}
+                            />
+                            <input
+                                type="number"
+                                placeholder="Assignment Mark"
+                                className="w-full border rounded-lg p-2 text-sm"
+                                value={formData.assignment_mark}
+                                onChange={(e) => setFormData({ ...formData, assignment_mark: e.target.value })}
+                            />
+                            <input
+                                type="number"
+                                placeholder="CA Mark"
+                                className="w-full border rounded-lg p-2 text-sm"
+                                value={formData.ca_mark}
+                                onChange={(e) => setFormData({ ...formData, ca_mark: e.target.value })}
+                            />
+                            <input
+                                type="number"
+                                placeholder="Final Mark"
+                                className="w-full border rounded-lg p-2 text-sm"
+                                value={formData.final_mark}
+                                onChange={(e) => setFormData({ ...formData, final_mark: e.target.value })}
+                            />
+                        </>
+                    )}
+
+                    {/* Message */}
                     <textarea
                         className="w-full border border-gray-300 rounded-lg p-2 text-sm"
                         rows={3}
@@ -258,8 +399,82 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role }) => 
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
                     />
-                    <button className="w-full bg-yellow-600 text-white rounded-lg py-2 font-medium hover:bg-yellow-700">
-                        Send to Finance
+
+                    {/* Staff Assignment Dropdown */}
+                    <select
+                        multiple
+                        className="w-full border rounded-lg p-2 text-sm"
+                        onChange={(e) => {
+                            const selected = Array.from(e.target.selectedOptions).map(opt => Number(opt.value));
+                            setSelectedStaffIds(selected);
+                        }}
+                    >
+                        {(allStaff ?? []).map((staff) => {
+                            const staffAdminProfile = staff.profiles?.find(p => p.type === "admin");
+                            const staffOffice = staffAdminProfile?.data?.office || adminOffice;
+                            const isRegistrar = staffOffice === "Registrar Office";
+                            return (
+                                <option
+                                    key={staff.id}
+                                    value={staff.id}
+                                    disabled={!formFilled && isRegistrar}
+                                >
+                                    {staff.username} - {staff.role}
+                                </option>
+                            );
+                        })}
+                    </select>
+
+                    {/* Submit */}
+                    <button
+                        className="w-full bg-yellow-600 text-white rounded-lg py-2 font-medium hover:bg-yellow-700"
+                        onClick={async () => {
+                            if (!message.trim() || !selectedItem || !user) return;
+
+                            try {
+                                // If form is filled, PATCH the resolution
+                                if (formFilled) {
+                                    await updateResolution(selectedItem.id, {
+                                        resolved_by_id: user.id,
+                                        ...formData,
+                                        comments: message,
+                                    });
+
+                                    // Notify all admins
+                                    const admins = (allStaff ?? []).filter(s => s.role === "Admin");
+                                    await Promise.all(admins.map(admin =>
+                                        createNotification({
+                                            recipient_id: admin.id,
+                                            message: `Admin ${admin.fullName} has provided a resolution for complaint ${selectedItem.id}.`,
+                                        })
+                                    ));
+                                }
+
+                                // Assign and notify staff
+                                await Promise.all(selectedStaffIds.map(async (id) => {
+                                    await createAssignment({ complaint_id: selectedItem.id, staff_id: id });
+                                    await createNotification({ recipient_id: id, message });
+                                }));
+
+                                // Notify student
+                                if (typeof selectedItem.student === "number") {
+                                    await createNotification({
+                                        recipient_id: selectedItem.student,
+                                        message: "Your complaint is currently at the Registrar's Office awaiting approval before the resolution can be sent to you"
+                                    });
+                                }
+
+                                toast.success("Complaint processed and notifications sent.");
+                                setTimeout(() => {
+                                    router.push("/dashboard");
+                                }, 3000);
+                            } catch (error) {
+                                console.error("Admin processing failed:", error);
+                                toast.error("Something went wrong!");
+                            }
+                        }}
+                    >
+                        Send
                     </button>
                 </div>
             )}

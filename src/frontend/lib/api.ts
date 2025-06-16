@@ -159,17 +159,6 @@ export const getAssignmentFromComplaint = async (complaintId: number): Promise<A
 
 
 
-
-export const getComplaintById = async (id: number): Promise<Complaint> => {
-    try {
-        const response = await api.get<Complaint>(`/complaints/${id}/`);
-        return response.data;
-    } catch (err) {
-        console.error(`Error fetching complaint with ID ${id}:`, err);
-        throw new Error('Failed to fetch complaint');
-    }
-};
-
 type ComplaintAPIErrorResponse = {
     detail?: string;
     [key: string]: string[] | string | undefined;
@@ -214,9 +203,29 @@ export const createComplaint = async (
         throw error;
     }
 };
+
+export const updateComplaint = async (data: {
+    id: number;
+    category: number;
+    deadline: string;
+}) => {
+    const response = await api.patch(`/complaints/${data.id}/`, {
+        category: data.category,
+        deadline: data.deadline,
+    });
+    return response.data;
+};
 {/**
 
- export const updateComplaint = async (id: number | string, data: any) => (await api.put(`/complaints/${id}/`, data)).data;
+ export const getComplaintById = async (id: number): Promise<Complaint> => {
+ try {
+ const response = await api.get<Complaint>(`/complaints/${id}/`);
+ return response.data;
+ } catch (err) {
+ console.error(`Error fetching complaint with ID ${id}:`, err);
+ throw new Error('Failed to fetch complaint');
+ }
+ };
  export const patchComplaint = async (id: number | string, data: any) => (await api.patch(`/complaints/${id}/`, data)).data;
  export const deleteComplaint = async (id: number | string) => (await api.delete(`/complaints/${id}/`)).data;
 
@@ -284,11 +293,24 @@ export const createResolution = async (data: {
     }
 };
 
+export const updateResolution = async (
+    id: number,
+    data: {
+        attendance_mark: string;
+        assignment_mark: string;
+        ca_mark: string;
+        final_mark: string;
+        resolved_by_id: number;
+        comments: string;
+    }
+) => {
+    const response = await api.patch(`/resolutions/${id}/`, data);
+    return response.data;
+};
 
 {/**
  export const getResolutions = async () => (await api.get("/resolutions/")).data;
  export const getResolution = async (id: number | string) => (await api.get(`/resolutions/${id}/`)).data;
- export const updateResolution = async (id: number | string, data: any) => (await api.put(`/resolutions/${id}/`, data)).data;
  export const patchResolution = async (id: number | string, data: any) => (await api.patch(`/resolutions/${id}/`, data)).data;
  export const deleteResolution = async (id: number | string) => (await api.delete(`/resolutions/${id}/`)).data;
 
@@ -300,6 +322,18 @@ export const createResolution = async (data: {
  export const updateUser = async (id: number | string, data: any) => (await api.put(`/users/${id}/`, data)).data;
  export const patchUser = async (id: number | string, data: any) => (await api.patch(`/users/${id}/`, data)).data;
  **/}
+
+
+export const getAllStaff = async (): Promise<User[]> => {
+    try {
+        const response = await api.get<User[]>("/users/");
+        // Filter users with isStaff true
+        return response.data.filter((user) => user.isStaff === true);
+    } catch (err) {
+        console.error("Error fetching users:", err);
+        throw new Error("Failed to fetch staff users");
+    }
+};
 
 export const updateStudentProfile = async (data: { student_number: string }) => {
     return (await api.patch("/users/students/profile/", data)).data;

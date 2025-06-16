@@ -24,13 +24,20 @@ function DashboardPage() {
     const [selectedItem, setSelectedItem] = useState<Complaint | null>(null);
     const [isMobile, setIsMobile] = useState(false);
 
-    const roles = user?.profiles?.map(p => p.type) || [];
-    const hasStudent = roles.includes("student");
-    const hasLecturer = roles.includes("lecturer");
-    const hasAdmin = roles.includes("admin");
-    const hasMultipleRoles = roles.length > 1;
+    const hasStudent = user?.role === "Student";
+    const hasLecturer = user?.role === "Lecturer" || user?.secondary_role === "Lecturer";
+    const hasAdmin = user?.role === "Admin" || user?.secondary_role === "Admin";
+    const hasComplaintCoordinator = user?.role === "Complaint Coordinator" || user?.secondary_role === "Complaint Coordinator";
+    const hasMultipleRoles = user?.role && user?.secondary_role && user.role !== user.secondary_role;
     const studentProfile = user?.profiles?.find(p => p.type === "student");
     const studentNumber = studentProfile?.data?.student_number;
+
+    const roles = [
+        hasStudent ? "student" : null,
+        hasLecturer ? "lecturer" : null,
+        hasAdmin ? "admin" : null,
+        hasComplaintCoordinator ? "complaint_coordinator" : null,
+    ].filter(Boolean) as string[];
 
     const [activeRoleTab, setActiveRoleTab] = useState(roles[0] || "student");
 
@@ -108,6 +115,14 @@ function DashboardPage() {
                             Admin
                         </button>
                     )}
+                    {hasComplaintCoordinator && (
+                        <button
+                            onClick={() => setActiveRoleTab("complaint_coordinator")}
+                            className={`px-4 py-2 rounded ${activeRoleTab === "complaint_coordinator" ? "bg-primary-600 text-white" : "bg-gray-200"}`}
+                        >
+                            Admin
+                        </button>
+                    )}
                 </div>
             )}
 
@@ -128,6 +143,15 @@ function DashboardPage() {
                 {activeRoleTab === "lecturer" && (
                     <RolePanel
                         role="lecturer"
+                        selectedItem={selectedItem}
+                        setSelectedItem={setSelectedItem}
+                        statusFilter={statusFilter}
+                        isMobile={isMobile}
+                    />
+                )}
+                {activeRoleTab === "complaint_coordinator" && (
+                    <RolePanel
+                        role="complaint_coordinator"
                         selectedItem={selectedItem}
                         setSelectedItem={setSelectedItem}
                         statusFilter={statusFilter}

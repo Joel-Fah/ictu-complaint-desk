@@ -27,12 +27,12 @@ const ComplaintsUI = ({ onSelectItem, statusFilter, role }: ComplaintsUIProps) =
     const fetchComplaints = async () => {
       try {
         let data: Complaint[];
-        if (role === 'admin') {
-          data = await getComplaints();
+        if (role === 'student' || role === 'admin') {
+          data = await getComplaintsByUser(Number(userId));
         } else if (role === 'lecturer') {
             data = await getComplaintsAssigned(Number(userId));// this returns complaint assignments not the complaints themselves you get that by data.complaint
         }else {
-            data = await getComplaintsByUser(Number(userId));
+            data = await getComplaints();
         }
         if (Array.isArray(data)) {
           setComplaints(data);
