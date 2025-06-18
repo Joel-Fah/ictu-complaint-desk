@@ -105,14 +105,24 @@ export const getCategories = async (): Promise<Category[]> =>
 
  **/}
 // ======= COMPLAINTS =======
-export const getComplaints = async (): Promise<Complaint[]> => {
-    try {
-        const response = await api.get<ComplaintResponse>('/complaints/');
-        return response.data.results;
-    } catch (err) {
-        console.error('Error fetching complaints:', err);
-        throw new Error('Failed to fetch complaints');
-    }
+// lib/api.ts
+
+export const getComplaints = async (
+  page: number = 1,
+  pageSize: number = 10
+): Promise<ComplaintResponse> => {
+  try {
+    const response = await api.get<ComplaintResponse>('/complaints/', {
+      params: {
+        page,
+        page_size: pageSize, // or 'limit' depending on your API
+      },
+    });
+    return response.data;
+  } catch (err) {
+    console.error('Error fetching complaints:', err);
+    throw new Error('Failed to fetch complaints');
+  }
 };
 
 export const getComplaintsByUser = async (userId: number): Promise<Complaint[]> => {
