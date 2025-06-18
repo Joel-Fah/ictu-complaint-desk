@@ -100,7 +100,7 @@ class ComplaintAdmin(admin.ModelAdmin):
     list_display = ['id', 'student__username', 'title', 'status', 'semester_year']
     list_filter = ['category', 'status', 'type', 'is_anonymous']
     search_fields = ['title', 'description']
-    readonly_fields = ['deadline', 'created_at']
+    readonly_fields = ['title', 'deadline', 'created_at']
 
     def semester_year(self, obj):
         return f'{obj.semester} {obj.year}'
@@ -116,7 +116,7 @@ class AttachmentAdmin(admin.ModelAdmin):
 
 @admin.register(ComplaintAssignment)
 class ComplaintAssignmentAdmin(admin.ModelAdmin):
-    list_display = ['id', 'complaint', 'staff__username', 'reminder_count']
+    list_display = ['id', 'complaint', 'staff__username', 'staff__role', 'reminder_count']
     list_filter = ['staff', 'created_at']
     search_fields = ['complaint__title']
     readonly_fields = ['created_at']

@@ -26,6 +26,7 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
 from .models import Category, Reminder, Notification, Resolution, Complaint, Attachment, Course, ComplaintAssignment
+from .permissions import IsFacultyAdmin
 from .serializers import CategorySerializer, UserSerializer, ReminderSerializer, NotificationSerializer, \
     ResolutionSerializer, ComplaintSerializer, CourseSerializer, StudentProfileSerializer, ComplaintAssignmentSerializer
 
