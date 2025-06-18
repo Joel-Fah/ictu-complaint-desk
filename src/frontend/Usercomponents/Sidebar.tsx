@@ -18,6 +18,9 @@ const ComplaintsUI = ({ onSelectItem, statusFilter, role }: ComplaintsUIProps) =
   const [selectedComplaintId, setSelectedComplaintId] = useState<number | null>(null);
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
   const [valueDropdownOpen, setValueDropdownOpen] = useState(false);
+  const [count, setCount] = useState<number>(0);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const pageSize = 10;
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const userId = useUserStore((state) => state.user?.id);
@@ -32,7 +35,7 @@ const ComplaintsUI = ({ onSelectItem, statusFilter, role }: ComplaintsUIProps) =
         } else if (role === 'lecturer') {
             data = await getComplaintsAssigned(Number(userId));// this returns complaint assignments not the complaints themselves you get that by data.complaint
         }else {
-            data = await getComplaints();
+            data = (await getComplaints(currentPage, pageSize)).results;
         }
         if (Array.isArray(data)) {
           setComplaints(data);
