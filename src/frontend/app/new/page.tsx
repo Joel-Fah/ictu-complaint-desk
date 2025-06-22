@@ -229,22 +229,6 @@ const ComplaintForm: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Title */}
-                        <div>
-                            <label className="block text-xs sm:text-sm text-primary-950 mb-1.5 sm:mb-2">Complaint title</label>
-                            <input
-                                type="text"
-                                className="appearance-none w-full bg-transparent text-lg sm:text-xl text-primary-950 border-0 border-b border-primary-950 focus:ring-0 focus:outline-none pr-6"
-                                value={formData.complaintTitle}
-                                onChange={e => handleInputChange('complaintTitle', e.target.value.slice(0, 55))}
-                                maxLength={55}
-                                placeholder="What are you complaining about?"
-                                required={true}
-                            />
-                            <p className="text-xs text-gray-500 mt-1">{formData.complaintTitle.length}/55 characters</p>
-
-                        </div>
-
                         {/* Course */}
                         <div>
                             <label className="block text-xs sm:text-sm text-primary-950 mb-1.5 sm:mb-2">Course concerned</label>

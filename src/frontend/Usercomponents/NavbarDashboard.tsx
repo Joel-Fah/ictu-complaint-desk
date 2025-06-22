@@ -11,9 +11,9 @@ import XIcon from "/public/icons/cancel-01.svg";
 import {logout} from "@/lib/auth";
 import { useFilterStore } from "@/stores/filterStore";
 
+//community removed
 const navLinks = [
   { href: "/dashboard", label: "Personal", icon: "/icons/user-lock-01.svg" },
-  { href: "/community", label: "Community", icon: "/icons/user-multiple-stroke-rounded-1.svg" },
 ];
 
 const NavbarDashboard = () => {
@@ -219,6 +219,16 @@ const NavbarDashboard = () => {
                       <div className="text-blue-200 text-xs">{user?.role || "Student"}</div>
                   </div>
               </div>
+                {/* Mobile Logout Button */}
+                <button
+                    onClick={() => {
+                        sessionStorage.removeItem('loginToastShown');
+                        logout();
+                    }}
+                    className="px-4 py-2 bg-error text-white rounded hover:bg-red-700"
+                >
+                    Logout
+                </button>
             </div>
         )}
       </nav>
