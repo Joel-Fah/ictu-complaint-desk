@@ -11,9 +11,15 @@ import { useCategoryStore } from "@/stores/categoryStore";
 import { useFilterStore } from "@/stores/filterStore";
 import RolePanel from "@/Usercomponents/RolePanel";
 import StudentPanel from "@/Usercomponents/StudentPanel";
+import Button from "@/Usercomponents/Button";
 
 function DashboardPage() {
     const user = useUserStore((state) => state.user);
+    const role = useUserStore((state) => state.role);
+    const secondary_role = useUserStore((state) => state.secondary_role);
+    const activeRoleTab = useUserStore((state) => state.activeRoleTab);
+    const setActiveRoleTab = useUserStore((state) => state.setActiveRoleTab);
+
     const fetchCategories = useCategoryStore((state) => state.fetchCategories);
     const statusFilter = useFilterStore((state) => state.filter);
     const searchParams = useSearchParams();
@@ -24,22 +30,27 @@ function DashboardPage() {
     const [selectedItem, setSelectedItem] = useState<Complaint | null>(null);
     const [isMobile, setIsMobile] = useState(false);
 
-    const hasStudent = user?.role === "Student";
-    const hasLecturer = user?.role === "Lecturer" || user?.secondary_role === "Lecturer";
-    const hasAdmin = user?.role === "Admin" || user?.secondary_role === "Admin";
-    const hasComplaintCoordinator = user?.role === "Complaint Coordinator" || user?.secondary_role === "Complaint Coordinator";
-    const hasMultipleRoles = user?.role && user?.secondary_role && user.role !== user.secondary_role;
+    const hasStudent = role?.toLowerCase() === "student";
+    const hasLecturer = role?.toLowerCase() === "lecturer" || secondary_role?.toLowerCase() === "lecturer";
+    const hasAdmin = role?.toLowerCase() === "admin" || secondary_role?.toLowerCase() === "admin";
+    const hasComplaintCoordinator =
+        role?.toLowerCase() === "complaint_coordinator" || secondary_role?.toLowerCase() === "complaint_coordinator";
+    //const hasMultipleRoles = !!user?.role || !!user?.secondary_role;
+    //const hasMultipleRoles = user?.role.toLowerCase() && user?.secondary_role?.toLowerCase() && user.role.toLowerCase() !== user.secondary_role.toLowerCase();
     const studentProfile = user?.profiles?.find(p => p.type === "student");
     const studentNumber = studentProfile?.data?.student_number;
 
-    const roles = [
-        hasStudent ? "student" : null,
-        hasLecturer ? "lecturer" : null,
-        hasAdmin ? "admin" : null,
-        hasComplaintCoordinator ? "complaint_coordinator" : null,
-    ].filter(Boolean) as string[];
 
-    const [activeRoleTab, setActiveRoleTab] = useState(roles[0] || "student");
+    console.log("Role:", role);
+    console.log("Secondary Role:", secondary_role);
+
+    const isStudent = role?.toLowerCase() === "student";
+    const allRoles = [role, secondary_role]
+        .map((r) => r?.toLowerCase())
+        .filter((r) => r && r !== "student");
+    const roles = Array.from(new Set(allRoles));
+    const hasMultipleRoles = !isStudent && roles.length > 0;
+
 
     useEffect(() => {
         if (typeof window === "undefined") return;
@@ -84,7 +95,7 @@ function DashboardPage() {
         }
     }, [searchParams, router]);
 
-    if (isMobile && hasStudent && !studentNumber && activeRoleTab === 'student') return null;
+    //if (isMobile && hasStudent && !studentNumber && activeRoleTab === 'student') return null;
 
     if (isLoading || !user) {
         return (
@@ -95,14 +106,15 @@ function DashboardPage() {
     }
 
     return (
-        <section className='flex flex-col'>
+        <section className='flex flex-col min-h-screen'>
             {/* Role Tabs */}
             {hasMultipleRoles && (
-                <div className="flex gap-4 p-4 bg-white border-b border-primary-950 rounded-2xl">
+                <div className="ml-0 md:ml-[380px] mt-2 w-full md:w-[800px] flex gap-2 md:gap-4 p-2 md:p-4 rounded-2xl z-[1] backdrop-blur-md border border-opacity-20 shadow-lg
+  bg-gradient-to-br from-blue-800/30 to-white/60 overflow-x-auto">
                     {hasLecturer && (
                         <button
                             onClick={() => setActiveRoleTab("lecturer")}
-                            className={`px-4 py-2 rounded-lg ${activeRoleTab === "lecturer" ? "bg-primary-600 text-white" : "bg-gray-200"}`}
+                            className={`px-3 py-2 md:px-4 md:py-2 rounded-lg text-sm md:text-base ${activeRoleTab === "lecturer" ? "bg-primary-600 text-white" : "bg-gray-200"}`}
                         >
                             Lecturer
                         </button>
@@ -110,7 +122,7 @@ function DashboardPage() {
                     {hasAdmin && (
                         <button
                             onClick={() => setActiveRoleTab("admin")}
-                            className={`px-4 py-2 rounded ${activeRoleTab === "admin" ? "bg-primary-600 text-white" : "bg-gray-200"}`}
+                            className={`px-3 py-2 md:px-4 md:py-2 rounded text-sm md:text-base ${activeRoleTab === "admin" ? "bg-primary-600 text-white" : "bg-gray-200"}`}
                         >
                             Admin
                         </button>
@@ -118,9 +130,9 @@ function DashboardPage() {
                     {hasComplaintCoordinator && (
                         <button
                             onClick={() => setActiveRoleTab("complaint_coordinator")}
-                            className={`px-4 py-2 rounded ${activeRoleTab === "complaint_coordinator" ? "bg-primary-600 text-white" : "bg-gray-200"}`}
+                            className={`px-3 py-2 md:px-4 md:py-2 rounded text-sm md:text-base ${activeRoleTab === "complaint_coordinator" ? "bg-primary-600 text-white" : "bg-gray-200"}`}
                         >
-                            Admin
+                            Coordinator
                         </button>
                     )}
                 </div>
@@ -129,39 +141,16 @@ function DashboardPage() {
             <div className="flex flex-1">
                 {activeRoleTab === "student" && (
                     <StudentPanel
-                        hasStudent={hasStudent}
-                        studentNumber={studentNumber}
                         selectedItem={selectedItem}
                         setSelectedItem={setSelectedItem}
                         statusFilter={statusFilter}
                         isMobile={isMobile}
-                        user={user.id}
                         fetchUser={fetchUser}
                     />
                 )}
 
-                {activeRoleTab === "lecturer" && (
+                {["lecturer", "admin", "complaint_coordinator"].includes(activeRoleTab) && (
                     <RolePanel
-                        role="lecturer"
-                        selectedItem={selectedItem}
-                        setSelectedItem={setSelectedItem}
-                        statusFilter={statusFilter}
-                        isMobile={isMobile}
-                    />
-                )}
-                {activeRoleTab === "complaint_coordinator" && (
-                    <RolePanel
-                        role="complaint_coordinator"
-                        selectedItem={selectedItem}
-                        setSelectedItem={setSelectedItem}
-                        statusFilter={statusFilter}
-                        isMobile={isMobile}
-                    />
-                )}
-
-                {activeRoleTab === "admin" && (
-                    <RolePanel
-                        role="admin"
                         selectedItem={selectedItem}
                         setSelectedItem={setSelectedItem}
                         statusFilter={statusFilter}
@@ -169,6 +158,24 @@ function DashboardPage() {
                     />
                 )}
             </div>
+            {role?.toLowerCase() === "student" && (
+                <div className="fixed bottom-6 right-6 z-50">
+                    <Button
+                        width="207px"
+                        type="button"
+                        className="font-sans font-medium text-body h-[44px] gap-[10px] text-primary-50 shadow-md"
+                        leftImageSrc="/icons/file-add.svg"
+                        bgColor="bg-primary-800"
+                        hoverBgColor="bg-primary-600"
+                        padding="px-[12px] py-[10px]"
+                        text="New Complaint"
+                        border="border-none"
+                        borderRadius="rounded-[12px]"
+                        disabled={!studentNumber}
+                        onClick={() => router.push("/new")}
+                    />
+                </div>
+            )}
         </section>
     );
 }

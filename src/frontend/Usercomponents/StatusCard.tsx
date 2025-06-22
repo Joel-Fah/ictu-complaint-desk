@@ -9,7 +9,7 @@ import {User} from "@/types/user";
 import {useRouter} from "next/navigation";
 import { useCategoryStore } from "@/stores/categoryStore";
 
-interface AssignedPerson {
+export interface AssignedPerson {
     user: User;
     fullName: string;
     picture: string;
@@ -48,8 +48,6 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
     useEffect(() => {
         fetchCategories();
     }, [fetchCategories]);
-
-
 
     const getStatusStyles = () => {
         switch (status.toLowerCase()) {
@@ -157,7 +155,7 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
                             </div>
                             <div>
                                 <div className="font-heading text-darkColor text-base font-medium">{person.fullName}</div>
-                                <div className="text-darkColor font-sans text-sm">{person.role}</div>
+                                <div className="text-darkColor font-sans text-[10px]">{person.role}</div>
                             </div>
                         </div>
                     ))}
@@ -350,8 +348,6 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
                     </button>
                 </div>
             )}
-
-
 
             {/* Extra for Admin */}
             {role === "admin" && (
