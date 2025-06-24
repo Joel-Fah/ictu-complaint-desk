@@ -154,6 +154,7 @@ class AdminProfile(models.Model):
         blank=True
     )
 
+    @staticmethod
     def get_semester_and_year(date: datetime):
         month = date.month
         year = date.year
@@ -185,7 +186,7 @@ class AdminProfile(models.Model):
             file_field = getattr(self, field)
             if file_field and hasattr(file_field, 'name') and file_field.name:
                 base, ext = os.path.splitext(os.path.basename(file_field.name))
-                new_name = f"{base}_{year}_{semester}{ext}"
+                new_name = f"{base}_{semester}{year}_{ext}"
                 file_field.name = os.path.join(os.path.dirname(file_field.name), new_name)
 
         # Only rename if user is Complaint Coordinator
