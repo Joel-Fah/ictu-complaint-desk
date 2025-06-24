@@ -91,11 +91,12 @@ def create_complaint_assignments(sender, instance, created, **kwargs):
         # Assign complaint to admins based on the category
         admins = instance.category.admins.all()
         for admin in admins:
-            ComplaintAssignment.objects.create(
-                complaint=instance,
-                staff=admin.user,
-                message=f"You have been assigned to provide a resolution to '{instance.title}' before {instance.deadline}."
-            )
+            if instance.course.faculty == AdminProfile.faculty:
+                ComplaintAssignment.objects.create(
+                    complaint=instance,
+                    staff=admin.user,
+                    message=f"You have been assigned to provide a resolution to '{instance.title}' before {instance.deadline}."
+                )
 
         # Assign complaint to the lecturer of the selected course
         if instance.course and instance.course.lecturer:
