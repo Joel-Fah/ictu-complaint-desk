@@ -24,7 +24,7 @@ class UserRole(str, Enum):
 
     @classmethod
     def choices(cls):
-        return [(tag, tag.value) for tag in cls]
+        return [(tag.name, tag.value) for tag in cls]
 
 
 class OfficeChoices(str, Enum):
@@ -32,6 +32,7 @@ class OfficeChoices(str, Enum):
     CISCO_LAB = "Cisco Lab"
     REGISTRAR_OFFICE = "Registrar Office"
     FACULTY = "Faculty"
+    OTHER = "Other"
 
     @classmethod
     def choices(cls):
@@ -401,6 +402,9 @@ class Complaint(models.Model):
     )
 
     def save(self, *args, **kwargs):
+        if not self.title:
+            timestamp = timezone.now().strftime("%Y%m%d%H%M%S")
+            self.title = f"{self.category.name} - {self.student.username} - {timestamp}"
         self.slug = slugify(self.title)
         if not self.pk:
             self.deadline = timezone.now() + timedelta(days=3)

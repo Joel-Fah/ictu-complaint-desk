@@ -7,7 +7,8 @@ from django.core.exceptions import PermissionDenied
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 
-from core.models import StudentProfile, LecturerProfile, AdminProfile, Course, UserRole, Complaint, ComplaintAssignment
+from core.models import StudentProfile, LecturerProfile, AdminProfile, Course, UserRole, Complaint, ComplaintAssignment, \
+    OfficeChoices
 from core.utils import match_email_to_csv, get_current_year
 
 # Create your signals here.
@@ -35,13 +36,16 @@ def auto_assign_role_and_profile(sender, request, user, **kwargs):
     is_lecturer = bool(lecturer_courses)
 
     if is_admin and is_lecturer:
+        office_value = admin_row.get('office', '')
+        office = office_value if office_value in [choice[0] for choice in
+                                                  OfficeChoices.choices()] else OfficeChoices.OTHER
         user.role = UserRole.ADMIN
         user.secondary_role = UserRole.LECTURER
         user.save()
         AdminProfile.objects.get_or_create(
             user=user,
             defaults={
-                'office': admin_row.get('office', ''),
+                'office': office,
                 'function': admin_row.get('function', '')
             }
         )
@@ -58,10 +62,19 @@ def auto_assign_role_and_profile(sender, request, user, **kwargs):
                 }
             )
     elif is_admin:
+        office_value = admin_row.get('office', '')
+        office = office_value if office_value in [choice[0] for choice in
+                                                  OfficeChoices.choices()] else OfficeChoices.OTHER
         user.role = UserRole.ADMIN
         user.secondary_role = None
         user.save()
-        AdminProfile.objects.get_or_create(user=user, defaults=admin_row)
+        AdminProfile.objects.get_or_create(
+            user=user,
+            defaults={
+                'office': office,
+                'function': admin_row.get('function', '')
+            }
+        )
     elif is_lecturer:
         user.role = UserRole.LECTURER
         user.secondary_role = None

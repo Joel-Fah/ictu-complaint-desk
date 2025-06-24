@@ -70,6 +70,7 @@ export const getUser = async (token: string | null): Promise<User> => {
         fullName: extra.name,
         firstName: raw.first_name,
         role: raw.role,
+        secondary_role: raw.secondary_role || "",
         lastName: extra.family_name || raw.last_name,
         picture: extra.picture || "",
         isStaff: raw.is_staff,
@@ -105,15 +106,68 @@ export const getCategories = async (): Promise<Category[]> =>
 
  **/}
 // ======= COMPLAINTS =======
-export const getComplaints = async (): Promise<Complaint[]> => {
+// lib/api.ts
+
+export const getComplaints = async (
+  page: number = 1,
+  pageSize: number = 10
+): Promise<ComplaintResponse> => {
+  try {
+    const response = await api.get<ComplaintResponse>('/complaints/', {
+      params: {
+        page,
+        page_size: pageSize, // or 'limit' depending on your API
+      },
+    });
+    return response.data;
+  } catch (err) {
+    console.error('Error fetching complaints:', err);
+    throw new Error('Failed to fetch complaints');
+  }
+};
+
+export const getComplaintsByUser = async (userId: number): Promise<Complaint[]> => {
     try {
-        const response = await api.get<ComplaintResponse>('/complaints/');
+        const response = await api.get<ComplaintResponse>(`/complaints/?userId=${userId}`);
         return response.data.results;
     } catch (err) {
-        console.error('Error fetching complaints:', err);
-        throw new Error('Failed to fetch complaints');
+        console.error("Error fetching user complaints:", err);
+        throw new Error("Failed to fetch user complaints");
     }
 };
+export const getComplaintsAssigned = async (userId: number): Promise<Assignment[]> => {
+    try {
+        const response = await api.get<Assignment[]>(`/assignments/?userId=${userId}`);
+        console.log("Raw assignment response:", response.data);
+        return response.data; // ✅ it’s already the array
+    } catch (err) {
+        console.error("Error fetching assignments:", err);
+        throw new Error("Failed to fetch user complaints");
+    }
+};
+
+export interface Assignment {
+    id: number;
+    complaint: Complaint;
+    assigned_at: string;
+    reminder_count: number;
+    message: string;
+    created_at: string;
+    updated_at: string;
+    staff: number;
+}
+
+export const getAssignmentFromComplaint = async (complaintId: number): Promise<Assignment[]> => {
+    try {
+        const response = await api.get<Assignment[]>(`/assignments/?complaintId=${complaintId}`);
+        return response.data;
+    } catch (err) {
+        console.error("Error fetching complaint assignments:", err);
+        throw new Error("Failed to fetch complaint assignments");
+    }
+};
+
+
 
 type ComplaintAPIErrorResponse = {
     detail?: string;
@@ -159,10 +213,29 @@ export const createComplaint = async (
         throw error;
     }
 };
+
+export const updateComplaint = async (data: {
+    id: number;
+    category: number;
+    deadline: string;
+}) => {
+    const response = await api.patch(`/complaints/${data.id}/`, {
+        category: data.category,
+        deadline: data.deadline,
+    });
+    return response.data;
+};
 {/**
 
- export const getComplaint = async (id: number | string) => (await api.get(`/complaints/${id}/`)).data;
- export const updateComplaint = async (id: number | string, data: any) => (await api.put(`/complaints/${id}/`, data)).data;
+ export const getComplaintById = async (id: number): Promise<Complaint> => {
+ try {
+ const response = await api.get<Complaint>(`/complaints/${id}/`);
+ return response.data;
+ } catch (err) {
+ console.error(`Error fetching complaint with ID ${id}:`, err);
+ throw new Error('Failed to fetch complaint');
+ }
+ };
  export const patchComplaint = async (id: number | string, data: any) => (await api.patch(`/complaints/${id}/`, data)).data;
  export const deleteComplaint = async (id: number | string) => (await api.delete(`/complaints/${id}/`)).data;
 
@@ -178,9 +251,22 @@ export const getCourses = async () => (await api.get("/courses/")).data;
  **/}
 // ======= NOTIFICATIONS =======
 
+export const createNotification = async (data: {
+    recipient_id: number;
+    message: string;
+}) => {
+    try {
+        const response = await api.post("/notifications/", data);
+        return response.data;
+    } catch (err) {
+        console.error("Error creating notification:", err);
+        throw new Error("Failed to send notification");
+    }
+};
+
+
 {/**
  export const getNotifications = async () => (await api.get("/notifications/")).data;
- export const createNotification = async (data: any) => (await api.post("/notifications/", data)).data;
  export const getNotification = async (id: number | string) => (await api.get(`/notifications/${id}/`)).data;
  export const updateNotification = async (id: number | string, data: any) => (await api.put(`/notifications/${id}/`, data)).data;
  export const patchNotification = async (id: number | string, data: any) => (await api.patch(`/notifications/${id}/`, data)).data;
@@ -198,11 +284,43 @@ export const getCourses = async () => (await api.get("/courses/")).data;
  **/}
 // ======= RESOLUTIONS =======
 
+
+export const createResolution = async (data: {
+    complaint_id: number;
+    resolved_by_id: number;
+    attendance_mark: string;
+    assignment_mark: string;
+    ca_mark: string;
+    final_mark: string;
+    comments: string;
+}) => {
+    try {
+        const response = await api.post("/resolutions/", data);
+        return response.data;
+    } catch (err) {
+        console.error("Error creating resolution:", err);
+        throw new Error("Failed to create resolution");
+    }
+};
+
+export const updateResolution = async (
+    id: number,
+    data: {
+        attendance_mark: string;
+        assignment_mark: string;
+        ca_mark: string;
+        final_mark: string;
+        resolved_by_id: number;
+        comments: string;
+    }
+) => {
+    const response = await api.patch(`/resolutions/${id}/`, data);
+    return response.data;
+};
+
 {/**
  export const getResolutions = async () => (await api.get("/resolutions/")).data;
- export const createResolution = async (data: any) => (await api.post("/resolutions/", data)).data;
  export const getResolution = async (id: number | string) => (await api.get(`/resolutions/${id}/`)).data;
- export const updateResolution = async (id: number | string, data: any) => (await api.put(`/resolutions/${id}/`, data)).data;
  export const patchResolution = async (id: number | string, data: any) => (await api.patch(`/resolutions/${id}/`, data)).data;
  export const deleteResolution = async (id: number | string) => (await api.delete(`/resolutions/${id}/`)).data;
 
@@ -215,10 +333,25 @@ export const getCourses = async () => (await api.get("/courses/")).data;
  export const patchUser = async (id: number | string, data: any) => (await api.patch(`/users/${id}/`, data)).data;
  **/}
 
+
+export const getAllStaff = async (): Promise<User[]> => {
+    try {
+        const response = await api.get<User[]>("/users/");
+        // Filter users with isStaff true
+        return response.data.filter((user) => user.isStaff === true);
+    } catch (err) {
+        console.error("Error fetching users:", err);
+        throw new Error("Failed to fetch staff users");
+    }
+};
+
 export const updateStudentProfile = async (data: { student_number: string }) => {
     return (await api.patch("/users/students/profile/", data)).data;
 };
 export const getUserById = async (id: number | string): Promise<User> => {
+    if (!id || isNaN(Number(id))) {
+        throw new Error("Invalid user ID passed to getUserById: " + id);
+    }
     const raw = (await api.get(`/users/${id}/`)).data;
     const extra = raw.google_data?.extra_data || {};
     return {
@@ -236,9 +369,25 @@ export const getUserById = async (id: number | string): Promise<User> => {
         googleUid: raw.google_data?.uid || "",
         domain: extra.hd || "",
         role: raw.role || "Student",
+        secondary_role: raw.secondary_role || "",
         profiles: raw.profiles,
     };
 };
+
+// ======== Assignments =======
+export const createAssignment = async (data: {
+    complaint_id: number;
+    staff_id: number;
+}) => {
+    try {
+        const response = await api.post("/assignments/", data);
+        return response.data;
+    } catch (err) {
+        console.error("Error creating assignment:", err);
+        throw new Error("Failed to assign staff");
+    }
+};
+
 
 
 export default api;

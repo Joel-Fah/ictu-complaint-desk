@@ -26,6 +26,7 @@ interface FormData {
 const ComplaintForm: React.FC = () => {
     const { categories, fetchCategories } = useCategoryStore();
     const { courses, fetchCourses } = useCourseStore();
+    const [attachments, setAttachments] = useState<File[]>([]);
     const [formData, setFormData] = useState<FormData>({
         category: '',
         semester: '',
@@ -63,15 +64,28 @@ const ComplaintForm: React.FC = () => {
         return () => window.removeEventListener('resize', () => null);
     }, [fetchCategories, fetchCourses]);
 
+
+    const lecturerUserId = selectedCourse?.lecturer?.user;
+
     useEffect(() => {
-        if (!selectedCourse) {
+        if (typeof lecturerUserId !== 'number') {
             setLecturerName("");
             return;
         }
-        getUserById(selectedCourse.lecturer)
-            .then(lect => setLecturerName(`${lect.firstName} ${lect.lastName}`))
-            .catch(() => setLecturerName("Unknown"));
-    }, [selectedCourse]);
+
+        getUserById(lecturerUserId)
+            .then((lect) => {
+                const name = `${lect.firstName} ${lect.lastName}`;
+                setLecturerName(name);
+            })
+            .catch((err) => {
+                console.error("Error fetching lecturer:", err);
+                setLecturerName("Unknown");
+            });
+    }, [lecturerUserId]);
+
+
+
 
     const goBack = () => router.back();
 
@@ -92,7 +106,8 @@ const ComplaintForm: React.FC = () => {
                 title: formData.complaintTitle,
                 course: parseInt(selectedCourseId),
                 description: formData.description,
-                student: user?.id
+                student: user?.id,
+                attachments,
             });
             toast.custom(t => <ToastNotification type="success" title="Complaint filed!" subtitle="One step closer to peace of mind" onClose={() => toast.dismiss(t)} showClose />, { duration: 4000 });
             goBack();
@@ -214,22 +229,6 @@ const ComplaintForm: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Title */}
-                        <div>
-                            <label className="block text-xs sm:text-sm text-primary-950 mb-1.5 sm:mb-2">Complaint title</label>
-                            <input
-                                type="text"
-                                className="appearance-none w-full bg-transparent text-lg sm:text-xl text-primary-950 border-0 border-b border-primary-950 focus:ring-0 focus:outline-none pr-6"
-                                value={formData.complaintTitle}
-                                onChange={e => handleInputChange('complaintTitle', e.target.value.slice(0, 55))}
-                                maxLength={55}
-                                placeholder="What are you complaining about?"
-                                required={true}
-                            />
-                            <p className="text-xs text-gray-500 mt-1">{formData.complaintTitle.length}/55 characters</p>
-
-                        </div>
-
                         {/* Course */}
                         <div>
                             <label className="block text-xs sm:text-sm text-primary-950 mb-1.5 sm:mb-2">Course concerned</label>
@@ -269,10 +268,10 @@ const ComplaintForm: React.FC = () => {
                         {/* Attachments + Submit */}
                         <label className="block text-lg sm:text-xl font-semibold text-primary-950 mb-6 sm:mb-8">
                             Attachment(s)
-                            <span className="text-primary-950 ml-1 text-[10px] sm:text-sm bg-primary-50 px-1 rounded">1</span>
+                            <span className="text-primary-950 ml-1 text-[10px] sm:text-sm bg-primary-50 px-1 rounded">{attachments.length}</span>
                         </label>
                         <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-                            <FileUploadPreview />
+                            <FileUploadPreview onFilesChange={setAttachments} />
                             <Button
                                 type="submit"
                                 bgColor="bg-primary-800"

@@ -9,6 +9,7 @@ import ComplaintsInsightsHeader from "@/Usercomponents/ComplaintsInsightsHeader"
 import StudentComplaintsCard from "@/Usercomponents/StudentComplaintsCard";
 import Footer from "@/Usercomponents/Footer";
 import {getBaseUrl} from "@/app/utils/getBaseUrl";
+import AnalyticPageContent from "@/Usercomponents/AnalyticPageContent";
 
 function Home() {
   return (
@@ -109,6 +110,8 @@ function Home() {
             buttonWidth= 'w-[246px]'
             textSize='text-button-primary'
         />
+
+        <AnalyticPageContent />
 
         <Footer
         leftContent={
