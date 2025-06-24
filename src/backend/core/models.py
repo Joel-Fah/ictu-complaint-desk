@@ -1,3 +1,5 @@
+import datetime
+import os
 from datetime import timedelta
 
 from django.contrib.auth.models import AbstractUser, BaseUserManager
@@ -31,6 +33,15 @@ class OfficeChoices(str, Enum):
     REGISTRAR_OFFICE = "Registrar Office"
     FACULTY = "Faculty"
     OTHER = "Other"
+
+    @classmethod
+    def choices(cls):
+        return [(choice.name, choice.value) for choice in cls]
+
+
+class FacultyChoices(models.TextChoices):
+    ICT = 'ICT', 'ict'
+    BMS = 'BMS', 'bms'
 
     @classmethod
     def choices(cls):
@@ -120,6 +131,70 @@ class AdminProfile(models.Model):
         null=False
     )
 
+    faculty = models.CharField(
+        max_length=100,
+        choices=FacultyChoices.choices,
+        blank=False,
+        null=False
+    )
+
+    course_file = models.FileField(
+        upload_to='course_files/%Y/%m/%d/',
+        verbose_name='Course File',
+        help_text='File containing course information',
+        null=True,
+        blank=True
+    )
+
+    admin_file = models.FileField(
+        upload_to='admin_files/%Y/%m/%d/',
+        verbose_name='Admin File',
+        help_text='File containing admin information',
+        null=True,
+        blank=True
+    )
+
+    def get_semester_and_year(date: datetime):
+        month = date.month
+        year = date.year
+        if 10 <= month or month <= 3:
+            # October to December or January to March: Fall
+            semester = 'fall'
+            # If Jan-Mar, use previous year for Fall
+            if month <= 3:
+                year -= 1
+        elif 4 <= month <= 7:
+            semester = 'spring'
+        elif 8 <= month <= 9:
+            semester = 'summer'
+        else:
+            raise ValueError("Invalid month for semester calculation.")
+        return semester, year
+
+    def save(self, *args, **kwargs):
+        # Only Complaint Coordinator can set course_file and admin_file
+        if self.user.role != UserRole.COMPLAINT_COORDINATOR:
+            self.course_file = None
+            self.admin_file = None
+
+        # Get current date for semester/year calculation
+        now = datetime.datetime.now()
+        semester, year = self.get_semester_and_year(now)
+
+        def rename_file(field):
+            file_field = getattr(self, field)
+            if file_field and hasattr(file_field, 'name') and file_field.name:
+                base, ext = os.path.splitext(os.path.basename(file_field.name))
+                new_name = f"{base}_{year}_{semester}{ext}"
+                file_field.name = os.path.join(os.path.dirname(file_field.name), new_name)
+
+        # Only rename if user is Complaint Coordinator
+        if self.user.role == UserRole.COMPLAINT_COORDINATOR:
+            rename_file('course_file')
+            rename_file('admin_file')
+
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"Admin Profile of {self.user.username}"
 
@@ -142,10 +217,6 @@ class LecturerProfile(models.Model):
 
 
 class Course(models.Model):
-    class FacultyChoices(models.TextChoices):
-        ICT = 'ICT', 'ICT'
-        BMS = 'BMS', 'BMS'
-
     code = models.CharField(
         max_length=7,
         unique=True,
