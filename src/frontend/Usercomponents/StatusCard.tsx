@@ -211,7 +211,7 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
                     <textarea
                         className="w-full border border-gray-300 rounded-lg p-2 text-sm"
                         rows={3}
-                        placeholder="Enter a message or commemnt..."
+                        placeholder="Enter a message or comment..."
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
                     />
