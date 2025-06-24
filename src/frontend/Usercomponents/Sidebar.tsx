@@ -27,37 +27,41 @@ const ComplaintsUI = ({ onSelectItem, statusFilter, role }: ComplaintsUIProps) =
 
 
   useEffect(() => {
-    const fetchComplaints = async () => {
-      try {
-        let data: Complaint[];
-        if (role === 'student' || role === 'admin') {
-          data = await getComplaintsByUser(Number(userId));
-        } else if (role === 'lecturer') {
-            data = await getComplaintsAssigned(Number(userId));// this returns complaint assignments not the complaints themselves you get that by data.complaint
-        }else {
-            data = (await getComplaints(currentPage, pageSize)).results;
-        }
-        if (Array.isArray(data)) {
-          setComplaints(data);
-        } else {
-          console.error('Invalid response:', data);
-          setError('Unexpected data format');
-        }
-      } catch (err: unknown) {
-        if (axios.isAxiosError(err)) {
-          console.error('Axios error:', err.message);
-          setError(err.response?.data?.detail || 'Failed to fetch complaints');
-        } else {
-          console.error('Unexpected error:', err);
-          setError('An unexpected error occurred');
-        }
-      } finally {
-        setIsLoading(false);
+  const fetchComplaints = async () => {
+    try {
+      setIsLoading(true);
+      let data;
+      if (role === 'student' || role === 'admin') {
+        data = await getComplaintsByUser(Number(userId)); // returns array
+        setComplaints(data);
+        setCount(data.length); // assuming it's an array
+      } else if (role === 'lecturer') {
+        const assignments = await getComplaintsAssigned(Number(userId)); // array of assignments
+        const complaints = assignments.map(a => a.complaint);
+        setComplaints(complaints);
+        setCount(complaints.length);
+      } else {
+        // default case with pagination
+        const response = await getComplaints(currentPage, pageSize); // returns object
+        setComplaints(response.results);
+        setCount(response.count);
       }
-    };
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        console.error('Axios error:', err.message);
+        setError(err.response?.data?.detail || 'Failed to fetch complaints');
+      } else {
+        console.error('Unexpected error:', err);
+        setError('An unexpected error occurred');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    fetchComplaints();
-  }, [role, userId]);
+  fetchComplaints();
+}, [role, userId, currentPage, pageSize]);
+
 
   const filteredComplaints = useMemo(() => {
     return statusFilter === 'All'
