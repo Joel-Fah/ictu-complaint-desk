@@ -9,7 +9,8 @@ import {User} from "@/types/user";
 import {useRouter} from "next/navigation";
 import { useCategoryStore } from "@/stores/categoryStore";
 
-interface AssignedPerson {
+export interface AssignedPerson {
+    user: User;
     fullName: string;
     picture: string;
     role: string;
@@ -23,6 +24,7 @@ interface StatusCardProps {
     selectedItem?: Complaint;
     allStaff?: User[];
 }
+
 
 const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selectedItem, allStaff }) => {
     const user = useUserStore((state) => state.user);
@@ -46,8 +48,6 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
     useEffect(() => {
         fetchCategories();
     }, [fetchCategories]);
-
-
 
     const getStatusStyles = () => {
         switch (status.toLowerCase()) {
@@ -89,6 +89,11 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
             toast.custom(t => <ToastNotification type="error" title="Something went wrong!" subtitle="" onClose={() => toast.dismiss(t)} showClose />, { duration: 2000 });
         }
     };
+
+    const uniqueAssignedTo = assignedTo.filter(
+        (person, index, self) =>
+            index === self.findIndex((p) => p.user.id === person.user.id && p.fullName === person.fullName)
+    );
 
 
     const getStatusIcon = () => {
@@ -143,14 +148,14 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
                 </p>
 
                 <div className="space-y-4">
-                    {assignedTo.map((person, index) => (
+                    {uniqueAssignedTo.map((person, index) => (
                         <div key={index} className="flex items-center gap-3">
                             <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 relative">
                                 <Image src={person.picture} alt={person.fullName} fill className="rounded-full object-cover" />
                             </div>
                             <div>
                                 <div className="font-heading text-darkColor text-base font-medium">{person.fullName}</div>
-                                <div className="text-darkColor font-sans text-sm">{person.role}</div>
+                                <div className="text-darkColor font-sans text-[10px]">{person.role}</div>
                             </div>
                         </div>
                     ))}
@@ -344,8 +349,6 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
                 </div>
             )}
 
-
-
             {/* Extra for Admin */}
             {role === "admin" && (
                 <div className="mt-6 space-y-4">
@@ -419,7 +422,7 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
                                     value={staff.id}
                                     disabled={!formFilled && isRegistrar}
                                 >
-                                    {staff.username} - {staff.role}
+                                    {staff.username} - {staff.role} - {staffOffice}
                                 </option>
                             );
                         })}
