@@ -1,4 +1,4 @@
-"use client";
+s"use client";
 import * as React from "react";
 import { Drawer, DrawerTrigger, DrawerContent } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";

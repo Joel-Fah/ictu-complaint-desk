@@ -99,7 +99,35 @@ const ComplaintForm: React.FC = () => {
     const handleSubmit = async () => {
         if (!isFormValid || isSubmitting) return;
         setIsSubmitting(true);
+
         try {
+            // Step 1: Validate category & description with Gemini
+            const response = await fetch("/api/validateCategory", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    category: selectedCategory,
+                    description: formData.description,
+                }),
+            });
+
+            const result = await response.json();
+
+            if (!result.valid) {
+                toast.custom(t =>
+                    <ToastNotification
+                        type="warning"
+                        title="Category Mismatch"
+                        subtitle={`Your description may not match the selected category. Try: "${result.suggestion}".`}
+                        onClose={() => toast.dismiss(t)}
+                        showClose
+                    />, { duration: 6000 }
+                );
+                setIsSubmitting(false);
+                return;
+            }
+
+            // Step 2: Submit complaint if validation passed
             await createComplaint({
                 category: selectedCategory,
                 semester,
@@ -109,15 +137,35 @@ const ComplaintForm: React.FC = () => {
                 student: user?.id,
                 attachments,
             });
-            toast.custom(t => <ToastNotification type="success" title="Complaint filed!" subtitle="One step closer to peace of mind" onClose={() => toast.dismiss(t)} showClose />, { duration: 4000 });
+
+            toast.custom(t =>
+                <ToastNotification
+                    type="success"
+                    title="Complaint filed!"
+                    subtitle="One step closer to peace of mind"
+                    onClose={() => toast.dismiss(t)}
+                    showClose
+                />, { duration: 4000 }
+            );
+
             goBack();
+
         } catch {
-            toast.custom(t => <ToastNotification type="error" title="Something went wrong!" subtitle="Please try again." onClose={() => toast.dismiss(t)} showClose />, { duration: 4000 });
+            toast.custom(t =>
+                <ToastNotification
+                    type="error"
+                    title="Something went wrong!"
+                    subtitle="Please try again."
+                    onClose={() => toast.dismiss(t)}
+                    showClose
+                />, { duration: 4000 }
+            );
             goBack();
         } finally {
             setIsSubmitting(false);
         }
     };
+    
 
     if (!hasMounted) return null;
 
