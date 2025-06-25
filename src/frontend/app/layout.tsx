@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import UserProvider from '../Usercomponents/userProvider';
 import React from "react";
-import { Toaster } from "../components/ui/sonner";
+import { Toaster } from "@/components/ui/sonner";
 import LayoutWrapper from "../Usercomponents/LayoutWrapper";
 
 

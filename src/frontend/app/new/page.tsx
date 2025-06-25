@@ -14,37 +14,32 @@ import ToastNotification from "@/Usercomponents/ToastNotifications";
 import { useRouter } from "next/navigation";
 import {withAuth} from "@/lib/withAuth";
 import { updateComplaint } from "@/lib/api";
+import { useEditComplaintStore } from '@/stores/editComplaintStore';
 
 interface FormData {
     category: string;
     semester: string;
-    complaintTitle: string;
-    courseCode: string;
+    course: number | null; // Use null if no course is selected
     description: string;
     attachments: File[];
 }
 
-interface ComplaintFormProps {
-  mode?: 'edit' | 'new';
-  initialData?: Partial<FormData & { id?: number; course?: number }>;
-}
-
-const ComplaintForm: React.FC<ComplaintFormProps> = ({ mode = 'new', initialData }) => {
+const ComplaintForm: React.FC = () => {
+    const { complaint, setComplaint } = useEditComplaintStore(); // Zustand
     const { categories, fetchCategories } = useCategoryStore();
     const { courses, fetchCourses } = useCourseStore();
     const [attachments, setAttachments] = useState<File[]>([]);
     const [formData, setFormData] = useState<FormData>({
-  category: initialData?.category || '',
-  semester: initialData?.semester || '',
-  complaintTitle: initialData?.complaintTitle || '',
-  courseCode: initialData?.courseCode || '',
-  description: initialData?.description || '',
-  attachments: [], // you can handle pre-existing files separately
+    category: complaint?.category || '',
+    semester: complaint?.semester || '',
+    course: complaint?.course || null,
+    description: complaint?.description || '',
+    attachments: [], // you can handle pre-existing files separately
 });
 
-const [selectedCourseId, setSelectedCourseId] = useState(initialData?.course?.toString() || '');
-const [selectedCategory, setSelectedCategory] = useState(initialData?.category || '');
-const [semester, setSemester] = useState(initialData?.semester || '');
+const [selectedCourseId, setSelectedCourseId] = useState(complaint?.course?.toString() || '');
+const [selectedCategory, setSelectedCategory] = useState(complaint?.category || '');
+const [semester, setSemester] = useState(complaint?.semester || '');
     const [lecturerName, setLecturerName] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showForm, setShowForm] = useState(false);
@@ -105,28 +100,22 @@ const [semester, setSemester] = useState(initialData?.semester || '');
     const handleSubmit = async () => {
   if (!isFormValid || isSubmitting) return;
   setIsSubmitting(true);
-
-  const payload = {
-    category: selectedCategory,
-    semester,
-    course: parseInt(selectedCourseId),
-    description: formData.description,
-    student: user?.id,
-  };
-
   try {
-    if (mode === "edit" && initialData?.id) {
+      if (complaint?.id) {
       // Update existing complaint
-      await updateComplaint({
-  id: initialData.id!,
-  category: selectedCategory,
-  semester,
-  course: parseInt(selectedCourseId),
-  description: formData.description,
-  attachments, // optional if not used
-});
+          await updateComplaint({
+              id: complaint.id,
+              category: selectedCategory,
+              semester,
+              course: parseInt(selectedCourseId),
+              description: formData.description,
+              attachments,
+          });
 
-    } else {
+          setComplaint(null); // Clear the store after editing
+
+
+      } else {
       // Create new complaint
       await createComplaint({
   description: formData.description,
@@ -156,6 +145,9 @@ const [semester, setSemester] = useState(initialData?.semester || '');
     setIsSubmitting(false);
   }
 };
+    if (!hasMounted) {
+        return(<p>Loading Form...</p>);
+    }
 
     return (
         <div className="h-screen bg-gray-50 flex flex-col md:flex-row overflow-hidden relative">

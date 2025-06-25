@@ -8,6 +8,7 @@ export interface Complaint {
     slug: string;
     category: string;
     created_at: string;
+    course: number; // or full object if you're returning populated data
     updated_at: string;
     semester: string;
     year: number;
