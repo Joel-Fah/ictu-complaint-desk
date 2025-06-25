@@ -98,7 +98,7 @@ function Home() {
             </section>
 
             {/* CTA Section */}
-            <section className="py-12 bg-primary-50">
+            <section className="py-12">
                 <ComplaintBanner
                     smallText="Happens that"
                     largeText="There's always a"
