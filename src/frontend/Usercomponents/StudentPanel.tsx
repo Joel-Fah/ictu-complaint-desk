@@ -10,10 +10,10 @@ import type { AssignedPerson } from "@/Usercomponents/StatusCard";
 import Sidebar from "@/Usercomponents/Sidebar";
 import ComplaintDetail from "@/Usercomponents/ComplaintDetail";
 import StatusCard from "@/Usercomponents/StatusCard";
-import { DrawerDialogDemo } from "@/Usercomponents/DrawerDialog";
 
 import { getAssignmentFromComplaint, getUserById, getAllStaff } from "@/lib/api";
 import { useUserStore } from "@/stores/userStore";
+import { StudentMatriculeForm } from "./DrawerDialog";
 
 interface StudentPanelProps {
     selectedItem: Complaint | null;
@@ -144,7 +144,7 @@ const StudentPanel = ({
                     <p className="mb-2 font-medium">
                         We need your student number to complete your profile.
                     </p>
-                    <DrawerDialogDemo onSuccess={() => user?.id && fetchUser(user.id)} />
+                    <StudentMatriculeForm onSuccess={() => user?.id && fetchUser(user.id)} />
                 </div>
             )}
         </>
