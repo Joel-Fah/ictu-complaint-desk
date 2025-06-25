@@ -40,8 +40,9 @@ class OfficeChoices(str, Enum):
 
 
 class FacultyChoices(models.TextChoices):
-    ICT = 'ICT', 'ict'
-    BMS = 'BMS', 'bms'
+    ICT = 'ICT', 'ICT'
+    BMS = 'BMS', 'BMS'
+    BOTH = 'BOTH', 'Both ICT and BMS'
 
     @classmethod
     def choices(cls):
@@ -91,6 +92,14 @@ class CustomUser(AbstractUser):
 
 
 class StudentProfile(models.Model):
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['student_number'],
+                name='unique_student_number'
+            )
+        ]
+
     user = models.OneToOneField(
         CustomUser,
         on_delete=models.CASCADE,
@@ -99,7 +108,6 @@ class StudentProfile(models.Model):
 
     student_number = models.CharField(
         max_length=12,
-        unique=True,
         blank=False,
         null=False
     )
@@ -218,6 +226,14 @@ class LecturerProfile(models.Model):
 
 
 class Course(models.Model):
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['lecturer', 'code', 'semester', 'year'],
+                name='unique_course_per_lecturer'
+            )
+        ]
+
     code = models.CharField(
         max_length=7,
         unique=True,
