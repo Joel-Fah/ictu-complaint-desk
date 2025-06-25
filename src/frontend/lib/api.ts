@@ -4,7 +4,7 @@ import { Complaint, CreateComplaintJSONPayload, CreateComplaintFormDataPayload }
 import {Category} from "@/types/category";
 import type { User } from "@/types/user";
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { validateCategoryWithGemini } from "../app/utils/geminiValidator";
+import { validateCategoryWithGemini } from "@/app/utils/geminiValidator";
 
 interface ComplaintResponse {
     count: number;
