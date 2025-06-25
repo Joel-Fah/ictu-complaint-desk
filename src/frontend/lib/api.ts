@@ -3,6 +3,8 @@ import { getAccessToken, removeAccessToken } from "@/lib/token";
 import { Complaint, CreateComplaintJSONPayload, CreateComplaintFormDataPayload } from "@/types/complaint";
 import {Category} from "@/types/category";
 import type { User } from "@/types/user";
+import type { NextApiRequest, NextApiResponse } from 'next';
+import { validateCategoryWithGemini } from "../app/utils/geminiValidator";
 
 interface ComplaintResponse {
     count: number;
@@ -213,16 +215,16 @@ export const createComplaint = async (
         throw error;
     }
 };
-
 export const updateComplaint = async (data: {
     id: number;
-    category?: number;
-    deadline?: string;
     status?: string;
+    category: number;
+    deadline: string;
 }) => {
     const response = await api.patch(`/complaints/${data.id}/`, {
         category: data.category,
         deadline: data.deadline,
+        status: data.status,
     });
     return response.data;
 };
@@ -307,24 +309,22 @@ export const createResolution = async (data: {
 export const updateResolution = async (
     id: number,
     data: {
-        attendance_mark?: string;
-        assignment_mark?: string;
-        ca_mark?: string;
-        final_mark?: string;
-        resolved_by_id?: number;
-        comments?: string;
         is_reviewed?: boolean;
-        reviewed_by_id?: number;
+        reviewed_by_id?: number | undefined;
+        attendance_mark: string;
+        assignment_mark: string;
+        ca_mark: string;
+        final_mark: string;
+        resolved_by_id: number;
+        comments: string;
     }
 ) => {
     const response = await api.patch(`/resolutions/${id}/`, data);
     return response.data;
 };
 
-export const getResolutions = async () => (await api.get("/resolutions/")).data;
-
 {/**
-
+ export const getResolutions = async () => (await api.get("/resolutions/")).data;
  export const getResolution = async (id: number | string) => (await api.get(`/resolutions/${id}/`)).data;
  export const patchResolution = async (id: number | string, data: any) => (await api.patch(`/resolutions/${id}/`, data)).data;
  export const deleteResolution = async (id: number | string) => (await api.delete(`/resolutions/${id}/`)).data;
@@ -392,7 +392,18 @@ export const createAssignment = async (data: {
         throw new Error("Failed to assign staff");
     }
 };
+// ======= Gemini =======
+// pages/api/validateCategory.ts
 
+export async function handler(req: NextApiRequest, res: NextApiResponse) {
+    if (req.method !== 'POST') return res.status(405).end('Method not allowed');
+
+    const { category, description } = req.body;
+    if (!category || !description) return res.status(400).json({ error: "Missing data" });
+
+    const result = await validateCategoryWithGemini(category, description);
+    return res.status(200).json(result);
+}
 
 
 export default api;
