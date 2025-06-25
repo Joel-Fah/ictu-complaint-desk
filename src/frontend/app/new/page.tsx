@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import ToastNotification from "@/Usercomponents/ToastNotifications";
 import { useRouter } from "next/navigation";
 import {withAuth} from "@/lib/withAuth";
+import { updateComplaint } from "@/lib/api";
 
 interface FormData {
     category: string;
@@ -23,23 +24,28 @@ interface FormData {
     attachments: File[];
 }
 
-const ComplaintForm: React.FC = () => {
+interface ComplaintFormProps {
+  mode?: 'edit' | 'new';
+  initialData?: Partial<FormData & { id?: number; course?: number }>;
+}
+
+const ComplaintForm: React.FC<ComplaintFormProps> = ({ mode = 'new', initialData }) => {
     const { categories, fetchCategories } = useCategoryStore();
     const { courses, fetchCourses } = useCourseStore();
     const [attachments, setAttachments] = useState<File[]>([]);
     const [formData, setFormData] = useState<FormData>({
-        category: '',
-        semester: '',
-        complaintTitle: '',
-        courseCode: '',
-        description: '',
-        attachments: []
-    });
+  category: initialData?.category || '',
+  semester: initialData?.semester || '',
+  complaintTitle: initialData?.complaintTitle || '',
+  courseCode: initialData?.courseCode || '',
+  description: initialData?.description || '',
+  attachments: [], // you can handle pre-existing files separately
+});
 
-    const [selectedCategory, setSelectedCategory] = useState("");
-    const [selectedCourseId, setSelectedCourseId] = useState("");
+const [selectedCourseId, setSelectedCourseId] = useState(initialData?.course?.toString() || '');
+const [selectedCategory, setSelectedCategory] = useState(initialData?.category || '');
+const [semester, setSemester] = useState(initialData?.semester || '');
     const [lecturerName, setLecturerName] = useState("");
-    const [semester, setSemester] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showForm, setShowForm] = useState(false);
 
@@ -53,7 +59,7 @@ const ComplaintForm: React.FC = () => {
     const selectedCourse = courses.find(c => c.id === Number(selectedCourseId));
     const studentProfile = user?.profiles?.find(p => p.type === "student");
     const studentNumber = studentProfile?.data?.student_number;
-    const isFormValid = Boolean(selectedCategory && selectedCourseId && semester && formData.complaintTitle.trim() && formData.description.trim());
+    const isFormValid = Boolean(selectedCategory && selectedCourseId && semester && formData.description.trim());
 
     useEffect(() => {
         setHasMounted(true);
@@ -97,77 +103,59 @@ const ComplaintForm: React.FC = () => {
     };
 
     const handleSubmit = async () => {
-        if (!isFormValid || isSubmitting) return;
-        setIsSubmitting(true);
+  if (!isFormValid || isSubmitting) return;
+  setIsSubmitting(true);
 
-        try {
-            // Step 1: Validate category & description with Gemini
-            const response = await fetch("/api/validateCategory", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    category: selectedCategory,
-                    description: formData.description,
-                }),
-            });
+  const payload = {
+    category: selectedCategory,
+    semester,
+    course: parseInt(selectedCourseId),
+    description: formData.description,
+    student: user?.id,
+  };
 
-            const result = await response.json();
+  try {
+    if (mode === "edit" && initialData?.id) {
+      // Update existing complaint
+      await updateComplaint({
+  id: initialData.id!,
+  category: selectedCategory,
+  semester,
+  course: parseInt(selectedCourseId),
+  description: formData.description,
+  attachments, // optional if not used
+});
 
-            if (!result.valid) {
-                toast.custom(t =>
-                    <ToastNotification
-                        type="warning"
-                        title="Category Mismatch"
-                        subtitle={`Your description may not match the selected category. Try: "${result.suggestion}".`}
-                        onClose={() => toast.dismiss(t)}
-                        showClose
-                    />, { duration: 6000 }
-                );
-                setIsSubmitting(false);
-                return;
-            }
+    } else {
+      // Create new complaint
+      await createComplaint({
+  description: formData.description,
+  category: selectedCategory,
+  semester,
+  course: parseInt(selectedCourseId),
+  student: user?.id,
+  attachments, // only sent if files exist
+});
 
-            // Step 2: Submit complaint if validation passed
-            await createComplaint({
-                category: selectedCategory,
-                semester,
-                title: formData.complaintTitle,
-                course: parseInt(selectedCourseId),
-                description: formData.description,
-                student: user?.id,
-                attachments,
-            });
-
-            toast.custom(t =>
-                <ToastNotification
-                    type="success"
-                    title="Complaint filed!"
-                    subtitle="One step closer to peace of mind"
-                    onClose={() => toast.dismiss(t)}
-                    showClose
-                />, { duration: 4000 }
-            );
-
-            goBack();
-
-        } catch {
-            toast.custom(t =>
-                <ToastNotification
-                    type="error"
-                    title="Something went wrong!"
-                    subtitle="Please try again."
-                    onClose={() => toast.dismiss(t)}
-                    showClose
-                />, { duration: 4000 }
-            );
-            goBack();
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-    
-
-    if (!hasMounted) return null;
+    }
+    goBack();
+  } catch (error) {
+    console.error(error);
+    toast.custom(t =>
+      <ToastNotification
+        type="error"
+        title="Something went wrong!"
+        subtitle="Please try again."
+        onClose={() => toast.dismiss(t)}
+        showClose
+      />,
+      { duration: 4000 }
+    );
+    goBack();
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
     return (
         <div className="h-screen bg-gray-50 flex flex-col md:flex-row overflow-hidden relative">

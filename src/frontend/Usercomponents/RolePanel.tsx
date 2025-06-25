@@ -53,7 +53,7 @@ const RolePanel = ({
                         return {
                             user: staff,
                             fullName: `${staff.firstName} ${staff.lastName}`,
-                            picture: staff.picture || "/default-avatar.png",
+                            picture: staff.picture || " ",
                             role: staff.role || "Staff",
                             complaintId: selectedItem.id,
                         };
