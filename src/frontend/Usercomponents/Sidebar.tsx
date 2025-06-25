@@ -9,6 +9,8 @@ import { useUserStore } from "@/stores/userStore";
 import ToastNotification from './ToastNotifications';
 import { toast } from 'sonner';
 import { deleteComplaint } from '@/lib/api';
+import { useRouter } from 'next/navigation';
+import { useEditComplaintStore } from '@/stores/editComplaintStore';
 
 interface ComplaintsUIProps {
   onSelectItem: (item: Complaint, count: number) => void;
@@ -24,17 +26,12 @@ const ComplaintsUI = ({ onSelectItem, statusFilter }: ComplaintsUIProps) => {
   const [valueDropdownOpen, setValueDropdownOpen] = useState(false);
   const [count, setCount] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const router = useRouter();
+  const setComplaintToEdit = useEditComplaintStore((s) => s.setComplaint);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
-  const [editData, setEditData] = useState<{
-    id: number;
-    category: string;
-    semester: string;
-    complaintTitle: string;
-    description: string;
-  } | null>(null);
 
   const userId = useUserStore((s) => s.user?.id);
   const activeRole = useUserStore((s) => s.activeRoleTab);
@@ -150,7 +147,7 @@ const ComplaintsUI = ({ onSelectItem, statusFilter }: ComplaintsUIProps) => {
 
     // Optionally remove from local state if you store complaints
     setComplaints(prev => prev.filter(c => c.id !== id));
-  } catch (err) {
+  } catch {
     toast.custom(t =>
       <ToastNotification
         type="error"
@@ -165,18 +162,13 @@ const ComplaintsUI = ({ onSelectItem, statusFilter }: ComplaintsUIProps) => {
 };
 
 
-  const handleEdit = async (complaintId: number) => {
-  const complaint = complaints.find(c => c.id === complaintId); // or fetch from API
-  if (!complaint) return;
-  setEditData({
-    id: complaint.id,
-    category: complaint.category,
-    semester: complaint.semester,
-    complaintTitle: complaint.title,
-    description: complaint.description,
-    // You can skip attachments or fetch them separately
-  });
-};
+  const handleEdit = (complaintId: number) => {
+    const complaint = complaints.find(c => c.id === complaintId);
+    if (!complaint) return;
+
+    setComplaintToEdit(complaint); // ✅ Store it in Zustand
+    router.push('/new');           // ✅ Navigate to form page
+  };
 
   return (
       <div className="md:fixed md:left-0 md:top-[72px] md:bottom-0 md:w-[320px] w-full bg-[#050041] bg-opacity-[5%] min-h-screen md:border-r border-gray-200 z-0">
@@ -196,95 +188,105 @@ const ComplaintsUI = ({ onSelectItem, statusFilter }: ComplaintsUIProps) => {
             <h2 className="text-h2 font-semibold text-primary-950">My Complaints</h2>
           </div>
         </div>
-
-          <div className="space-y-3 max-h-[calc(100vh-250px)] overflow-y-auto pr-2 rounded-[20px]">
-            {filteredComplaints.slice().reverse().map((complaint, index) => {
-              const complaintCount = filteredComplaints.length - index;
-              return (
-                  <div
-                      key={complaint.id}
-                      onClick={() => {
-                        onSelectItem(complaint, complaintCount);
-                        setSelectedComplaintId(complaint.id);
-                      }}
-                      className={`px-[16px] py-[21px] rounded-[20px] transition-all duration-300 cursor-pointer mb-1.5 ${
-                          selectedComplaintId === complaint.id
-                              ? 'bg-white shadow-lg'
-                              : 'hover:bg-white hover:shadow-lg'
-                      }`}
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-2">
+        {isLoading && (
+            <div className="flex justify-center items-center py-8">
+              <span>Loading complaints...</span>
+            </div>
+        )}
+        {error && (
+            <div className="flex justify-center items-center py-4 text-red-600">
+              {error}
+            </div>
+        )}
+        {!isLoading && !error && (
+            <div className="space-y-3 max-h-[calc(100vh-250px)] overflow-y-auto pr-2 rounded-[20px]">
+              {filteredComplaints.slice().reverse().map((complaint, index) => {
+                const complaintCount = filteredComplaints.length - index;
+                return (
+                    <div
+                        key={complaint.id}
+                        onClick={() => {
+                          onSelectItem(complaint, complaintCount);
+                          setSelectedComplaintId(complaint.id);
+                        }}
+                        className={`px-[16px] py-[21px] rounded-[20px] transition-all duration-300 cursor-pointer mb-1.5 ${
+                            selectedComplaintId === complaint.id
+                                ? 'bg-white shadow-lg'
+                                : 'hover:bg-white hover:shadow-lg'
+                        }`}
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center gap-2">
                     <span className="text-[18px] leading-[20px] font-heading font-medium text-darkColor">
                       {complaintCount}.
                     </span>
-                        <h3 className="text-[18px] font-medium text-darkColor leading-[20px] flex-1 font-sans">
-                          {complaint.title}
-                        </h3>
+                          <h3 className="text-[18px] font-medium text-darkColor leading-[20px] flex-1 font-sans">
+                            {complaint.title}
+                          </h3>
+                        </div>
+                        <div className="relative">
+                          <button
+                              className="ml-2"
+                              onClick={e => {
+                                e.stopPropagation();
+                                setOpenMenuId(openMenuId === complaint.id ? null : complaint.id);
+                              }}
+                          >
+                            <Image
+                                src="/icons/more-horizontal.svg"
+                                alt="Options"
+                                width={24}
+                                height={24}
+                            />
+                          </button>
+                          {openMenuId === complaint.id && (
+                              <div className="absolute right-0 mt-2 w-28 bg-white rounded shadow-lg z-30 flex flex-col">
+                                <button
+                                    className="px-4 py-2 text-left hover:bg-gray-100"
+                                    onClick={e => {
+                                      e.stopPropagation();
+                                      setOpenMenuId(null);
+                                      handleEdit(complaint.id);
+                                    }}
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                    className="px-4 py-2 text-left hover:bg-gray-100 text-red-600"
+                                    onClick={e => {
+                                      e.stopPropagation();
+                                      setOpenMenuId(null);
+                                      handleDelete(complaint.id);
+                                    }}
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                          )}
+                        </div>
                       </div>
-<div className="relative">
-  <button
-    className="ml-2"
-    onClick={e => {
-      e.stopPropagation();
-      setOpenMenuId(openMenuId === complaint.id ? null : complaint.id);
-    }}
-  >
-    <Image
-      src="/icons/more-horizontal.svg"
-      alt="Options"
-      width={24}
-      height={24}
-    />
-  </button>
-  {openMenuId === complaint.id && (
-    <div className="absolute right-0 mt-2 w-28 bg-white rounded shadow-lg z-30 flex flex-col">
-      <button
-        className="px-4 py-2 text-left hover:bg-gray-100"
-        onClick={e => {
-          e.stopPropagation();
-          setOpenMenuId(null);
-          handleEdit(complaint.id);
-        }}
-      >
-        Edit
-      </button>
-      <button
-        className="px-4 py-2 text-left hover:bg-gray-100 text-red-600"
-        onClick={e => {
-    e.stopPropagation();
-    setOpenMenuId(null);
-    handleDelete(complaint.id);
-  }}
-      >
-        Delete
-      </button>
-    </div>
-  )}
-</div>
-// ...existing code...
-                    </div>
 
-                    <p className="text-[14px] ml-6 text-greyColor font-sans mb-3 truncate whitespace-nowrap overflow-hidden text-ellipsis pr-8">
-                      {new DOMParser().parseFromString(complaint.description, 'text/html').body.textContent || ''}
-                    </p>
+                      <p className="text-[14px] ml-6 text-greyColor font-sans mb-3 truncate whitespace-nowrap overflow-hidden text-ellipsis pr-8">
+                        {new DOMParser().parseFromString(complaint.description, 'text/html').body.textContent || ''}
+                      </p>
 
-                    <div className="flex items-center justify-between ml-6">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center justify-between ml-6">
+                        <div className="flex items-center gap-2">
                     <span className={`text-xs font-sans flex flex-row items-center justify-center px-[6px] py-[3px] gap-1 rounded-[8px] ${getStatusColor(complaint.status)}`}>
                       <div>{getStatusIcon(complaint.status)}</div>
                       {complaint.status}
                     </span>
-                        <div className="flex items-center gap-1 text-xs text-[#050041] text-opacity-[50%] font-sans">
-                          <Image src="/icons/clock-02.svg" alt="Clock" width={12} height={12} />
-                          <span>{formatComplaintDate(complaint.created_at)}</span>
+                          <div className="flex items-center gap-1 text-xs text-[#050041] text-opacity-[50%] font-sans">
+                            <Image src="/icons/clock-02.svg" alt="Clock" width={12} height={12} />
+                            <span>{formatComplaintDate(complaint.created_at)}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+        )}
 
           {/* Pagination (not for student/admin/lecturer) */}
           {!['student', 'admin', 'lecturer'].includes(activeRole) && totalPages > 1 && (

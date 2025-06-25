@@ -95,6 +95,19 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
             index === self.findIndex((p) => p.user.id === person.user.id && p.fullName === person.fullName)
     );
 
+    function getSafeImageUrl(picture: unknown): string {
+        if (
+            typeof picture === 'string' &&
+            picture.trim().length > 0 &&
+            (picture.startsWith('http') || picture.startsWith('/'))
+        ) {
+            return picture.trim();
+        }
+
+        return '/images/dummy.png'; // Fallback to local image
+    }
+
+
 
     const getStatusIcon = () => {
         switch (status.toLowerCase()) {
@@ -151,7 +164,13 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
                     {uniqueAssignedTo.map((person, index) => (
                         <div key={index} className="flex items-center gap-3">
                             <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 relative">
-                                <Image src={person.picture} alt={person.fullName} fill className="rounded-full object-cover" />
+                                <Image
+                                    src={getSafeImageUrl(person.picture)}
+                                    alt={person.fullName || 'User'}
+                                    fill
+                                    className="rounded-full object-cover"
+                                />
+
                             </div>
                             <div>
                                 <div className="font-heading text-darkColor text-base font-medium">{person.fullName}</div>

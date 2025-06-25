@@ -220,11 +220,13 @@ export const updateComplaint = async (data: {
   category?: number | string;
   semester?: string;
   course?: number;
+  deadline?: string;
   description?: string;
   attachments?: File[];
 }) => {
   const response = await api.patch(`/complaints/${data.id}/`, {
     category: data.category,
+    deadline: data.deadline,
     semester: data.semester,
     course: data.course,
     description: data.description,
@@ -233,6 +235,8 @@ export const updateComplaint = async (data: {
 
   return response.data;
 };
+
+export const deleteComplaint = async (id: number | string) => (await api.delete(`/complaints/${id}/`)).data;
 
 {/**
 
@@ -246,7 +250,6 @@ export const updateComplaint = async (data: {
  }
  };
  export const patchComplaint = async (id: number | string, data: any) => (await api.patch(`/complaints/${id}/`, data)).data;
- export const deleteComplaint = async (id: number | string) => (await api.delete(`/complaints/${id}/`)).data;
 
  **/}
 // ======= Courses =======

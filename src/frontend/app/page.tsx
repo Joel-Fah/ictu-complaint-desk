@@ -8,9 +8,8 @@ import Image from "next/image";
 import ComplaintsInsightsHeader from "@/Usercomponents/ComplaintsInsightsHeader";
 import StudentComplaintsCard from "@/Usercomponents/StudentComplaintsCard";
 import Footer from "@/Usercomponents/Footer";
-import {getBaseUrl} from "@/app/utils/getBaseUrl";
+import { getBaseUrl } from "@/app/utils/getBaseUrl";
 import AnalyticPageContent from "@/Usercomponents/AnalyticPageContent";
-
 
 function Home() {
     return (
@@ -25,49 +24,37 @@ function Home() {
                     sideText="File in your complaints now"
                     buttonHeight='h-[42px]'
                     buttonWidth='w-[152px]'
-                    onButtonClick={() => {window.location.href = `${getBaseUrl()}/accounts/google/login/?process=login`;}}
+                    onButtonClick={() => { window.location.href = `${getBaseUrl()}/accounts/google/login/?process=login`; }}
                 />
-
                 <LayeredImageSection
                     mainImageSrc="/images/hero-bg.svg"
                     mainImageAlt="Main graphic showing system"
                 />
-            }
-        />
+            </section>
 
-        <ComplaintsInsightsHeader
-        labelText="Complaints Insights"
-        labelColor="text-secondary-500"
-        labelSize='20px'
-        headingColor="text-primary-950"
-        descriptionColor='text-darkColor'
-        />
-
-        <StudentComplaintsCard />
-
-        <ComplaintBanner
-            smallText="Happens that"
-            largeText="There's always a"
-            largeTextHighlight="Complaint"
-            sideText="A better way"
-            onButtonClick={() => {window.location.href = `${getBaseUrl()}/accounts/google/login/?process=login`;}}
-            buttonText='Start complaining right now'
-            buttonHeight='h-[42px]'
-            buttonWidth= 'w-[246px]'
-            textSize='text-button-primary'
-        />
-
-        <AnalyticPageContent />
-
-        <Footer
-        leftContent={
-            <>
-                <Image
-                src='/images/logo-text.png'
-                alt="ICTU Logo"
-                width={87.66}
-                height={37.97}
-
+            {/* Problem Statement Section */}
+            <section className="py-12">
+                <ProblemStatement
+                    labelText="Problem statement"
+                    titleText="Addressing the concern of student complaint at the ICT University"
+                    descriptionText="University students have a superpower: complaining (and rightfully so!). Whether it's about a missing grade, a Wi-Fi outage, or the legendary unavailability of a lecturer, complaints pile up faster than class assignments. But where do these complaints go? The WhatsApp group? Tech admin's desk, never to be seen again?"
+                    labelSize='20px'
+                    rightColumnRatio="medium"
+                    stackOnMobile={true}
+                    labelColor="text-secondary-500"
+                    titleColor="text-primary-950"
+                    descriptionColor="text-darkColor"
+                    rightColumnClassName="rounded-[55px]"
+                    rightColumnContent={
+                        <Image
+                            src="/images/black-girl.jpg"
+                            alt="Students discussing concerns"
+                            className="w-full h-full object-cover"
+                            width={575}
+                            height={348}
+                            priority
+                        />
+                    }
                 />
             </section>
 
@@ -109,13 +96,13 @@ function Home() {
             </section>
 
             {/* CTA Section */}
-            <section className="py-12">
+            <section className="py-12 bg-primary-50">
                 <ComplaintBanner
                     smallText="Happens that"
                     largeText="There's always a"
                     largeTextHighlight="Complaint"
                     sideText="A better way"
-                    onButtonClick={() => {window.location.href = `${getBaseUrl()}/accounts/google/login/?process=login`;}}
+                    onButtonClick={() => { window.location.href = `${getBaseUrl()}/accounts/google/login/?process=login`; }}
                     buttonText='Start complaining right now'
                     buttonHeight='h-[42px]'
                     buttonWidth='w-[246px]'
