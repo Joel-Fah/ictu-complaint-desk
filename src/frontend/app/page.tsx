@@ -59,7 +59,7 @@ function Home() {
             </section>
 
             {/* Solution Section */}
-            <section className="py-12 bg-gray-50">
+            <section className="py-12">
                 <ProblemStatement
                     labelText="Solution Proposal"
                     titleText="A Complaint Resolution System tailored for the ICT University"
@@ -96,7 +96,7 @@ function Home() {
             </section>
 
             {/* CTA Section */}
-            <section className="py-12 bg-primary-50">
+            <section className="py-12">
                 <ComplaintBanner
                     smallText="Happens that"
                     largeText="There's always a"

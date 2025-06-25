@@ -6,11 +6,13 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import MenuIcon from '../public/icons/menu-11.svg';
 import XIcon from '../public/icons/cancel-01.svg';
-import {getBaseUrl} from "../app/utils/getBaseUrl";
+import {getBaseUrl} from "@/app/utils/getBaseUrl";
 
 const navLinks = [
     { href: "/", label: "Home", icon: "/icons/home-01.svg" },
     { href: "/wiki", label: "How it works?", icon: "/icons/help-circle.svg" },
+    { href: "/about", label: "About Us", icon: "/icons/user-multiple-stroke-rounded-1.svg" },
+
 ];
 
 export default function Navbar() {
