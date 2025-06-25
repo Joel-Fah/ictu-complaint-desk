@@ -9,7 +9,8 @@ import {User} from "@/types/user";
 import {useRouter} from "next/navigation";
 import { useCategoryStore } from "@/stores/categoryStore";
 
-interface AssignedPerson {
+export interface AssignedPerson {
+    user: User;
     fullName: string;
     picture: string;
     role: string;
@@ -24,11 +25,11 @@ interface StatusCardProps {
     allStaff?: User[];
 }
 
+
 const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selectedItem, allStaff }) => {
     const user = useUserStore((state) => state.user);
     const adminProfile = user?.profiles?.find(p => p.type === "admin");
     const adminOffice = adminProfile?.data?.office || "Registrar's Office";
-    const [isReviewed, setIsReviewed] = useState(false);
     const [selectedDeadline, setSelectedDeadline] = useState<string | undefined>(selectedItem?.deadline); // from selectedItem.deadline
     const { categories, fetchCategories } = useCategoryStore();
     const [selectedCategory, setSelectedCategory] = useState<number>(Number(selectedItem?.category)); // pull from selectedItem.category
@@ -47,8 +48,6 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
     useEffect(() => {
         fetchCategories();
     }, [fetchCategories]);
-
-
 
     const getStatusStyles = () => {
         switch (status.toLowerCase()) {
@@ -90,6 +89,11 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
             toast.custom(t => <ToastNotification type="error" title="Something went wrong!" subtitle="" onClose={() => toast.dismiss(t)} showClose />, { duration: 2000 });
         }
     };
+
+    const uniqueAssignedTo = assignedTo.filter(
+        (person, index, self) =>
+            index === self.findIndex((p) => p.user.id === person.user.id && p.fullName === person.fullName)
+    );
 
 
     const getStatusIcon = () => {
@@ -144,14 +148,14 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
                 </p>
 
                 <div className="space-y-4">
-                    {assignedTo.map((person, index) => (
+                    {uniqueAssignedTo.map((person, index) => (
                         <div key={index} className="flex items-center gap-3">
                             <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 relative">
                                 <Image src={person.picture} alt={person.fullName} fill className="rounded-full object-cover" />
                             </div>
                             <div>
                                 <div className="font-heading text-darkColor text-base font-medium">{person.fullName}</div>
-                                <div className="text-darkColor font-sans text-sm">{person.role}</div>
+                                <div className="text-darkColor font-sans text-[10px]">{person.role}</div>
                             </div>
                         </div>
                     ))}
@@ -345,99 +349,6 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
                 </div>
             )}
 
-
-
-
-            {role === "admin" && adminOffice === "Registrar Office" && (
-                <div className="mt-6 space-y-4">
-                    {/* Registrar Review Checkbox */}
-                    <label className="flex items-center space-x-2">
-                        <input
-                            type="checkbox"
-                            checked={isReviewed}
-                            onChange={(e) => {
-                                setIsReviewed(e.target.checked);
-                                if (e.target.checked) {
-                                    setFormData(prev => ({
-                                        ...prev,
-                                        is_reviewed: true,
-                                        reviewed_by_id: user.id,
-                                    }));
-                                } else {
-                                    setFormData(prev => ({
-                                        ...prev,
-                                        is_reviewed: false,
-                                        reviewed_by_id: null,
-                                    }));
-                                }
-                            }}
-                        />
-                        <span>Mark as Reviewed</span>
-                    </label>
-
-                    {/* Message / Comment */}
-                    <textarea
-                        className="w-full border border-gray-300 rounded-lg p-2 text-sm"
-                        rows={3}
-                        placeholder="Enter a comment..."
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                    />
-
-                    {/* Submit Button */}
-                    <button
-                        className="w-full bg-green-700 text-white rounded-lg py-2 font-medium hover:bg-green-800"
-                        onClick={async () => {
-                            if (!selectedItem || !user) return;
-
-                            try {
-                                // PATCH resolution
-                                await updateResolution(selectedItem.id, {
-                                    is_reviewed: isReviewed,
-                                    reviewed_by_id: isReviewed ? user.id : null,
-                                    resolved_by_id: user.id,
-                                    comments: message,
-                                });
-
-                                // Update complaint status to "Resolved"
-                                await updateComplaint(selectedItem.id, {
-                                    status: "Resolved",
-                                });
-
-                                // Notify student
-                                if (typeof selectedItem.student === "number") {
-                                    await createNotification({
-                                        recipient_id: selectedItem.student,
-                                        message: "Your complaint has been reviewed and resolved by the Registrar's Office.",
-                                    });
-                                }
-
-                                const assignedStaff = selectedItem.assignments?.map(a => a.staff_id) ?? [];
-                                await Promise.all(
-                                    assignedStaff.map(staffId =>
-                                        createNotification({
-                                            recipient_id: staffId,
-                                            message: `Complaint ${selectedItem.id} has been reviewed and resolved by the Registrar.`,
-                                        })
-                                    )
-                                );
-
-                                toast.success("Complaint reviewed and resolved.");
-                                setTimeout(() => router.push("/dashboard"), 3000);
-                            } catch (error) {
-                                console.error("Registrar review failed:", error);
-                                toast.error("Something went wrong!");
-                            }
-                        }}
-                    >
-                        Resolve
-                    </button>
-                </div>
-            )}
-
-
-
-
             {/* Extra for Admin */}
             {role === "admin" && (
                 <div className="mt-6 space-y-4">
@@ -511,7 +422,7 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
                                     value={staff.id}
                                     disabled={!formFilled && isRegistrar}
                                 >
-                                    {staff.username} - {staff.role}
+                                    {staff.username} - {staff.role} - {staffOffice}
                                 </option>
                             );
                         })}

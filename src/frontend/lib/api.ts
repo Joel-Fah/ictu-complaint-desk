@@ -70,6 +70,7 @@ export const getUser = async (token: string | null): Promise<User> => {
         fullName: extra.name,
         firstName: raw.first_name,
         role: raw.role,
+        secondary_role: raw.secondary_role || "",
         lastName: extra.family_name || raw.last_name,
         picture: extra.picture || "",
         isStaff: raw.is_staff,
@@ -105,14 +106,24 @@ export const getCategories = async (): Promise<Category[]> =>
 
  **/}
 // ======= COMPLAINTS =======
-export const getComplaints = async (): Promise<Complaint[]> => {
-    try {
-        const response = await api.get<ComplaintResponse>('/complaints/');
-        return response.data.results;
-    } catch (err) {
-        console.error('Error fetching complaints:', err);
-        throw new Error('Failed to fetch complaints');
-    }
+// lib/api.ts
+
+export const getComplaints = async (
+  page: number = 1,
+  pageSize: number = 10
+): Promise<ComplaintResponse> => {
+  try {
+    const response = await api.get<ComplaintResponse>('/complaints/', {
+      params: {
+        page,
+        page_size: pageSize, // or 'limit' depending on your API
+      },
+    });
+    return response.data;
+  } catch (err) {
+    console.error('Error fetching complaints:', err);
+    throw new Error('Failed to fetch complaints');
+  }
 };
 
 export const getComplaintsByUser = async (userId: number): Promise<Complaint[]> => {
@@ -124,19 +135,18 @@ export const getComplaintsByUser = async (userId: number): Promise<Complaint[]> 
         throw new Error("Failed to fetch user complaints");
     }
 };
-
-
-export const getComplaintsAssigned = async (userId: number): Promise<Complaint[]> => {
+export const getComplaintsAssigned = async (userId: number): Promise<Assignment[]> => {
     try {
-        const response = await api.get<ComplaintResponse>(`/assignments/?userId=${userId}`);
-        return response.data.results;
+        const response = await api.get<Assignment[]>(`/assignments/?userId=${userId}`);
+        console.log("Raw assignment response:", response.data);
+        return response.data; // ✅ it’s already the array
     } catch (err) {
-        console.error("Error fetching user complaints:", err);
+        console.error("Error fetching assignments:", err);
         throw new Error("Failed to fetch user complaints");
     }
 };
 
-interface Assignment {
+export interface Assignment {
     id: number;
     complaint: Complaint;
     assigned_at: string;
@@ -363,6 +373,7 @@ export const getUserById = async (id: number | string): Promise<User> => {
         googleUid: raw.google_data?.uid || "",
         domain: extra.hd || "",
         role: raw.role || "Student",
+        secondary_role: raw.secondary_role || "",
         profiles: raw.profiles,
     };
 };

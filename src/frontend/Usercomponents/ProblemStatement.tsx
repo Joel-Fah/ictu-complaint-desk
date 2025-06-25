@@ -62,7 +62,7 @@ const ProblemStatement: FC<ProblemStatementProps> = ({
     }[rightColumnRatio];
 
     return (
-        <div className={`${backgroundColor} ${padding} max-w-screen-lg ml-16 ${containerClassName} font-sans`}>
+        <div className={`${backgroundColor} ${padding} max-w-screen-lg ml-32 ${containerClassName} font-sans`}>
             <div className={`flex ${stackOnMobile ? 'flex-col md:flex-row' : 'flex-row'} gap-4 sm:gap-6 md:gap-8`}>
                 {/* Left column with text content */}
                 <div className="flex-1">

@@ -24,8 +24,6 @@ type ChartData = {
         barPercentage?: number;
     }[];
 };
-  
-
 
 const AnalyticPageContent = () => {
     const [chartData, setChartData] = useState<ChartData | null>(null);
