@@ -467,13 +467,13 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
                                     });
                                 }
 
-                                toast.success("Complaint processed and notifications sent.");
+                                toast.custom(t => <ToastNotification type="success" title="Thank you!" subtitle="" onClose={() => toast.dismiss(t)} showClose />, { duration: 2000 });
                                 setTimeout(() => {
                                     router.push("/dashboard");
                                 }, 3000);
                             } catch (error) {
                                 console.error("Admin processing failed:", error);
-                                toast.error("Something went wrong!");
+                                toast.custom(t => <ToastNotification type="error" title="Something went wrong!" subtitle="" onClose={() => toast.dismiss(t)} showClose />, { duration: 2000 });
                             }
                         }}
                     >
