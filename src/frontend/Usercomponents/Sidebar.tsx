@@ -235,8 +235,8 @@ const ComplaintsUI = ({ onSelectItem, statusFilter }: ComplaintsUIProps) => {
                             <Image
                                 src="/icons/more-horizontal.svg"
                                 alt="Options"
-                                width={24}
-                                height={24}
+                                width={30}
+                                height={30}
                             />
                           </button>
                           {openMenuId === complaint.id && (
