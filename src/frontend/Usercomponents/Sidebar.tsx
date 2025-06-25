@@ -99,14 +99,6 @@ const ComplaintsUI = ({ onSelectItem, statusFilter }: ComplaintsUIProps) => {
     }
   };
 
-  const handleComplaintClick = (complaintId: number) => {
-    setSelectedComplaintId(complaintId);
-    if (onSelectItem) {
-      onSelectItem(complaintId);
-    } else {
-      router.push(`/complaints/${complaintId}`);
-    }
-  };
 
   return (
       <div className="md:fixed md:left-0 md:top-[72px] md:bottom-0 md:w-[320px] w-full bg-[#050041] bg-opacity-[5%] min-h-screen md:border-r border-gray-200 z-0">
@@ -212,19 +204,6 @@ const ComplaintsUI = ({ onSelectItem, statusFilter }: ComplaintsUIProps) => {
               </div>
           )}
         </div>
-      </div>
-
-      {/* Click outside to close dropdowns */}
-      {(statusDropdownOpen || priorityDropdownOpen) && (
-        <div
-          className="fixed inset-0 z-0"
-          onClick={() => {
-            setStatusDropdownOpen(false);
-            setPriorityDropdownOpen(false);
-          }}
-        />
-      )}
-    </div>
   );
 };
 

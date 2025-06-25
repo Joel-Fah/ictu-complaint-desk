@@ -1,10 +1,8 @@
 import * as React from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import Button  from "@/Usercomponents/Button";
 import { toast } from "sonner";
-import { updateStudentProfile } from "@/lib/api";
-import ToastNotification from "@/Usercomponents/ToastNotifications";
+import ToastNotification from "./ToastNotifications";
+import {updateStudentProfile} from "@/lib/api";
 
 export function StudentMatriculeForm({ onSuccess }: { onSuccess?: () => void }) {
     const [studentNumber, setStudentNumber] = React.useState("");
@@ -48,8 +46,8 @@ export function StudentMatriculeForm({ onSuccess }: { onSuccess?: () => void }) 
         >
             <p className="mb-2 font-medium">We need your student number to complete your profile.</p>
             <div className="mb-3">
-                <Label htmlFor="student_number">Your Matricule</Label>
-                <Input id="student_number"
+                <label htmlFor="student_number">Your Matricule</label>
+                <input id="student_number"
                        value={studentNumber}
                        onChange={(e) => setStudentNumber(e.target.value)}
                        placeholder="ICTU2023xxxx"
