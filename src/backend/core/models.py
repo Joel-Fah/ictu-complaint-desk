@@ -92,14 +92,6 @@ class CustomUser(AbstractUser):
 
 
 class StudentProfile(models.Model):
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['student_number'],
-                name='unique_student_number'
-            )
-        ]
-
     user = models.OneToOneField(
         CustomUser,
         on_delete=models.CASCADE,
@@ -108,8 +100,8 @@ class StudentProfile(models.Model):
 
     student_number = models.CharField(
         max_length=12,
-        blank=False,
-        null=False
+        blank=True,
+        null=True,
     )
 
     def __str__(self):
