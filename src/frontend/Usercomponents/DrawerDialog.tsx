@@ -90,6 +90,7 @@ function ProfileForm({ className, onSuccess }: React.ComponentProps<"form"> & { 
                        onChange={(e) => setStudentNumber(e.target.value)}
                        placeholder="ICTU2023xxxx"
                        className="bg-whiteColor"
+                       maxLength={12}
                 />
             </div>
             <Button type="submit" className="bg-primary-800 text-whiteColor hover:bg-primary-400" disabled={loading}>
