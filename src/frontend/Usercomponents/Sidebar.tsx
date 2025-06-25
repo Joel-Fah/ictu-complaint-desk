@@ -121,17 +121,13 @@ const ComplaintsUI = ({ onSelectItem, statusFilter }: ComplaintsUIProps) => {
   };
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Open':
-        return 'text-info bg-primary-50';
-      case 'In Progress':
-        return 'text-warning bg-[#F49200] bg-opacity-[10%]';
-      case 'Escalated':
-        return 'text-error bg-[#DB4437] bg-opacity-[10%]';
-      case 'Resolved':
-        return 'text-success bg-[#0F9D58] bg-opacity-[10%]';
-      default:
-        return 'text-info bg-primary-50';
+    switch (status.toLowerCase()) {
+      case 'escalated': return 'text-red-600 bg-red-50';
+      case 'in-progress': 
+      case 'in progress': return 'text-orange-600 bg-orange-50';
+      case 'resolved': return 'text-green-600 bg-green-50';
+      case 'open': return 'text-blue-600 bg-blue-50';
+      default: return 'text-gray-600 bg-gray-50';
     }
   };
 
@@ -182,7 +178,6 @@ const ComplaintsUI = ({ onSelectItem, statusFilter }: ComplaintsUIProps) => {
   });
 };
 
-
   return (
       <div className="md:fixed md:left-0 md:top-[72px] md:bottom-0 md:w-[320px] w-full bg-[#050041] bg-opacity-[5%] min-h-screen md:border-r border-gray-200 z-0">
         {(statusDropdownOpen || valueDropdownOpen) && (
@@ -200,9 +195,7 @@ const ComplaintsUI = ({ onSelectItem, statusFilter }: ComplaintsUIProps) => {
             <Image src="/icons/megaphone-02.svg" alt="Megaphone" width={24} height={24} />
             <h2 className="text-h2 font-semibold text-primary-950">My Complaints</h2>
           </div>
-
-          {isLoading && <p className="p-4 text-gray-500">Loading complaints...</p>}
-          {error && <p className="p-4 text-red-500">{error}</p>}
+        </div>
 
           <div className="space-y-3 max-h-[calc(100vh-250px)] overflow-y-auto pr-2 rounded-[20px]">
             {filteredComplaints.slice().reverse().map((complaint, index) => {
@@ -322,7 +315,6 @@ const ComplaintsUI = ({ onSelectItem, statusFilter }: ComplaintsUIProps) => {
               </div>
           )}
         </div>
-      </div>
   );
 };
 

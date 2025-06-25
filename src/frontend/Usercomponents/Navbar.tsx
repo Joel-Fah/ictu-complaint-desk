@@ -6,7 +6,7 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import MenuIcon from '../public/icons/menu-11.svg';
 import XIcon from '../public/icons/cancel-01.svg';
-import {getBaseUrl} from "@/app/utils/getBaseUrl";
+import {getBaseUrl} from "../app/utils/getBaseUrl";
 
 const navLinks = [
     { href: "/", label: "Home", icon: "/icons/home-01.svg" },

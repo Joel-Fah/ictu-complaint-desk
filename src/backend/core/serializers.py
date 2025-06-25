@@ -94,12 +94,16 @@ class ComplaintSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ['student', 'created_at', 'updated_at']
 
+    title = serializers.CharField(required=False, allow_blank=True)
+
+
 class ComplaintAssignmentSerializer(serializers.ModelSerializer):
     complaint = ComplaintSerializer(read_only=True)
 
     class Meta:
         model = ComplaintAssignment
         fields = '__all__'
+
 
 class ReminderSerializer(serializers.ModelSerializer):
     class Meta:
@@ -168,6 +172,7 @@ class ResolutionSerializer(serializers.ModelSerializer):
 # Courses Serializer
 class CourseSerializer(serializers.ModelSerializer):
     lecturer = LecturerProfileSerializer(read_only=True)
+
     class Meta:
         model = Course
         fields = '__all__'

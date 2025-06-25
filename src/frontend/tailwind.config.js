@@ -53,6 +53,13 @@ module.exports = {
   ],
   theme: {
   	extend: {
+			 screens: {
+      sm: '640px',  // Tablet starts
+      md: '768px',  // Desktop starts
+   		 },
+			 gridTemplateColumns: {
+        'fluid': 'repeat(auto-fit, minmax(250px, 1fr))',
+      },
   		fontFamily: {
   			sans: [
   				'Archivo',

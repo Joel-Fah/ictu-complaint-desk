@@ -59,7 +59,7 @@ const [semester, setSemester] = useState(initialData?.semester || '');
     const selectedCourse = courses.find(c => c.id === Number(selectedCourseId));
     const studentProfile = user?.profiles?.find(p => p.type === "student");
     const studentNumber = studentProfile?.data?.student_number;
-    const isFormValid = Boolean(selectedCategory && selectedCourseId && semester && formData.complaintTitle.trim() && formData.description.trim());
+    const isFormValid = Boolean(selectedCategory && selectedCourseId && semester && formData.description.trim());
 
     useEffect(() => {
         setHasMounted(true);
@@ -156,7 +156,6 @@ const [semester, setSemester] = useState(initialData?.semester || '');
     setIsSubmitting(false);
   }
 };
-
 
     return (
         <div className="h-screen bg-gray-50 flex flex-col md:flex-row overflow-hidden relative">
