@@ -118,3 +118,20 @@ def create_complaint_assignments(sender, instance, created, **kwargs):
                 staff=instance.course.lecturer.user,
                 message=f"You have been assigned to provide a resolution to '{instance.title}' as the lecturer of the course '{instance.course.title}'."
             )
+
+
+@receiver(post_save, sender=AdminProfile)
+def assign_admin_to_categories(sender, instance, created, **kwargs):
+    if created:
+        # Map office to category names
+        office_category_map = {
+            'Faculty': ['Missing Grade', 'No CA Mark', 'No Exam Mark', 'Unsatisfied With Final Grade'],
+            'Lecturer': ['Missing Grade', 'No Exam Mark'],
+            'Finance Department': ['Unsatisfied With Final Grade'],
+        }
+        for category_name in office_category_map.get(instance.office, []):
+            try:
+                category = Category.objects.get(name=category_name)
+                category.admins.add(instance)
+            except Category.DoesNotExist:
+                pass
