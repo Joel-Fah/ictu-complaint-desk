@@ -40,7 +40,7 @@ def extract_email_name_parts(email: str) -> str | None:
     return f"{first_middle} {last}"
 
 
-def match_email_to_csv(email: str, csv_file: str, threshold=85):
+def match_email_to_csv(email: str, csv_file: str, threshold=75):
     email_name = normalize_name(extract_email_name_parts(email))
     print(f"Matching for email: {email} (normalized: {email_name}) in {csv_file}")
     if not email_name:
