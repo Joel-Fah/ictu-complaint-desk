@@ -1,11 +1,14 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import Image from 'next/image';
 import { Complaint } from "@/types/complaint";
 import { getComplaintsByUser, getComplaints, getComplaintsAssigned } from '@/lib/api';
 import { formatComplaintDate } from "@/lib/formatDate";
 import { useUserStore } from "@/stores/userStore";
+import ToastNotification from './ToastNotifications';
+import { toast } from 'sonner';
+import { deleteComplaint } from '@/lib/api';
 
 interface ComplaintsUIProps {
   onSelectItem: (item: Complaint, count: number) => void;
@@ -23,9 +26,36 @@ const ComplaintsUI = ({ onSelectItem, statusFilter }: ComplaintsUIProps) => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  const [editData, setEditData] = useState<{
+    id: number;
+    category: string;
+    semester: string;
+    complaintTitle: string;
+    description: string;
+  } | null>(null);
 
   const userId = useUserStore((s) => s.user?.id);
   const activeRole = useUserStore((s) => s.activeRoleTab);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(event.target as Node)
+      ) {
+        setOpenMenuId(null);
+      }
+    }
+    if (openMenuId !== null) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [openMenuId]);
+
 
   useEffect(() => {
     const fetchComplaints = async () => {
@@ -73,6 +103,8 @@ const ComplaintsUI = ({ onSelectItem, statusFilter }: ComplaintsUIProps) => {
         : complaints.filter(c => c.status === statusFilter);
   }, [complaints, statusFilter]);
 
+  
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'Open':
@@ -99,6 +131,52 @@ const ComplaintsUI = ({ onSelectItem, statusFilter }: ComplaintsUIProps) => {
     }
   };
 
+  const handleDelete = async (id: number) => {
+  const confirmDelete = window.confirm("Are you sure you want to delete this complaint?");
+  if (!confirmDelete) return;
+
+  try {
+    await deleteComplaint(id);
+    toast.custom(t =>
+      <ToastNotification
+        type="success"
+        title="Complaint deleted"
+        subtitle="It has been removed successfully"
+        onClose={() => toast.dismiss(t)}
+        showClose
+      />,
+      { duration: 4000 }
+    );
+
+    // Optionally remove from local state if you store complaints
+    setComplaints(prev => prev.filter(c => c.id !== id));
+  } catch (err) {
+    toast.custom(t =>
+      <ToastNotification
+        type="error"
+        title="Failed to delete complaint"
+        subtitle="Please try again later"
+        onClose={() => toast.dismiss(t)}
+        showClose
+      />,
+      { duration: 4000 }
+    );
+  }
+};
+
+
+  const handleEdit = async (complaintId: number) => {
+  const complaint = complaints.find(c => c.id === complaintId); // or fetch from API
+  if (!complaint) return;
+  setEditData({
+    id: complaint.id,
+    category: complaint.category,
+    semester: complaint.semester,
+    complaintTitle: complaint.title,
+    description: complaint.description,
+    // You can skip attachments or fetch them separately
+  });
+};
 
   return (
       <div className="md:fixed md:left-0 md:top-[72px] md:bottom-0 md:w-[320px] w-full bg-[#050041] bg-opacity-[5%] min-h-screen md:border-r border-gray-200 z-0">
@@ -144,14 +222,47 @@ const ComplaintsUI = ({ onSelectItem, statusFilter }: ComplaintsUIProps) => {
                           {complaint.title}
                         </h3>
                       </div>
-                      <button className="ml-2">
-                        <Image
-                            src="/icons/more-horizontal.svg"
-                            alt="Options"
-                            width={24}
-                            height={24}
-                        />
-                      </button>
+<div className="relative">
+  <button
+    className="ml-2"
+    onClick={e => {
+      e.stopPropagation();
+      setOpenMenuId(openMenuId === complaint.id ? null : complaint.id);
+    }}
+  >
+    <Image
+      src="/icons/more-horizontal.svg"
+      alt="Options"
+      width={24}
+      height={24}
+    />
+  </button>
+  {openMenuId === complaint.id && (
+    <div className="absolute right-0 mt-2 w-28 bg-white rounded shadow-lg z-30 flex flex-col">
+      <button
+        className="px-4 py-2 text-left hover:bg-gray-100"
+        onClick={e => {
+          e.stopPropagation();
+          setOpenMenuId(null);
+          handleEdit(complaint.id);
+        }}
+      >
+        Edit
+      </button>
+      <button
+        className="px-4 py-2 text-left hover:bg-gray-100 text-red-600"
+        onClick={e => {
+    e.stopPropagation();
+    setOpenMenuId(null);
+    handleDelete(complaint.id);
+  }}
+      >
+        Delete
+      </button>
+    </div>
+  )}
+</div>
+// ...existing code...
                     </div>
 
                     <p className="text-[14px] ml-6 text-greyColor font-sans mb-3 truncate whitespace-nowrap overflow-hidden text-ellipsis pr-8">
