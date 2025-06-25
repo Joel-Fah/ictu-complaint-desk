@@ -3,6 +3,8 @@ import { getAccessToken, removeAccessToken } from "@/lib/token";
 import { Complaint, CreateComplaintJSONPayload, CreateComplaintFormDataPayload } from "@/types/complaint";
 import {Category} from "@/types/category";
 import type { User } from "@/types/user";
+import type { NextApiRequest, NextApiResponse } from 'next';
+import { validateCategoryWithGemini } from "../app/utils/geminiValidator";
 
 interface ComplaintResponse {
     count: number;
@@ -213,7 +215,6 @@ export const createComplaint = async (
         throw error;
     }
 };
-
 export const updateComplaint = async (data: {
     id: number;
     status?: string;
@@ -391,7 +392,18 @@ export const createAssignment = async (data: {
         throw new Error("Failed to assign staff");
     }
 };
+// ======= Gemini =======
+// pages/api/validateCategory.ts
 
+export async function handler(req: NextApiRequest, res: NextApiResponse) {
+    if (req.method !== 'POST') return res.status(405).end('Method not allowed');
+
+    const { category, description } = req.body;
+    if (!category || !description) return res.status(400).json({ error: "Missing data" });
+
+    const result = await validateCategoryWithGemini(category, description);
+    return res.status(200).json(result);
+}
 
 
 export default api;
