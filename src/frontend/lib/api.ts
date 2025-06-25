@@ -215,16 +215,24 @@ export const createComplaint = async (
 };
 
 export const updateComplaint = async (data: {
-    id: number;
-    category: number;
-    deadline: string;
+  id: number;
+  category?: number | string;
+  semester?: string;
+  course?: number;
+  description?: string;
+  attachments?: File[];
 }) => {
-    const response = await api.patch(`/complaints/${data.id}/`, {
-        category: data.category,
-        deadline: data.deadline,
-    });
-    return response.data;
+  const response = await api.patch(`/complaints/${data.id}/`, {
+    category: data.category,
+    semester: data.semester,
+    course: data.course,
+    description: data.description,
+    // attachments can be handled separately if using FormData
+  });
+
+  return response.data;
 };
+
 {/**
 
  export const getComplaintById = async (id: number): Promise<Complaint> => {
