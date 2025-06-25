@@ -59,7 +59,7 @@ function Home() {
             </section>
 
             {/* Solution Section */}
-            <section className="py-12 bg-gray-50">
+            <section className="py-12">
                 <ProblemStatement
                     labelText="Solution Proposal"
                     titleText="A Complaint Resolution System tailored for the ICT University"
