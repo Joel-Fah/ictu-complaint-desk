@@ -53,7 +53,7 @@ const ComplaintForm: React.FC = () => {
     const selectedCourse = courses.find(c => c.id === Number(selectedCourseId));
     const studentProfile = user?.profiles?.find(p => p.type === "student");
     const studentNumber = studentProfile?.data?.student_number;
-    const isFormValid = Boolean(selectedCategory && selectedCourseId && semester && formData.complaintTitle.trim() && formData.description.trim());
+    const isFormValid = Boolean(selectedCategory && selectedCourseId && semester && formData.description.trim());
 
     useEffect(() => {
         setHasMounted(true);
@@ -103,7 +103,6 @@ const ComplaintForm: React.FC = () => {
             await createComplaint({
                 category: selectedCategory,
                 semester,
-                title: formData.complaintTitle,
                 course: parseInt(selectedCourseId),
                 description: formData.description,
                 student: user?.id,

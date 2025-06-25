@@ -25,7 +25,6 @@ export interface Attachment {
 }
 // Payload without attachments (when sending JSON)
 export type CreateComplaintJSONPayload = {
-    title: string;
     description: string;
     category: string;
     semester: string;

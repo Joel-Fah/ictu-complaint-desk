@@ -216,8 +216,9 @@ export const createComplaint = async (
 
 export const updateComplaint = async (data: {
     id: number;
-    category: number;
-    deadline: string;
+    category?: number;
+    deadline?: string;
+    status?: string;
 }) => {
     const response = await api.patch(`/complaints/${data.id}/`, {
         category: data.category,
@@ -306,20 +307,24 @@ export const createResolution = async (data: {
 export const updateResolution = async (
     id: number,
     data: {
-        attendance_mark: string;
-        assignment_mark: string;
-        ca_mark: string;
-        final_mark: string;
-        resolved_by_id: number;
-        comments: string;
+        attendance_mark?: string;
+        assignment_mark?: string;
+        ca_mark?: string;
+        final_mark?: string;
+        resolved_by_id?: number;
+        comments?: string;
+        is_reviewed?: boolean;
+        reviewed_by_id?: number;
     }
 ) => {
     const response = await api.patch(`/resolutions/${id}/`, data);
     return response.data;
 };
 
+export const getResolutions = async () => (await api.get("/resolutions/")).data;
+
 {/**
- export const getResolutions = async () => (await api.get("/resolutions/")).data;
+
  export const getResolution = async (id: number | string) => (await api.get(`/resolutions/${id}/`)).data;
  export const patchResolution = async (id: number | string, data: any) => (await api.patch(`/resolutions/${id}/`, data)).data;
  export const deleteResolution = async (id: number | string) => (await api.delete(`/resolutions/${id}/`)).data;
