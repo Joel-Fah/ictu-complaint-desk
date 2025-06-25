@@ -49,12 +49,12 @@ export function StudentMatriculeForm({ onSuccess }: { onSuccess?: () => void }) 
             <p className="mb-2 font-medium">We need your student number to complete your profile.</p>
             <div className="mb-3">
                 <Label htmlFor="student_number">Your Matricule</Label>
-                <Input
-                    id="student_number"
-                    placeholder="ICTU2023xxxx"
-                    className="bg-whiteColor mt-1"
-                    value={studentNumber}
-                    onChange={(e) => setStudentNumber(e.target.value)}
+                <Input id="student_number"
+                       value={studentNumber}
+                       onChange={(e) => setStudentNumber(e.target.value)}
+                       placeholder="ICTU2023xxxx"
+                       className="bg-whiteColor"
+                       maxLength={12}
                 />
             </div>
             <Button
