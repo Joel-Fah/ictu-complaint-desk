@@ -8,7 +8,7 @@ from django.dispatch import receiver
 from django.db.models.signals import post_save
 
 from core.models import StudentProfile, LecturerProfile, AdminProfile, Course, UserRole, Complaint, ComplaintAssignment, \
-    OfficeChoices
+    Category, OfficeChoices, FacultyChoices
 from core.utils import match_email_to_csv, get_current_year
 
 # Create your signals here.
@@ -32,13 +32,15 @@ def auto_assign_role_and_profile(sender, request, user, **kwargs):
         from core.utils import get_courses_for_lecturer
         lecturer_courses = get_courses_for_lecturer(lecturer_row['lecturer'])
 
+    # Map display name to value for OfficeChoices
+    office_map = {label: value for value, label in OfficeChoices.choices()}
+
     is_admin = admin_row is not None
     is_lecturer = bool(lecturer_courses)
 
     if is_admin and is_lecturer:
-        office_value = admin_row.get('office', '')
-        office = office_value if office_value in [choice[0] for choice in
-                                                  OfficeChoices.choices()] else OfficeChoices.OTHER
+        office_value = admin_row.get('office', '').strip()
+        office = office_map.get(office_value, OfficeChoices.OTHER)
         user.role = UserRole.ADMIN
         user.secondary_role = UserRole.LECTURER
         user.save()
@@ -62,9 +64,8 @@ def auto_assign_role_and_profile(sender, request, user, **kwargs):
                 }
             )
     elif is_admin:
-        office_value = admin_row.get('office', '')
-        office = office_value if office_value in [choice[0] for choice in
-                                                  OfficeChoices.choices()] else OfficeChoices.OTHER
+        office_value = admin_row.get('office', '').strip()
+        office = office_map.get(office_value, OfficeChoices.OTHER)
         user.role = UserRole.ADMIN
         user.secondary_role = None
         user.save()
@@ -104,7 +105,7 @@ def create_complaint_assignments(sender, instance, created, **kwargs):
         # Assign complaint to admins based on the category
         admins = instance.category.admins.all()
         for admin in admins:
-            if instance.course.faculty == AdminProfile.faculty:
+            if instance.course.faculty == admin.faculty or admin.faculty == FacultyChoices.BOTH:
                 ComplaintAssignment.objects.create(
                     complaint=instance,
                     staff=admin.user,
@@ -118,3 +119,22 @@ def create_complaint_assignments(sender, instance, created, **kwargs):
                 staff=instance.course.lecturer.user,
                 message=f"You have been assigned to provide a resolution to '{instance.title}' as the lecturer of the course '{instance.course.title}'."
             )
+
+
+@receiver(post_save, sender=AdminProfile)
+def assign_admin_to_categories(sender, instance, created, **kwargs):
+    if created:
+        # Map office to category names
+        office_category_map = {
+            'Faculty': ['Missing Grade', 'No CA Mark', 'No Exam Mark', 'Unsatisfied With Final Grade'],
+            'Lecturer': ['Missing Grade', 'No Exam Mark'],
+            'Finance Department': ['Unsatisfied With Final Grade'],
+        }
+        # Map internal value to display name
+        office_display = dict(OfficeChoices.choices()).get(instance.office, None)
+        for category_name in office_category_map.get(office_display, []):
+            try:
+                category = Category.objects.get(name=category_name)
+                category.admins.add(instance)
+            except Category.DoesNotExist:
+                pass

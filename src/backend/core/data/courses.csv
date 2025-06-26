@@ -1,86 +1,73 @@
 code,title,semester,year,lecturer,faculty
-REN2261,Introduction of Electric Machines,SPRING,2025,Engr. Colbert,ICT
-MTH1223,Real Analysis II Group 1,SPRING,2025,Engr. Andrew,ICT
-ACC3217,Financial Accounting,SPRING,2025,Mrs Talla Vanessa,BMS
-BNF4229,Financial Management,SPRING,2025,Mr. Ayuk Collins,BMS
-SEN3243,Advanced Web Development,SPRING,2025,Engr Tanwi,ICT
-BMS3234,Fundamental Principles of Taxation (ECOWAS/CEMAC),SPRING,2025,Mr. Ayuk Collins,BMS
-MTH1222,Linear Algebra Group 1,SPRING,2025,Engr. Tanwi,ICT
-REN2263,Chemistry 1,SPRING,2025,Engr. Colbert,ICT
-ICT2231,Operating Systems Group 1,SPRING,2025,Engr. Tanwi,ICT
-ECN1242,Principles of Macroeconomics,SPRING,2025,Mr. Ekane Lesley,BMS
-REN2265,Power Quality and Power System Protection,SPRING,2025,Engr. Colbert,ICT
-ISN3231,Network Management,SPRING,2025,Prof. Tonye,ICT
-MTH1223,Real Analysis II Group 2,SPRING,2025,Engr. Andrew,ICT
-JMC1272,Communicative French II,SPRING,2025,Dr. Nkandeu,BMS
-ICT3212,Advanced Database Systems,SPRING,2025,Engr. Tanwi,ICT
-BMS3233,Business Law,SPRING,2025,Dr. Ngome-Nkwelle,BMS
-JMC2271,Mobile Application Development for Journalists,SPRING,2025,Dr. Nkandeu,BMS
-JMC1276,Ergonomics and Design Thinking for Journalists,SPRING,2025,Mr Serh Jeff,BMS
-ISN1231,Introduction to Networking Group 2,SPRING,2025,Engr. Andrew,ICT
-JMC1275,Algorithms and Programming Essentials in Python,SPRING,2025,Dr. Keyampi,BMS
-CSC1221,Object Oriented Programming with C++ Group 1,SPRING,2025,Mr. Serh,ICT
-CSC1221,Object Oriented Programming with C++ Group 1,SPRING,2025,Dr Nkandeu,ICT
-ACC4214,Forensic Accounting and Auditing,SPRING,2025,Mrs Talla Vanessa,BMS
-ECN2243,Statistics for Business and Economics,SPRING,2025,Dr. Ndah Grimbald,BMS
-SEN3242,Android Application Development,SPRING,2025,Engr. Moune,ICT
-JMC2272,Newspaper Editing and Printing,SPRING,2025,Mr. Betangacho,BMS
-REN2262,Installation of Solar Panel for Electrification,SPRING,2025,Dr. Nkandeu,ICT
-ISN1231,Introduction to Networking Group 1,SPRING,2025,Engr. Andrew,ICT
+REN2261,Introduction of Electric Machines,SPRING,2025,Colbert,ICT
+MTH1223,Real Analysis II,SPRING,2025,Andrew,ICT
+ACC3217,Financial Accounting,SPRING,2025,Talla Vanessa,BMS
+BNF4229,Financial Management,SPRING,2025,Ayuk Collins,BMS
+SEN3243,Advanced Web Development,SPRING,2025,Tanwi,ICT
+BMS3234,Fundamental Principles of Taxation (ECOWAS/CEMAC),SPRING,2025,Ayuk Collins,BMS
+MTH1222,Linear Algebra,SPRING,2025,Tanwi,ICT
+REN2263,Chemistry 1,SPRING,2025,Colbert,ICT
+ICT2231,Operating Systems,SPRING,2025,Tanwi,ICT
+ECN1242,Principles of Macroeconomics,SPRING,2025,Ekane Lesley,BMS
+REN2265,Power Quality and Power System Protection,SPRING,2025,Colbert,ICT
+ISN3231,Network Management,SPRING,2025,Tonye,ICT
+JMC1272,Communicative French II,SPRING,2025,Nkandeu,BMS
+ICT3212,Advanced Database Systems,SPRING,2025,Tanwi,ICT
+BMS3233,Business Law,SPRING,2025,Ngome-Nkwelle,BMS
+JMC2271,Mobile Application Development for Journalists,SPRING,2025,Nkandeu,BMS
+JMC1276,Ergonomics and Design Thinking for Journalists,SPRING,2025,Serh Jeff,BMS
+ISN1231,Introduction to Networking,SPRING,2025,Andrew,ICT
+JMC1275,Algorithms and Programming Essentials in Python,SPRING,2025,Keyampi,BMS
+CSC1221,Object Oriented Programming with C++,SPRING,2025,Serh,ICT
+CSC1221,Object Oriented Programming with C++,SPRING,2025,Nkandeu,ICT
+ACC4214,Forensic Accounting and Auditing,SPRING,2025,Talla Vanessa,BMS
+ECN2243,Statistics for Business and Economics,SPRING,2025,Ndah Grimbald,BMS
+SEN3242,Android Application Development,SPRING,2025,Moune,ICT
+JMC2272,Newspaper Editing and Printing,SPRING,2025,Betangacho,BMS
+REN2262,Installation of Solar Panel for Electrification,SPRING,2025,Nkandeu,ICT
 BNF3226,Financial Institutions and Instruments,SPRING,2025,Ms. Tarbot Chelsea,BMS
-BUS2230,Introduction to E-Commerce,SPRING,2025,Mr. Fobuteh Silbrid,BMS
-CVE2200,Civics and Ethics Group 1,SPRING,2025,Dr. Nkwelle-Ngome,BMS
-CYS3251,Network/Computer Forensics,SPRING,2025,Engr. Moune,ICT
-JMC2273,Radio and TV Programme Writing,SPRING,2025,Mr. Betangacho,BMS
-JMC2274,Digital TV Production II,SPRING,2025,Dr. Gilles Yumo,BMS
-ACC1212,Accounting Information Systems,SPRING,2025,Mr. Njabe Charles,BMS
-REN2264,Energy Storage Technology,SPRING,2025,Engr. Ndifoashi,ICT
-MTH1222,Linear Algebra Group 2,SPRING,2025,Engr. Tanwi,ICT
-MTH2222,Computational Mathematics Group 1,SPRING,2025,Engr. Andrew,ICT
-JMC2275,Digital Radio Production II,SPRING,2025,Dr. Gilles Yumo,BMS
-REN2266,Environmental Impact Assessment,SPRING,2025,Engr. Ndifoashi,ICT
-BUS1210,KNOWLEDGE LEADERSHIP & AFRICAN DEVELOPMENT Group 1,SPRING,2025,Prof. Jean-Emmanuel Pondi,BMS
-JMC1271,Technical Writing for Journalists,SPRING,2025,Dr. Yong,BMS
-BNF4228,Investment Analysis,SPRING,2025,Mr. Ekane Lesley,BMS
-MTH2222,Computational Mathematics Group 2,SPRING,2025,Engr. Andrew,ICT
-ICT3211,IT Infrastructure Management,SPRING,2025,Dr. Abdallah,ICT
-ICT3211,IT Infrastructure Management,SPRING,2025,Prof. Victor Mbarika,ICT
-JMC2276,Music Production,SPRING,2025,Dr. Gilles Yumo,BMS
-JMC1274,Introduction to Public Speaking,SPRING,2025,Dr. Yong,BMS
-CSC1221,Object Oriented Programming with C++ Group 2,SPRING,2025,Mr. Serh,ICT
-CSC1221,Object Oriented Programming with C++ Group 2,SPRING,2025,Dr Nkandeu,ICT
-ICT2211,Database Management Systems Group 2,SPRING,2025,Engr. Tanwi,ICT
-ACC1213,PRINCIPLES OF ACCOUNTING 2,SPRING,2025,Mr. Ayuk Collins,BMS
-BNF3225,International Finance,SPRING,2025,Mr. Ekane Lesley,BMS
-JMC1273,Multimedia and Graphic Design I,SPRING,2025,Mr. Brain,BMS
-BMS2237,Seminar in Sustainable Development II,SPRING,2025,Mr. Epie Ananfah,BMS
-ACC4213,OHADA Accounting,SPRING,2025,Mr. Ayuk Collins,BMS
-ICT2231,Operating Systems Group 2,SPRING,2025,Engr. Tanwi,ICT
+BUS2230,Introduction to E-Commerce,SPRING,2025,Fobuteh Silbrid,BMS
+CVE2200,Civics and Ethics,SPRING,2025,Nkwelle-Ngome,BMS
+CYS3251,Network/Computer Forensics,SPRING,2025,Moune,ICT
+JMC2273,Radio and TV Programme Writing,SPRING,2025,Betangacho,BMS
+JMC2274,Digital TV Production II,SPRING,2025,Gilles Yumo,BMS
+ACC1212,Accounting Information Systems,SPRING,2025,Njabe Charles,BMS
+REN2264,Energy Storage Technology,SPRING,2025,Ndifoashi,ICT
+MTH2222,Computational Mathematics,SPRING,2025,Andrew,ICT
+JMC2275,Digital Radio Production II,SPRING,2025,Gilles Yumo,BMS
+REN2266,Environmental Impact Assessment,SPRING,2025,Ndifoashi,ICT
+BUS1210,KNOWLEDGE LEADERSHIP & AFRICAN DEVELOPMENT,SPRING,2025,Jean-Emmanuel Pondi,BMS
+JMC1271,Technical Writing for Journalists,SPRING,2025,Yong,BMS
+BNF4228,Investment Analysis,SPRING,2025,Ekane Lesley,BMS
+ICT3211,IT Infrastructure Management,SPRING,2025,Abdallah,ICT
+ICT3211,IT Infrastructure Management,SPRING,2025,Victor Mbarika,ICT
+JMC2276,Music Production,SPRING,2025,Gilles Yumo,BMS
+JMC1274,Introduction to Public Speaking,SPRING,2025,Yong,BMS
+CSC1221,Object Oriented Programming with C++,SPRING,2025,Serh,ICT
+CSC1221,Object Oriented Programming with C++,SPRING,2025,Nkandeu,ICT
+ICT2211,Database Management Systems,SPRING,2025,Tanwi,ICT
+ACC1213,PRINCIPLES OF ACCOUNTING 2,SPRING,2025,Ayuk Collins,BMS
+BNF3225,International Finance,SPRING,2025,Ekane Lesley,BMS
+JMC1273,Multimedia and Graphic Design I,SPRING,2025,Brain,BMS
+BMS2237,Seminar in Sustainable Development II,SPRING,2025,Epie Ananfah,BMS
+ACC4213,OHADA Accounting,SPRING,2025,Ayuk Collins,BMS
+ICT2231,Operating Systems,SPRING,2025,Tanwi,ICT
 EGL1262,Communication Skills,SPRING,2025,Mme Bambot Delphine,BMS
-CVE2200,Civics and Ethics Group 2,SPRING,2025,Dr. Ngome-Nkwelle,BMS
-BUS1210,KNOWLEDGE LEADERSHIP & AFRICAN DEVELOPMENT Group 2,SPRING,2025,Prof. Jean-Emmanuel Pondi,BMS
-BNF2222,Risk Management,SPRING,2025,Ms. Tarbot Chelsea,BMS
-ACC3219,Advanced Accounting Information System/Accounting Lab,SPRING,2025,Mr. Ayuk Collins,BMS
-ISN3232,CCNA 2,SPRING,2025,Prof. Tonye,ICT
-ICT2211,Database Management Systems Group 1,SPRING,2025,Engr. Tanwi,ICT
-ACC4212,Advanced Financial Accounting,SPRING,2025,Mrs Talla Vanessa,BMS
-ISN2231,Computer Networking and Security,SPRING,2025,Engr. Nebasi,ICT
-MTH1221,Discrete Mathematics Group 2,SPRING,2025,Dr. Keyampi,ICT
-ACC3218,Fraud and Ethics,SPRING,2025,Mr. Njabe Charles,BMS
-MTH1221,Discrete Mathematics Group 1,SPRING,2025,Dr. Keyampi,ICT
-ICT2211,Application of Business Software,SPRING,2025,Mr. Fobuteh Silbrid,BMS
-SEN3244,Software Architecture,SPRING,2025,Engr Palma,ICT
-CSC1222,Algorithms and Data Structures II Group 2,SPRING,2025,Mr Bilenne,ICT
-CSC1222,Algorithms and Data Structures II Group 2,SPRING,2025,Engr. Donald,ICT
-ICT2215,Introduction to Game Development,SPRING,2025,Mr Serh,ICT
-ICT2215,Introduction to Game Development,SPRING,2025,Mr Bilenne,ICT
-SEN3241,Software Validation and Verification,SPRING,2025,Engr. Palma,ICT
-CSC1222,Algorithms and Data Structures II Group 1,SPRING,2025,Mr Bilenne,ICT
-CSC1222,Algorithms and Data Structures II Group 1,SPRING,2025,Engr. Donald,ICT
-CSC2222,Introduction to IOT and Embedded Systems,SPRING,2025,Dr. Keyampi,ICT
-SEN2241,Object Oriented Analysis, Design and Implementation Group 1,SPRING,2025,Engr. Palma,ICT
-SEN2242,Java Programming II Group 2,SPRING,2025,Engr. Rostand,ICT
-SEN2241,Object Oriented Analysis, Design and Implementation Group 2,SPRING,2025,Engr. Palma,ICT
-SEN2242,Java Programming II Group 1,SPRING,2025,Engr Rostand,ICT
-CSC3221,Introduction to Data Science,SPRING,2025,Prof Tamla,ICT
-BIO2020,Microbiology,Fall,2024,Nnamu Radiance Kinga,BMS
+CVE2200,Civics and Ethics,SPRING,2025,Ngome-Nkwelle,BMS
+BUS1210,KNOWLEDGE LEADERSHIP & AFRICAN DEVELOPMENT,SPRING,2025,Jean-Emmanuel Pondi,BMS
+BNF2222,Risk Management,SPRING,2025,Tarbot Chelsea,BMS
+ACC3218,Fraud and Ethics,SPRING,2025,Njabe Charles,BMS
+ICT2211,Application of Business Software,SPRING,2025,Fobuteh Silbrid,BMS
+SEN3244,Software Architecture,SPRING,2025,Tekoh Palma,ICT
+CSC1222,Algorithms and Data Structures II,SPRING,2025,Bilenne,ICT
+CSC1222,Algorithms and Data Structures II,SPRING,2025,Donald,ICT
+ICT2215,Introduction to Game Development,SPRING,2025,Serh,ICT
+ICT2215,Introduction to Game Development,SPRING,2025,Bilenne,ICT
+SEN3241,Software Validation and Verification,SPRING,2025,Tekoh Palma,ICT
+CSC1222,Algorithms and Data Structures II,SPRING,2025,Bilenne,ICT
+CSC1222,Algorithms and Data Structures II,SPRING,2025,Donald,ICT
+CSC2222,Introduction to IOT and Embedded Systems,SPRING,2025,Keyampi,ICT
+SEN2241,Object Oriented Analysis Design and Implementation,SPRING,2025,Tekoh Palma,ICT
+SEN2242,Java Programming II,SPRING,2025,Rostand,ICT
+CSC3221,Introduction to Data Science,SPRING,2025,Tamla,ICT
+BIO2020,Microbiology,Fall,2024,Egbe Michel,BMS
