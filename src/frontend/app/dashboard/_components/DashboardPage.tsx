@@ -41,9 +41,6 @@ function DashboardPage() {
     const studentNumber = studentProfile?.data?.student_number;
 
 
-    console.log("Role:", role);
-    console.log("Secondary Role:", secondary_role);
-
     const isStudent = role?.toLowerCase() === "student";
     const allRoles = [role, secondary_role]
         .map((r) => r?.toLowerCase())
