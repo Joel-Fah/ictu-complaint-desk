@@ -137,10 +137,6 @@ const ComplaintDetail: React.FC<ComplaintDetailProps> = ({ complaint, complaintC
                                 className="border w-full border-gray-200 rounded-lg p-2 flex items-center space-x-4 bg-white shadow-sm"
                             >
                                 <div className="w-10 h-12 relative flex-shrink-0">
-                                    <div className="absolute z-[5] top-6 -left-2 bg-blue-600 text-white text-xs font-semibold px-1 rounded shadow">
-                                        {extension}
-                                    </div>
-
                                     <div className="w-10 h-12 rounded flex items-center justify-center text-xl bg-gray-50 border">
                                         {isImage ? (
                                             <Image
