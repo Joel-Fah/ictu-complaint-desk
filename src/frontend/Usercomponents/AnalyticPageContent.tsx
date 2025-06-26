@@ -9,7 +9,7 @@ import {
     BarElement,
     Title,
     Tooltip,
-    Legend,
+    Legend
 } from 'chart.js';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
@@ -26,55 +26,76 @@ type ChartData = {
 };
 
 const AnalyticPageContent = () => {
-    const [chartData, setChartData] = useState<ChartData | null>(null);
+    const [avgResolutionData, setAvgResolutionData] = useState<ChartData | null>(null);
+    const [complaintsPerSemester, setComplaintsPerSemester] = useState<ChartData | null>(null);
+    const [complaintsPerCategory, setComplaintsPerCategory] = useState<ChartData | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch('/analytics/avg-resolution-time-per-semester/')
-            .then((res) => res.json())
-            .then((data) => {
-                setChartData(data);
-                setLoading(false);
+        Promise.all([
+            fetch('/analytics/avg-resolution-time-per-semester/').then(res => res.json()),
+            fetch('/analytics/complaints-per-semester').then(res => res.json()),
+            fetch('/analytics/complaints-per-category-per-semester').then(res => res.json()),
+        ])
+            .then(([resTime, perSemester, perCategory]) => {
+                setAvgResolutionData(resTime);
+                setComplaintsPerSemester(perSemester);
+                setComplaintsPerCategory(perCategory);
             })
-            .catch(() => setLoading(false));
+            .catch(err => console.error('Error fetching analytics:', err))
+            .finally(() => setLoading(false));
     }, []);
 
-    const options = {
+    const chartOptions = (title: string) => ({
         responsive: true,
         plugins: {
             legend: { position: 'top' as const },
-            title: {
-                display: true,
-                text: 'Average Resolution Time per Semester',
-            },
-        },
-    };
+            title: { display: true, text: title }
+        }
+    });
 
-    return (
-        <div style={{ maxWidth: 700, margin: '0 auto', padding: 32 }}>
-            <h1 className="text-2xl font-bold mb-4">Analytics Dashboard</h1>
-            <h2 className="text-lg font-semibold mb-6">Average Resolution Time per Semester</h2>
+    const renderChart = (title: string, data: ChartData | null) => {
+        if (loading) {
+            return (
+                <div className="w-full max-w-5xl mx-auto h-64 bg-gray-200 animate-pulse rounded-xl mb-10" />
+            );
+        }
 
-            {loading && <div className="h-64 bg-gray-100 animate-pulse rounded-lg" />}
+        if (!data) {
+            return (
+                <p className="text-gray-500 mb-8 text-center">{title}: No data available.</p>
+            );
+        }
 
-            {!loading && chartData && (
+        return (
+            <div className="w-full max-w-5xl mx-auto mb-10 px-4">
                 <Bar
                     data={{
-                        labels: chartData.labels,
-                        datasets: chartData.datasets.map((ds, i) => ({
+                        labels: data.labels,
+                        datasets: data.datasets.map((ds, i) => ({
                             ...ds,
-                            backgroundColor: `rgba(${54 + i * 50}, ${162 - i * 40}, 235, 0.6)`,
+                            backgroundColor: `rgba(${54 + i * 50}, ${162 - i * 30}, 235, 0.6)`,
                             borderRadius: 6,
                             barPercentage: 0.6,
                         })),
                     }}
-                    options={options}
+                    options={chartOptions(title)}
                 />
-            )}
+            </div>
+        );
+    };
 
+    return (
+        <div className="flex flex-col items-center justify-start px-4 py-4">
+            <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">
+                📊 Analytics
+            </h1>
 
-            {!loading && !chartData && <p className="text-gray-500">No data available.</p>}
+            {renderChart("Average Resolution Time per Semester", avgResolutionData)}
+            {renderChart("Complaints per Semester", complaintsPerSemester)}
+            {renderChart("Complaints per Category per Semester", complaintsPerCategory)}
         </div>
     );
-}
+};
+
 export default AnalyticPageContent;

@@ -95,8 +95,10 @@ function Home() {
                 <StudentComplaintsCard />
             </section>
 
+            <AnalyticPageContent />
+
             {/* CTA Section */}
-            <section className="py-12 bg-primary-50">
+            <section className="py-12">
                 <ComplaintBanner
                     smallText="Happens that"
                     largeText="There's always a"
@@ -109,8 +111,6 @@ function Home() {
                     textSize='text-button-primary'
                 />
             </section>
-
-            <AnalyticPageContent />
 
             <Footer
                 leftContent={
