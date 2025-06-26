@@ -332,8 +332,10 @@ export const updateResolution = async (
     return response.data;
 };
 
+export const allResolutions = async () => (await api.get("/resolutions/")).data;
+
 {/**
- export const getResolutions = async () => (await api.get("/resolutions/")).data;
+
  export const getResolution = async (id: number | string) => (await api.get(`/resolutions/${id}/`)).data;
  export const patchResolution = async (id: number | string, data: any) => (await api.patch(`/resolutions/${id}/`, data)).data;
  export const deleteResolution = async (id: number | string) => (await api.delete(`/resolutions/${id}/`)).data;

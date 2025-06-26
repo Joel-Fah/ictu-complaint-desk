@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import Image from "next/image";
-import {createAssignment, createNotification, createResolution, updateComplaint, updateResolution} from "@/lib/api";
+import {createAssignment, createNotification, createResolution, updateComplaint, updateResolution, allResolutions} from "@/lib/api";
 import {toast} from "sonner";
 import ToastNotification from "@/Usercomponents/ToastNotifications";
 import {Complaint} from "@/types/complaint";
@@ -8,6 +8,7 @@ import {useUserStore} from "@/stores/userStore";
 import {User} from "@/types/user";
 import {useRouter} from "next/navigation";
 import { useCategoryStore } from "@/stores/categoryStore";
+import type { Resolution } from "@/types/resolution";
 
 export interface AssignedPerson {
     user: User;
@@ -36,6 +37,8 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
     const router = useRouter();
     const [message, setMessage] = useState("");
     const [showResolutionForm, setShowResolutionForm] = useState(false);
+    const [resolutions, setResolutions] = useState<Resolution[]>([]);
+    const existingResolution = resolutions.find(res => res.complaint_id === selectedItem?.id);
     const [formData, setFormData] = useState({
         attendance_mark: "",
         assignment_mark: "",
@@ -44,6 +47,11 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
     });
     const [selectedStaffIds, setSelectedStaffIds] = useState<number[]>([]);
     const formFilled = Object.values(formData).some(value => value.trim() !== "");
+
+    useEffect(() => {
+        // Fetch resolutions on mount
+        allResolutions().then((data: Resolution[]) => setResolutions(data));
+    }, []);
 
     useEffect(() => {
         fetchCategories();
@@ -267,62 +275,91 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
                             if (!message.trim() || !selectedItem || !user) return;
 
                             try {
-                                // Case: Resolution form was filled
+                                // Only attempt resolution creation/update if form is filled
                                 if (formFilled) {
-                                    await createResolution({
-                                        complaint_id: selectedItem.id,
-                                        resolved_by_id: user.id,
-                                        ...formData,
-                                        comments: message
-                                    });
-
-                                    // Assign and notify staff
-                                    await Promise.all(selectedStaffIds.map(async (id) => {
-                                        await createAssignment({ complaint_id: selectedItem.id, staff_id: id });
-                                        await createNotification({ recipient_id: id, message });
-                                    }));
-
-                                    // Before sending notification to student
-                                    if (typeof selectedItem.student === "number") {
-                                        await createNotification({
-                                            recipient_id: selectedItem.student,
-                                            message: "Your complaint is currently at the Registrar's Office awaiting approval before the resolution can be sent to you"
+                                    if (existingResolution) {
+                                        // Update existing resolution
+                                        await updateResolution(existingResolution.id, {
+                                            resolved_by_id: user.id,
+                                            ...formData,
+                                            comments: message,
                                         });
-                                    }
 
-                                } else {
-                                    // Case: Only message provided
-                                    // just use selectedStaffIds
-                                    await Promise.all(selectedStaffIds.map(async (id) => {
-                                        await createNotification({ recipient_id: id, message });
-                                    }));
-
-                                    // Notify student
-                                    // Before sending notification to student
-                                    if (typeof selectedItem.student === "number") {
-                                        await createNotification({
-                                            recipient_id: selectedItem.student,
-                                            message: "Your complaint is still in progress"
+                                        const admins = (allStaff ?? []).filter((s) => s.role === "Admin");
+                                        await Promise.all(
+                                            admins.map((admin) =>
+                                                createNotification({
+                                                    recipient_id: admin.id,
+                                                    message: `Admin ${admin.fullName} updated resolution for complaint ${selectedItem.id}.`,
+                                                })
+                                            )
+                                        );
+                                    } else {
+                                        // Create new resolution
+                                        await createResolution({
+                                            complaint_id: selectedItem.id,
+                                            resolved_by_id: user.id,
+                                            ...formData,
+                                            comments: message,
                                         });
                                     }
                                 }
 
-                                toast.custom(t => <ToastNotification type="success" title="Thank you!" subtitle="" onClose={() => toast.dismiss(t)} showClose />, { duration: 2000 });
-                                setTimeout(() => {
-                                    router.push("/dashboard"); // using Next.js router
-                                }, 3000);
+                                // Assign and notify staff regardless of formFilled
+                                await Promise.all(
+                                    selectedStaffIds.map(async (id) => {
+                                        await createAssignment({ complaint_id: selectedItem.id, staff_id: id });
+                                        await createNotification({ recipient_id: id, message });
+                                    })
+                                );
 
-                            } catch (err) {
-                                console.error("Error processing lecturer action:", err);
-                                toast.custom(t => <ToastNotification type="error" title="Something went wrong!" subtitle="" onClose={() => toast.dismiss(t)} showClose />, { duration: 2000 });
+                                // Notify student regardless of formFilled
+                                if (typeof selectedItem.student === "number") {
+                                    await createNotification({
+                                        recipient_id: selectedItem.student,
+                                        message:
+                                            "Your complaint is currently at the Registrar's Office awaiting approval before the resolution can be sent to you",
+                                    });
+                                }
+
+                                toast.custom(
+                                    (t) => (
+                                        <ToastNotification
+                                            type="success"
+                                            title="Thank you!"
+                                            subtitle="Resolution submitted successfully."
+                                            onClose={() => toast.dismiss(t)}
+                                            showClose
+                                        />
+                                    ),
+                                    { duration: 2000 }
+                                );
+
+                                setTimeout(() => {
+                                    router.push("/dashboard");
+                                }, 3000);
+                            } catch (error) {
+                                console.error("Admin processing failed:", error);
+                                toast.custom(
+                                    (t) => (
+                                        <ToastNotification
+                                            type="error"
+                                            title="Something went wrong!"
+                                            subtitle="Could not process resolution."
+                                            onClose={() => toast.dismiss(t)}
+                                            showClose
+                                        />
+                                    ),
+                                    { duration: 2000 }
+                                );
                             }
                         }}
+
                     >
                         Send
                     </button>
                 </div>
             )}
-
 
             {role === "complaint_coordinator" && (
                 <div className="mt-6 space-y-4">
@@ -368,7 +405,6 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
                 </div>
             )}
 
-            {/* Extra for Admin */}
             {role === "admin" && (
                 <div className="mt-6 space-y-4">
                     {/* Toggle Resolution Form */}
@@ -413,7 +449,7 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
                         </>
                     )}
 
-                    {/* Message */}
+                    {/* Message Field */}
                     <textarea
                         className="w-full border border-gray-300 rounded-lg p-2 text-sm"
                         rows={3}
@@ -422,7 +458,7 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
                         onChange={(e) => setMessage(e.target.value)}
                     />
 
-                    {/* Staff Assignment Dropdown */}
+                    {/* Staff Dropdown */}
                     <select
                         multiple
                         className="w-full border rounded-lg p-2 text-sm"
@@ -454,45 +490,68 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
                             if (!message.trim() || !selectedItem || !user) return;
 
                             try {
-                                // If form is filled, PATCH the resolution
+                                // Handle resolution creation/update only if form is filled
                                 if (formFilled) {
-                                    await updateResolution(selectedItem.id, {
-                                        resolved_by_id: user.id,
-                                        ...formData,
-                                        comments: message,
-                                    });
+                                    if (existingResolution) {
+                                        await updateResolution(existingResolution.id, {
+                                            resolved_by_id: user.id,
+                                            ...formData,
+                                            comments: message,
+                                        });
 
-                                    // Notify all admins
-                                    const admins = (allStaff ?? []).filter(s => s.role === "Admin");
-                                    await Promise.all(admins.map(admin =>
-                                        createNotification({
-                                            recipient_id: admin.id,
-                                            message: `Admin ${admin.fullName} has provided a resolution for complaint ${selectedItem.id}.`,
-                                        })
-                                    ));
+                                        const admins = (allStaff ?? []).filter(s => s.role === "Admin");
+                                        await Promise.all(admins.map(admin =>
+                                            createNotification({
+                                                recipient_id: admin.id,
+                                                message: `Admin ${admin.fullName} updated resolution for complaint ${selectedItem.id}.`,
+                                            })
+                                        ));
+                                    } else {
+                                        await createResolution({
+                                            complaint_id: selectedItem.id,
+                                            resolved_by_id: user.id,
+                                            ...formData,
+                                            comments: message,
+                                        });
+                                    }
                                 }
 
-                                // Assign and notify staff
+                                // Always assign and notify staff
                                 await Promise.all(selectedStaffIds.map(async (id) => {
                                     await createAssignment({ complaint_id: selectedItem.id, staff_id: id });
                                     await createNotification({ recipient_id: id, message });
                                 }));
 
-                                // Notify student
+                                // Always notify student
                                 if (typeof selectedItem.student === "number") {
                                     await createNotification({
                                         recipient_id: selectedItem.student,
-                                        message: "Your complaint is currently at the Registrar's Office awaiting approval before the resolution can be sent to you"
+                                        message: "Your complaint is currently at the Registrar's Office awaiting approval before the resolution can be sent to you",
                                     });
                                 }
 
-                                toast.custom(t => <ToastNotification type="success" title="Thank you!" subtitle="" onClose={() => toast.dismiss(t)} showClose />, { duration: 2000 });
+                                toast.custom(t =>
+                                    <ToastNotification
+                                        type="success"
+                                        title="Thank you!"
+                                        subtitle="Resolution submitted successfully."
+                                        onClose={() => toast.dismiss(t)}
+                                        showClose
+                                    />, { duration: 2000 });
+
                                 setTimeout(() => {
                                     router.push("/dashboard");
                                 }, 3000);
                             } catch (error) {
                                 console.error("Admin processing failed:", error);
-                                toast.custom(t => <ToastNotification type="error" title="Something went wrong!" subtitle="" onClose={() => toast.dismiss(t)} showClose />, { duration: 2000 });
+                                toast.custom(t =>
+                                    <ToastNotification
+                                        type="error"
+                                        title="Something went wrong!"
+                                        subtitle="Could not process resolution."
+                                        onClose={() => toast.dismiss(t)}
+                                        showClose
+                                    />, { duration: 2000 });
                             }
                         }}
                     >
@@ -500,6 +559,7 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
                     </button>
                 </div>
             )}
+
         </div>
     );
 };
