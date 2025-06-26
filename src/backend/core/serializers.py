@@ -151,7 +151,7 @@ class ResolutionSerializer(serializers.ModelSerializer):
         elif category == 'Not Satisfied With Final Grade':
             allowed_fields = set()
 
-        always_keep = {'id', 'complaint', 'resolved_by', 'reviewed_by', 'is_reviewed'}
+        always_keep = {'id', 'complaint', 'resolved_by', 'reviewed_by', 'is_reviewed', 'comments'}
         for field in list(self.fields):
             if field not in allowed_fields and field not in always_keep:
                 self.fields.pop(field)

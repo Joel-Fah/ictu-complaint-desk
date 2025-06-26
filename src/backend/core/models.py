@@ -651,7 +651,6 @@ class Resolution(models.Model):
     )
 
     comments = models.TextField(
-        max_length=255,
         verbose_name='Response',
         help_text='response to complaint',
         blank=False,
