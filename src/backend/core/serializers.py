@@ -145,9 +145,9 @@ class ResolutionSerializer(serializers.ModelSerializer):
         if category == 'No CA Mark':
             allowed_fields = {'attendance_mark', 'assignment_mark', 'ca_mark'}
         elif category == 'Missing Grade':
-            allowed_fields = {'attendance_mark', 'assignment_mark', 'exam_mark', 'final_mark'}
+            allowed_fields = {'attendance_mark', 'assignment_mark', 'final_mark'}
         elif category == 'No Exam Mark':
-            allowed_fields = {'exam_mark', 'final_mark'}
+            allowed_fields = {'final_mark'}
         elif category == 'Not Satisfied With Final Grade':
             allowed_fields = set()
 
