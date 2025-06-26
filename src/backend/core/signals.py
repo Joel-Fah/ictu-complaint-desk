@@ -117,7 +117,7 @@ def create_complaint_assignments(sender, instance, created, **kwargs):
             ComplaintAssignment.objects.create(
                 complaint=instance,
                 staff=instance.course.lecturer.user,
-                message=f"You have been assigned to provide a resolution to '{instance.title}' as the lecturer of the course '{instance.course.title}'."
+                message=f"You have been assigned to provide a resolution to '{instance.title}' as the lecturer of the course '{instance.course.title}' before {instance.deadline}."
             )
 
 
