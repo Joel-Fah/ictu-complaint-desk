@@ -103,11 +103,18 @@ class ComplaintSerializer(serializers.ModelSerializer):
 
 
 class ComplaintAssignmentSerializer(serializers.ModelSerializer):
-    complaint = ComplaintSerializer(read_only=True)
+    complaint = serializers.PrimaryKeyRelatedField(
+        queryset=Complaint.objects.all(), write_only=True
+    )
 
     class Meta:
         model = ComplaintAssignment
         fields = '__all__'
+
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        rep['complaint'] = ComplaintSerializer(instance.complaint).data
+        return rep
 
 
 class ReminderSerializer(serializers.ModelSerializer):
