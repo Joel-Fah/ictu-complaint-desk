@@ -125,8 +125,17 @@ const [semester, setSemester] = useState(complaint?.semester || '');
   student: user?.id,
   attachments, // only sent if files exist
 });
-
     }
+      toast.custom(t =>
+              <ToastNotification
+                  type="success"
+                  title="Complaint filed!"
+                  subtitle="Here begins peace of mind."
+                  onClose={() => toast.dismiss(t)}
+                  showClose
+              />,
+          { duration: 4000 }
+      );
     goBack();
   } catch (error) {
     console.error(error);

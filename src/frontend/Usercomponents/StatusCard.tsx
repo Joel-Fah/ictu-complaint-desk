@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import Image from "next/image";
-import {createAssignment, createNotification, createResolution, updateComplaint, updateResolution} from "@/lib/api";
+import {createAssignment, createNotification, createResolution, updateComplaint, updateResolution, allResolutions} from "@/lib/api";
 import {toast} from "sonner";
 import ToastNotification from "@/Usercomponents/ToastNotifications";
 import {Complaint} from "@/types/complaint";
@@ -8,6 +8,9 @@ import {useUserStore} from "@/stores/userStore";
 import {User} from "@/types/user";
 import {useRouter} from "next/navigation";
 import { useCategoryStore } from "@/stores/categoryStore";
+import type { Resolution } from "@/types/resolution";
+import AdminResolutionForm from "@/Usercomponents/AdminResolutionForm";
+import LecturerResolutionForm from "@/Usercomponents/LecturerResolutionForm";
 
 export interface AssignedPerson {
     user: User;
@@ -35,15 +38,13 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
     const [selectedCategory, setSelectedCategory] = useState<number>(Number(selectedItem?.category)); // pull from selectedItem.category
     const router = useRouter();
     const [message, setMessage] = useState("");
-    const [showResolutionForm, setShowResolutionForm] = useState(false);
-    const [formData, setFormData] = useState({
-        attendance_mark: "",
-        assignment_mark: "",
-        ca_mark: "",
-        final_mark: ""
-    });
-    const [selectedStaffIds, setSelectedStaffIds] = useState<number[]>([]);
-    const formFilled = Object.values(formData).some(value => value.trim() !== "");
+    const [resolutions, setResolutions] = useState<Resolution[]>([]);
+    const existingResolution = resolutions.find(res => res.complaint_id === selectedItem?.id);
+
+    useEffect(() => {
+        // Fetch resolutions on mount
+        allResolutions().then((data: Resolution[]) => setResolutions(data));
+    }, []);
 
     useEffect(() => {
         fetchCategories();
@@ -181,148 +182,20 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
                 </div>
             </div>
 
-            {/* Extra for Lecturer */}
             {role === "lecturer" && (
-                <div className="mt-6 space-y-4">
-                    {/* Toggle Resolution Form */}
-                    <button
-                        className="w-full bg-primary-700 text-white rounded-lg py-2 font-medium"
-                        onClick={() => setShowResolutionForm(!showResolutionForm)}
-                    >
-                        {showResolutionForm ? "Hide Resolution Form" : "Fill Resolution Form"}
-                    </button>
-
-                    {/* Resolution Form */}
-                    {showResolutionForm && (
-                        <>
-                            <input
-                                type="number"
-                                placeholder="Attendance Mark"
-                                className="w-full border rounded-lg p-2 text-sm"
-                                value={formData.attendance_mark}
-                                onChange={(e) => setFormData({ ...formData, attendance_mark: e.target.value })}
-                            />
-                            <input
-                                type="number"
-                                placeholder="Assignment Mark"
-                                className="w-full border rounded-lg p-2 text-sm"
-                                value={formData.assignment_mark}
-                                onChange={(e) => setFormData({ ...formData, assignment_mark: e.target.value })}
-                            />
-                            <input
-                                type="number"
-                                placeholder="CA Mark"
-                                className="w-full border rounded-lg p-2 text-sm"
-                                value={formData.ca_mark}
-                                onChange={(e) => setFormData({ ...formData, ca_mark: e.target.value })}
-                            />
-                            <input
-                                type="number"
-                                placeholder="Final Mark"
-                                className="w-full border rounded-lg p-2 text-sm"
-                                value={formData.final_mark}
-                                onChange={(e) => setFormData({ ...formData, final_mark: e.target.value })}
-                            />
-                        </>
-                    )}
-
-                    {/* Message Textarea */}
-                    <textarea
-                        className="w-full border border-gray-300 rounded-lg p-2 text-sm"
-                        rows={3}
-                        placeholder="Enter a message or comment..."
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                    />
-
-                    {/* Dropdown for staff assignment */}
-                    <select
-                        multiple
-                        className="w-full border rounded-lg p-2 text-sm"
-                        onChange={(e) => {
-                            const selected = Array.from(e.target.selectedOptions).map(opt => Number(opt.value));
-                            setSelectedStaffIds(selected);
-                        }}
-                    >
-                        {(allStaff ?? []).map((staff) => {
-                            const staffAdminProfile = staff.profiles?.find(p => p.type === "admin");
-                            const staffOffice = staffAdminProfile?.data?.office || adminOffice;
-                            const isRegistrar = staffOffice === "Registrar Office";
-                            return (
-                                <option
-                                    key={staff.id}
-                                    value={staff.id}
-                                    disabled={!formFilled && isRegistrar}
-                                >
-                                    {staff.username} - {staffOffice}
-                                </option>
-                            );
-                        })}
-                    </select>
-
-                    {/* Submit */}
-                    <button
-                        className="w-full bg-green-600 text-white rounded-lg py-2 font-medium hover:bg-green-700"
-                        onClick={async () => {
-                            if (!message.trim() || !selectedItem || !user) return;
-
-                            try {
-                                // Case: Resolution form was filled
-                                if (formFilled) {
-                                    await createResolution({
-                                        complaint_id: selectedItem.id,
-                                        resolved_by_id: user.id,
-                                        ...formData,
-                                        comments: message
-                                    });
-
-                                    // Assign and notify staff
-                                    await Promise.all(selectedStaffIds.map(async (id) => {
-                                        await createAssignment({ complaint_id: selectedItem.id, staff_id: id });
-                                        await createNotification({ recipient_id: id, message });
-                                    }));
-
-                                    // Before sending notification to student
-                                    if (typeof selectedItem.student === "number") {
-                                        await createNotification({
-                                            recipient_id: selectedItem.student,
-                                            message: "Your complaint is currently at the Registrar's Office awaiting approval before the resolution can be sent to you"
-                                        });
-                                    }
-
-                                } else {
-                                    // Case: Only message provided
-                                    // just use selectedStaffIds
-                                    await Promise.all(selectedStaffIds.map(async (id) => {
-                                        await createNotification({ recipient_id: id, message });
-                                    }));
-
-                                    // Notify student
-                                    // Before sending notification to student
-                                    if (typeof selectedItem.student === "number") {
-                                        await createNotification({
-                                            recipient_id: selectedItem.student,
-                                            message: "Your complaint is still in progress"
-                                        });
-                                    }
-                                }
-
-                                toast.custom(t => <ToastNotification type="success" title="Thank you!" subtitle="" onClose={() => toast.dismiss(t)} showClose />, { duration: 2000 });
-                                setTimeout(() => {
-                                    router.push("/dashboard"); // using Next.js router
-                                }, 3000);
-
-                            } catch (err) {
-                                console.error("Error processing lecturer action:", err);
-                                toast.custom(t => <ToastNotification type="error" title="Something went wrong!" subtitle="" onClose={() => toast.dismiss(t)} showClose />, { duration: 2000 });
-                            }
-                        }}
-                    >
-                        Send
-                    </button>
-                </div>
+                <LecturerResolutionForm
+                    selectedItem={selectedItem}
+                    user={user}
+                    allStaff={allStaff}
+                    adminOffice={adminOffice}
+                    existingResolution={existingResolution}
+                    createResolution={createResolution}
+                    updateResolution={updateResolution}
+                    createNotification={createNotification}
+                    createAssignment={createAssignment}
+                    router={router}
+                />
             )}
-
 
             {role === "complaint_coordinator" && (
                 <div className="mt-6 space-y-4">
@@ -368,138 +241,22 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
                 </div>
             )}
 
-            {/* Extra for Admin */}
             {role === "admin" && (
-                <div className="mt-6 space-y-4">
-                    {/* Toggle Resolution Form */}
-                    <button
-                        className="w-full bg-primary-700 text-white rounded-lg py-2 font-medium"
-                        onClick={() => setShowResolutionForm(!showResolutionForm)}
-                    >
-                        {showResolutionForm ? "Hide Resolution Form" : "Fill Resolution Form"}
-                    </button>
-
-                    {/* Resolution Form */}
-                    {showResolutionForm && (
-                        <>
-                            <input
-                                type="number"
-                                placeholder="Attendance Mark"
-                                className="w-full border rounded-lg p-2 text-sm"
-                                value={formData.attendance_mark}
-                                onChange={(e) => setFormData({ ...formData, attendance_mark: e.target.value })}
-                            />
-                            <input
-                                type="number"
-                                placeholder="Assignment Mark"
-                                className="w-full border rounded-lg p-2 text-sm"
-                                value={formData.assignment_mark}
-                                onChange={(e) => setFormData({ ...formData, assignment_mark: e.target.value })}
-                            />
-                            <input
-                                type="number"
-                                placeholder="CA Mark"
-                                className="w-full border rounded-lg p-2 text-sm"
-                                value={formData.ca_mark}
-                                onChange={(e) => setFormData({ ...formData, ca_mark: e.target.value })}
-                            />
-                            <input
-                                type="number"
-                                placeholder="Final Mark"
-                                className="w-full border rounded-lg p-2 text-sm"
-                                value={formData.final_mark}
-                                onChange={(e) => setFormData({ ...formData, final_mark: e.target.value })}
-                            />
-                        </>
-                    )}
-
-                    {/* Message */}
-                    <textarea
-                        className="w-full border border-gray-300 rounded-lg p-2 text-sm"
-                        rows={3}
-                        placeholder="Enter a message..."
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                    />
-
-                    {/* Staff Assignment Dropdown */}
-                    <select
-                        multiple
-                        className="w-full border rounded-lg p-2 text-sm"
-                        onChange={(e) => {
-                            const selected = Array.from(e.target.selectedOptions).map(opt => Number(opt.value));
-                            setSelectedStaffIds(selected);
-                        }}
-                    >
-                        {(allStaff ?? []).map((staff) => {
-                            const staffAdminProfile = staff.profiles?.find(p => p.type === "admin");
-                            const staffOffice = staffAdminProfile?.data?.office || adminOffice;
-                            const isRegistrar = staffOffice === "Registrar Office";
-                            return (
-                                <option
-                                    key={staff.id}
-                                    value={staff.id}
-                                    disabled={!formFilled && isRegistrar}
-                                >
-                                    {staff.username} - {staff.role} - {staffOffice}
-                                </option>
-                            );
-                        })}
-                    </select>
-
-                    {/* Submit */}
-                    <button
-                        className="w-full bg-yellow-600 text-white rounded-lg py-2 font-medium hover:bg-yellow-700"
-                        onClick={async () => {
-                            if (!message.trim() || !selectedItem || !user) return;
-
-                            try {
-                                // If form is filled, PATCH the resolution
-                                if (formFilled) {
-                                    await updateResolution(selectedItem.id, {
-                                        resolved_by_id: user.id,
-                                        ...formData,
-                                        comments: message,
-                                    });
-
-                                    // Notify all admins
-                                    const admins = (allStaff ?? []).filter(s => s.role === "Admin");
-                                    await Promise.all(admins.map(admin =>
-                                        createNotification({
-                                            recipient_id: admin.id,
-                                            message: `Admin ${admin.fullName} has provided a resolution for complaint ${selectedItem.id}.`,
-                                        })
-                                    ));
-                                }
-
-                                // Assign and notify staff
-                                await Promise.all(selectedStaffIds.map(async (id) => {
-                                    await createAssignment({ complaint_id: selectedItem.id, staff_id: id });
-                                    await createNotification({ recipient_id: id, message });
-                                }));
-
-                                // Notify student
-                                if (typeof selectedItem.student === "number") {
-                                    await createNotification({
-                                        recipient_id: selectedItem.student,
-                                        message: "Your complaint is currently at the Registrar's Office awaiting approval before the resolution can be sent to you"
-                                    });
-                                }
-
-                                toast.custom(t => <ToastNotification type="success" title="Thank you!" subtitle="" onClose={() => toast.dismiss(t)} showClose />, { duration: 2000 });
-                                setTimeout(() => {
-                                    router.push("/dashboard");
-                                }, 3000);
-                            } catch (error) {
-                                console.error("Admin processing failed:", error);
-                                toast.custom(t => <ToastNotification type="error" title="Something went wrong!" subtitle="" onClose={() => toast.dismiss(t)} showClose />, { duration: 2000 });
-                            }
-                        }}
-                    >
-                        Send
-                    </button>
-                </div>
+                <AdminResolutionForm
+                    selectedItem={selectedItem}
+                    user={user}
+                    allStaff={allStaff}
+                    adminOffice={adminOffice}
+                    existingResolution={existingResolution}
+                    createResolution={createResolution}
+                    updateResolution={updateResolution}
+                    createNotification={createNotification}
+                    createAssignment={createAssignment}
+                    router={router}
+                />
             )}
+
+
         </div>
     );
 };

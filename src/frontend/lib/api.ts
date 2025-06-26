@@ -5,6 +5,34 @@ import {Category} from "@/types/category";
 import type { User } from "@/types/user";
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { validateCategoryWithGemini } from "@/app/utils/geminiValidator";
+import { CreateResolutionPayload, UpdateResolutionPayload, Resolution } from "@/types/resolution";
+
+// types/api.ts
+
+export interface CreateAssignmentPayload {
+    complaint_id: number;
+    staff_id: number;
+}
+
+export interface Assignment {
+    id: number;
+    complaint_id: number;
+    staff_id: number;
+    assigned_at: string; // adjust if you know the exact shape
+}
+
+export interface CreateNotificationPayload {
+    recipient_id: number;
+    message: string;
+}
+
+export interface Notification {
+    id: number;
+    recipient_id: number;
+    message: string;
+    timestamp: string; // or updated_at / created_at
+}
+
 
 interface ComplaintResponse {
     count: number;
@@ -89,13 +117,13 @@ export const getUser = async (token: string | null): Promise<User> => {
 
 export const getCategories = async (): Promise<Category[]> =>
     (await api.get("/categories/")).data;
+
+export const getCategory = async (id: number | string): Promise<Category> =>
+    (await api.get(`/categories/${id}/`)).data;
 {/**
 
  export const createCategory = async (data: Partial<Category>) =>
  (await api.post("/categories/", data)).data;
-
- export const getCategory = async (id: number | string): Promise<Category> =>
- (await api.get(`/categories/${id}/`)).data;
 
  export const updateCategory = async (id: number | string, data: Partial<Category>) =>
  (await api.put(`/categories/${id}/`, data)).data;
@@ -263,10 +291,7 @@ export const getCourses = async () => (await api.get("/courses/")).data;
  **/}
 // ======= NOTIFICATIONS =======
 
-export const createNotification = async (data: {
-    recipient_id: number;
-    message: string;
-}) => {
+export const createNotification = async (data: CreateNotificationPayload): Promise<Notification> => {
     try {
         const response = await api.post("/notifications/", data);
         return response.data;
@@ -297,15 +322,9 @@ export const createNotification = async (data: {
 // ======= RESOLUTIONS =======
 
 
-export const createResolution = async (data: {
-    complaint_id: number;
-    resolved_by_id: number;
-    attendance_mark: string;
-    assignment_mark: string;
-    ca_mark: string;
-    final_mark: string;
-    comments: string;
-}) => {
+export const createResolution = async (
+    data: CreateResolutionPayload
+): Promise<Resolution> => {
     try {
         const response = await api.post("/resolutions/", data);
         return response.data;
@@ -317,23 +336,23 @@ export const createResolution = async (data: {
 
 export const updateResolution = async (
     id: number,
-    data: {
-        is_reviewed?: boolean;
-        reviewed_by_id?: number | undefined;
-        attendance_mark: string;
-        assignment_mark: string;
-        ca_mark: string;
-        final_mark: string;
-        resolved_by_id: number;
-        comments: string;
+    data: UpdateResolutionPayload
+): Promise<Resolution> => {
+    try {
+        const response = await api.patch(`/resolutions/${id}/`, data);
+        return response.data;
+    } catch (err) {
+        console.error("Error updating resolution:", err);
+        throw new Error("Failed to update resolution");
     }
-) => {
-    const response = await api.patch(`/resolutions/${id}/`, data);
-    return response.data;
 };
 
+export const allResolutions = async (): Promise<Resolution[]> => {
+    const response = await api.get("/resolutions/");
+    return response.data;
+};
 {/**
- export const getResolutions = async () => (await api.get("/resolutions/")).data;
+
  export const getResolution = async (id: number | string) => (await api.get(`/resolutions/${id}/`)).data;
  export const patchResolution = async (id: number | string, data: any) => (await api.patch(`/resolutions/${id}/`, data)).data;
  export const deleteResolution = async (id: number | string) => (await api.delete(`/resolutions/${id}/`)).data;
@@ -389,10 +408,7 @@ export const getUserById = async (id: number | string): Promise<User> => {
 };
 
 // ======== Assignments =======
-export const createAssignment = async (data: {
-    complaint_id: number;
-    staff_id: number;
-}) => {
+export const createAssignment = async (data: CreateAssignmentPayload): Promise<Assignment> => {
     try {
         const response = await api.post("/assignments/", data);
         return response.data;
