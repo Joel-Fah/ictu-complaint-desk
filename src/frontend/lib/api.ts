@@ -321,7 +321,6 @@ export const createNotification = async (data: CreateNotificationPayload): Promi
  **/}
 // ======= RESOLUTIONS =======
 
-
 export const createResolution = async (
     data: CreateResolutionPayload
 ): Promise<Resolution> => {
@@ -333,6 +332,7 @@ export const createResolution = async (
         throw new Error("Failed to create resolution");
     }
 };
+
 
 export const updateResolution = async (
     id: number,
@@ -371,7 +371,8 @@ export const getAllStaff = async (): Promise<User[]> => {
     try {
         const response = await api.get<User[]>("/users/");
         // Filter users with isStaff true
-        return response.data.filter((user) => user.role === 'Admin');
+        console.log("Raw staff response:", response.data);
+        return response.data.filter((user) => user.role.toLowerCase() === 'admin');
     } catch (err) {
         console.error("Error fetching users:", err);
         throw new Error("Failed to fetch staff users");

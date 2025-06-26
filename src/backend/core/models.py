@@ -706,7 +706,7 @@ class Resolution(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Resolution for {self.complaint.title} by {self.resolved_by.username}"
+        return f"Resolution for {self.complaint.title} by {self.resolved_by.user.username}"
 
 
 class Notification(models.Model):
