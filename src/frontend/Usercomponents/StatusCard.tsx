@@ -31,15 +31,15 @@ interface StatusCardProps {
 
 const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selectedItem, allStaff }) => {
     const user = useUserStore((state) => state.user);
-    const adminProfile = user?.profiles?.find(p => p.type === "admin");
-    const adminOffice = adminProfile?.data?.office || "Registrar's Office";
+    //const adminProfile = user?.profiles?.find(p => p.type === "admin");
+    //const adminOffice = adminProfile?.data?.office || "Registrar's Office";
     const [selectedDeadline, setSelectedDeadline] = useState<string | undefined>(selectedItem?.deadline); // from selectedItem.deadline
     const { categories, fetchCategories } = useCategoryStore();
     const [selectedCategory, setSelectedCategory] = useState<number>(Number(selectedItem?.category)); // pull from selectedItem.category
     const router = useRouter();
     const [message, setMessage] = useState("");
     const [resolutions, setResolutions] = useState<Resolution[]>([]);
-    const existingResolution = resolutions.find(res => res.complaint_id === selectedItem?.id);
+    const existingResolution = resolutions.find(res => res.complaint === selectedItem?.id);
 
     useEffect(() => {
         // Fetch resolutions on mount
@@ -187,7 +187,7 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
                     selectedItem={selectedItem}
                     user={user}
                     allStaff={allStaff}
-                    adminOffice={adminOffice}
+                    //adminOffice={adminOffice}
                     existingResolution={existingResolution}
                     createResolution={createResolution}
                     updateResolution={updateResolution}
@@ -246,7 +246,7 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
                     selectedItem={selectedItem}
                     user={user}
                     allStaff={allStaff}
-                    adminOffice={adminOffice}
+                    //adminOffice={adminOffice}
                     existingResolution={existingResolution}
                     createResolution={createResolution}
                     updateResolution={updateResolution}
