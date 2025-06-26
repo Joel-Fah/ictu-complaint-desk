@@ -28,13 +28,13 @@ const steps = [
         title: "Where your complaints go?",
         description: "They are sent to people and/or entities in charge of that particular category like lecturer, administrators and so on.",
         mediaType: "image",
-        mediaSrc: "/images/dummy.jpg",
+        mediaSrc: "/images/paper-plane.jpg",
     },
     {
         title: "What happens after submission?",
         description: "They move from person to person, entity to entity until your complaint is resolved.",
         mediaType: "image",
-        mediaSrc: "/images/dummy.jpg",
+        mediaSrc: "/images/submission.png",
     },
 ];
 

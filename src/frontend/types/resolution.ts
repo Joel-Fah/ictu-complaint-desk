@@ -3,7 +3,6 @@ export interface ResolutionBase {
     assignment_mark?: number;
     ca_mark?: number;
     final_mark?: number;
-    exam_mark?: number;
     comments?: string;
     is_reviewed?: boolean;
     reviewed_by?: number;
