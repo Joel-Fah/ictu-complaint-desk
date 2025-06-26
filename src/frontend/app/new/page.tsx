@@ -98,62 +98,89 @@ const [semester, setSemester] = useState(complaint?.semester || '');
     };
 
     const handleSubmit = async () => {
-  if (!isFormValid || isSubmitting) return;
-  setIsSubmitting(true);
-  try {
-      if (complaint?.id) {
-      // Update existing complaint
-          await updateComplaint({
-              id: complaint.id,
-              category: selectedCategory,
-              semester,
-              course: parseInt(selectedCourseId),
-              description: formData.description,
-              attachments,
-          });
+        if (!isFormValid || isSubmitting) return;
 
-          setComplaint(null); // Clear the store after editing
+        setIsSubmitting(true);
 
+        try {
+            // ✅ Step 1: Validate category with Gemini
+            const res = await fetch("/api/validateCategory", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    category: selectedCategory,
+                    description: formData.description,
+                }),
+            });
 
-      } else {
-      // Create new complaint
-      await createComplaint({
-  description: formData.description,
-  category: selectedCategory,
-  semester,
-  course: parseInt(selectedCourseId),
-  student: user?.id,
-  attachments, // only sent if files exist
-});
-    }
-      toast.custom(t =>
-              <ToastNotification
-                  type="success"
-                  title="Complaint filed!"
-                  subtitle="Here begins peace of mind."
-                  onClose={() => toast.dismiss(t)}
-                  showClose
-              />,
-          { duration: 4000 }
-      );
-    goBack();
-  } catch (error) {
-    console.error(error);
-    toast.custom(t =>
-      <ToastNotification
-        type="error"
-        title="Something went wrong!"
-        subtitle="Please try again."
-        onClose={() => toast.dismiss(t)}
-        showClose
-      />,
-      { duration: 4000 }
-    );
-    goBack();
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+            const validationResult = await res.json();
+
+            if (!validationResult.valid) {
+                toast.custom(t =>
+                    <ToastNotification
+                        type="warning"
+                        title="Possible Mismatch"
+                        subtitle={`The description may not match the category. Suggestion: "${validationResult.suggestion}"`}
+                        onClose={() => toast.dismiss(t)}
+                        showClose
+                    />, { duration: 5000 }
+                );
+
+                setIsSubmitting(false);
+                return;
+            }
+
+            // ✅ Step 2: Proceed with update or creation
+            if (complaint?.id) {
+                await updateComplaint({
+                    id: complaint.id,
+                    category: selectedCategory,
+                    semester,
+                    course: parseInt(selectedCourseId),
+                    description: formData.description,
+                    attachments,
+                });
+
+                setComplaint(null); // Clear the store after editing
+
+            } else {
+                await createComplaint({
+                    description: formData.description,
+                    category: selectedCategory,
+                    semester,
+                    course: parseInt(selectedCourseId),
+                    student: user?.id,
+                    attachments,
+                });
+            }
+
+            toast.custom(t =>
+                <ToastNotification
+                    type="success"
+                    title="Complaint filed!"
+                    subtitle="Here begins peace of mind."
+                    onClose={() => toast.dismiss(t)}
+                    showClose
+                />, { duration: 4000 });
+
+            goBack();
+        } catch (error) {
+            console.error(error);
+            toast.custom(t =>
+                <ToastNotification
+                    type="error"
+                    title="Something went wrong!"
+                    subtitle="Please try again."
+                    onClose={() => toast.dismiss(t)}
+                    showClose
+                />, { duration: 4000 });
+
+            goBack();
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     if (!hasMounted) {
         return(<p>Loading Form...</p>);
     }

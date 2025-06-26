@@ -32,6 +32,6 @@ missing grade, no CA mark, no exam mark, unsatisfied with final grade.`;
         }
     } catch (err) {
         console.error("Gemini API call failed:", err);
-        return { valid: true }; // fallback: don't block user
+        return { valid: false }; // fallback: don't block user
     }
 };
