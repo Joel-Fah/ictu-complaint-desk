@@ -1,12 +1,17 @@
+import logging
+
 from allauth.socialaccount.models import SocialAccount
 from django.contrib.auth.views import get_user_model
-from rest_framework import serializers
+from rest_framework import serializers, status
+from rest_framework.response import Response
+
 from core.models import Category, Complaint, Reminder, Notification, Resolution, StudentProfile, LecturerProfile, \
     AdminProfile, Attachment, Course, UserRole, OfficeChoices, ComplaintAssignment
 
 # Create your serializers here.
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 
 class StudentProfileSerializer(serializers.ModelSerializer):
@@ -121,61 +126,23 @@ class NotificationSerializer(serializers.ModelSerializer):
 
 class ResolutionSerializer(serializers.ModelSerializer):
     resolved_by = serializers.PrimaryKeyRelatedField(queryset=AdminProfile.objects.all())
-    reviewed_by = serializers.PrimaryKeyRelatedField(queryset=AdminProfile.objects.all(), required=False,
-                                                     allow_null=True)
+    reviewed_by = serializers.PrimaryKeyRelatedField(queryset=AdminProfile.objects.all(), required=False, allow_null=True)
 
     class Meta:
         model = Resolution
         fields = '__all__'
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        complaint = None
-        if self.instance and hasattr(self.instance, 'complaint'):
-            complaint = self.instance.complaint
-        elif getattr(self, 'initial_data', {}).get('complaint'):
-            try:
-                complaint_id = self.initial_data.get('complaint')
-                complaint = Complaint.objects.get(pk=complaint_id)
-            except Complaint.DoesNotExist:
-                pass
-
-        category = getattr(complaint, 'category', None)
-        allowed_fields = set()
-        if category == 'No CA Mark':
-            allowed_fields = {'attendance_mark', 'assignment_mark', 'ca_mark'}
-        elif category == 'Missing Grade':
-            allowed_fields = {'attendance_mark', 'assignment_mark', 'final_mark'}
-        elif category == 'No Exam Mark':
-            allowed_fields = {'final_mark'}
-        elif category == 'Not Satisfied With Final Grade':
-            allowed_fields = set()
-
-        always_keep = {'id', 'complaint', 'resolved_by', 'reviewed_by', 'is_reviewed', 'comments'}
-        for field in list(self.fields):
-            if field not in allowed_fields and field not in always_keep:
-                self.fields.pop(field)
-
     def validate(self, data):
         if data.get('is_reviewed') and data.get('reviewed_by'):
             admin_profile = data['reviewed_by']
             if (
-                    admin_profile.user.role != UserRole.COMPLAINT_COORDINATOR
-                    and admin_profile.office != OfficeChoices.REGISTRAR_OFFICE
+                admin_profile.user.role != UserRole.COMPLAINT_COORDINATOR
+                and admin_profile.office != OfficeChoices.REGISTRAR_OFFICE
             ):
                 raise serializers.ValidationError(
                     "Only Complaint Coordinators or Admins from the Registrar Office can review resolutions."
                 )
         return data
-    def create(self, request, *args, **kwargs):
-        serializer = ResolutionSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            # Return detailed errors
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 # Courses Serializer
 class CourseSerializer(serializers.ModelSerializer):

@@ -23,20 +23,19 @@ interface LecturerResolutionFormProps {
     selectedItem: Complaint | undefined;
     user: User |  null;
     allStaff: User[] | undefined;
-    adminOffice: string;
+    //adminOffice: string;
     existingResolution?: { id: number };
     createResolution: (data: CreateResolutionPayload) => Promise<Resolution>;
-    updateResolution: (
-        id: number,
-        data: {
-            resolved_by_id: number;
-            attendance_mark?: number;
-            assignment_mark?: number;
-            ca_mark?: number;
-            final_mark?: number;
-            comments: string;
-        }
-    ) => Promise<Resolution>;
+    updateResolution: (id: number, data: {
+        resolved_by: number;
+        reviewed_by: number;
+        is_reviewed: boolean;
+        attendance_mark?: number;
+        assignment_mark?: number;
+        ca_mark?: number;
+        final_mark?: number;
+        comments: string
+    }) => Promise<Resolution>;
     createNotification: (
         data: CreateNotificationPayload
     ) => Promise<Notification>;
@@ -46,13 +45,13 @@ interface LecturerResolutionFormProps {
 
 const getAllowedFields = (categoryName: string): AllowedField[] => {
     switch (categoryName) {
-        case "No CA Mark":
-            return ["attendance_mark", "assignment_mark", "ca_mark"];
-        case "Missing Grade":
-            return ["attendance_mark", "assignment_mark", "final_mark"];
-        case "No Exam Mark":
-            return ["final_mark"];
-        case "Not Satisfied With Final Grade":
+        case 'No CA Mark':
+            return ['attendance_mark', 'assignment_mark', 'ca_mark', 'final_mark'];
+        case 'Missing Grade':
+            return ['attendance_mark', 'assignment_mark', 'final_mark', 'ca_mark'];
+        case 'No Exam Mark':
+            return ['final_mark','attendance_mark', 'assignment_mark','ca_mark'];
+        case 'Not Satisfied With Final Grade':
             return [];
         default:
             return [];
@@ -63,7 +62,7 @@ const LecturerResolutionForm: React.FC<LecturerResolutionFormProps> = ({
                                                                            selectedItem,
                                                                            user,
                                                                            allStaff,
-                                                                           adminOffice,
+                                                                           //adminOffice,
                                                                            existingResolution,
                                                                            createResolution,
                                                                            updateResolution,
@@ -106,7 +105,7 @@ const LecturerResolutionForm: React.FC<LecturerResolutionFormProps> = ({
                 });
 
                 const resolutionPayload = {
-                    resolved_by_id: user.id,
+                    resolved_by: user.id,
                     reviewed_by: user.id,
                     is_reviewed: true,
                     ...numericFields,
@@ -115,7 +114,7 @@ const LecturerResolutionForm: React.FC<LecturerResolutionFormProps> = ({
 
                 if (existingResolution) {
                     await updateResolution(existingResolution.id, resolutionPayload);
-                    const admins = (allStaff ?? []).filter((s) => s.role === "Admin");
+                    const admins = (allStaff ?? []).filter((s) => s.role.toLowerCase() === "admin");
                     await Promise.all(
                         admins.map((admin) =>
                             createNotification({
@@ -126,7 +125,7 @@ const LecturerResolutionForm: React.FC<LecturerResolutionFormProps> = ({
                     );
                 } else {
                     await createResolution({
-                        complaint_id: selectedItem.id,
+                        complaint: selectedItem.id,
                         ...resolutionPayload
                     });
                 }
@@ -223,16 +222,25 @@ const LecturerResolutionForm: React.FC<LecturerResolutionFormProps> = ({
                     setSelectedStaffIds(selected);
                 }}
             >
-                {(allStaff ?? []).map((staff) => {
-                    const staffAdminProfile = staff.profiles?.find((p) => p.type === "admin");
-                    const staffOffice = staffAdminProfile?.data?.office || adminOffice;
-                    const isRegistrar = staffOffice === "Registrar Office";
-                    return (
-                        <option key={staff.id} value={staff.id} disabled={!formFilled && isRegistrar}>
-                            {staff.username} - {staffOffice}
-                        </option>
-                    );
-                })}
+                {(allStaff ?? [])
+                    .filter((staff) => staff.id !== user?.id)
+                    .map((staff) => {
+                        const staffAdminProfile = staff.profiles?.find((p) => p.type === 'admin');
+                        const staffOfficeRaw = staffAdminProfile?.data?.office ?? '';
+                        const staffOffice = staffOfficeRaw.toLowerCase();
+                        const isRegistrar = staffOffice === 'registrar_office';
+
+                        return (
+                            <option
+                                key={staff.id}
+                                value={staff.id}
+                                disabled={!formFilled && isRegistrar}
+                            >
+                                {staff.username} - {staff.role} - {staffOfficeRaw || 'Unknown'}
+                            </option>
+                        );
+                    })
+                }
             </select>
 
             <button

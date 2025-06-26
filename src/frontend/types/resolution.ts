@@ -8,13 +8,14 @@ export interface ResolutionBase {
     reviewed_by?: number;
 }
 
+
 export interface CreateResolutionPayload extends ResolutionBase {
-    complaint_id: number;
-    resolved_by_id: number;
+    complaint: number;          // ✅ match backend field name
+    resolved_by: number;
 }
 
 export interface UpdateResolutionPayload extends ResolutionBase {
-    resolved_by_id: number;
+    resolved_by: number;
 }
 
 export interface Resolution extends CreateResolutionPayload {
