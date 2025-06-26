@@ -352,7 +352,7 @@ export const getAllStaff = async (): Promise<User[]> => {
     try {
         const response = await api.get<User[]>("/users/");
         // Filter users with isStaff true
-        return response.data.filter((user) => user.isStaff === true);
+        return response.data.filter((user) => user.role === 'Admin');
     } catch (err) {
         console.error("Error fetching users:", err);
         throw new Error("Failed to fetch staff users");
