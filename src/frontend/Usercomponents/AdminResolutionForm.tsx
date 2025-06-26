@@ -12,7 +12,7 @@ import {
     Notification
 } from "@/lib/api";
 
-type AllowedField = 'attendance_mark' | 'assignment_mark' | 'ca_mark' | 'exam_mark' | 'final_mark';
+type AllowedField = 'attendance_mark' | 'assignment_mark' | 'ca_mark' | 'final_mark';
 type FormData = Partial<Record<AllowedField, string>>;
 
 export interface AdminResolutionFormProps {
@@ -27,7 +27,6 @@ export interface AdminResolutionFormProps {
         attendance_mark?: number;
         assignment_mark?: number;
         ca_mark?: number;
-        exam_mark?: number;
         final_mark?: number;
         comments: string
     }) => Promise<Resolution>;
@@ -41,9 +40,9 @@ const getAllowedFields = (categoryName: string): AllowedField[] => {
         case 'No CA Mark':
             return ['attendance_mark', 'assignment_mark', 'ca_mark'];
         case 'Missing Grade':
-            return ['attendance_mark', 'assignment_mark', 'exam_mark', 'final_mark'];
+            return ['attendance_mark', 'assignment_mark', 'final_mark'];
         case 'No Exam Mark':
-            return ['exam_mark', 'final_mark'];
+            return ['final_mark'];
         case 'Not Satisfied With Final Grade':
             return [];
         default:
@@ -182,7 +181,7 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
 
             {showResolutionForm && (
                 <>
-                    {(['attendance_mark', 'assignment_mark', 'ca_mark', 'exam_mark', 'final_mark'] as AllowedField[]).map((field) => (
+                    {(['attendance_mark', 'assignment_mark', 'ca_mark', 'final_mark'] as AllowedField[]).map((field) => (
                         <input
                             key={field}
                             type="number"
