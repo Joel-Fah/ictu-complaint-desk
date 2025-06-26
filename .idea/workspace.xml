@@ -5,10 +5,20 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="48c275ce-53de-4d16-86fd-b7b16ae3f3c7" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/backend/.idea/backend.iml" beforeDir="false" afterPath="$PROJECT_DIR$/src/backend/.idea/backend.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/backend/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/backend/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/backend/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/src/backend/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontend/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontend/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontend/Usercomponents/ComplaintBanner.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontend/Usercomponents/ComplaintBanner.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontend/Usercomponents/ComplaintsInsightsHeader.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontend/Usercomponents/ComplaintsInsightsHeader.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontend/Usercomponents/RichTextEditor.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontend/Usercomponents/RichTextEditor.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontend/Usercomponents/StudentComplaintsCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontend/Usercomponents/StudentComplaintsCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontend/Usercomponents/editor.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontend/Usercomponents/editor.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontend/app/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontend/app/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontend/lib/api.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontend/lib/api.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontend/public/images/Google__G__logo logo.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontend/public/images/Group-4.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontend/public/images/Lines.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontend/public/images/Mask-group.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontend/public/images/paper-plane.png" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -31,24 +41,24 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_MARK_IGNORED_FILES_AS_EXCLUDED": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "Egbe-michel",
-    "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "C:/Users/DELL/Desktop/ictu-complaint-desk/src/frontend",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "npm.Next.js Dev.executor": "Run",
-    "ts.external.directory.path": "C:\\Users\\DELL\\Desktop\\ictu-complaint-desk\\src\\frontend\\node_modules\\typescript\\lib",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_MARK_IGNORED_FILES_AS_EXCLUDED&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;Egbe-michel&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/DELL/Desktop/ictu-complaint-desk/src/frontend&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;npm.Next.js Dev.executor&quot;: &quot;Run&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\DELL\\Desktop\\ictu-complaint-desk\\src\\frontend\\node_modules\\typescript\\lib&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\DELL\Desktop\ictu-complaint-desk\src\frontend\app" />
@@ -87,6 +97,7 @@
       <workItem from="1744870878114" duration="28243000" />
       <workItem from="1745044206840" duration="35000" />
       <workItem from="1747501243819" duration="468000" />
+      <workItem from="1749559876494" duration="52000" />
     </task>
     <servers />
   </component>
@@ -110,7 +121,6 @@
         <line-breakpoint enabled="true" type="javascript">
           <url>file://$PROJECT_DIR$/src/frontend/lib/api.ts</url>
           <line>6</line>
-          <properties lambdaOrdinal="-1" />
           <option name="timeStamp" value="1" />
         </line-breakpoint>
       </breakpoints>

@@ -19,17 +19,10 @@ export interface AdminResolutionFormProps {
     selectedItem: Complaint | undefined;
     user: User |  null;
     allStaff: User[] | undefined;
-    adminOffice: string;
+    //adminOffice: string;
     existingResolution?: { id: number };
     createResolution: (data: CreateResolutionPayload) => Promise<Resolution>;
-    updateResolution: (id: number, data: {
-        resolved_by_id: number;
-        attendance_mark?: number;
-        assignment_mark?: number;
-        ca_mark?: number;
-        final_mark?: number;
-        comments: string
-    }) => Promise<Resolution>;
+    updateResolution: (id: number, data: CreateResolutionPayload) => Promise<Resolution>;
     createNotification: (data: CreateNotificationPayload) => Promise<Notification>;
     createAssignment: (data: CreateAssignmentPayload) => Promise<Assignment>;
     router: { push: (path: string) => void };
@@ -38,11 +31,11 @@ export interface AdminResolutionFormProps {
 const getAllowedFields = (categoryName: string): AllowedField[] => {
     switch (categoryName) {
         case 'No CA Mark':
-            return ['attendance_mark', 'assignment_mark', 'ca_mark'];
+            return ['attendance_mark', 'assignment_mark', 'ca_mark', 'final_mark'];
         case 'Missing Grade':
-            return ['attendance_mark', 'assignment_mark', 'final_mark'];
+            return ['attendance_mark', 'assignment_mark', 'final_mark', 'ca_mark'];
         case 'No Exam Mark':
-            return ['final_mark'];
+            return ['final_mark','attendance_mark', 'assignment_mark','ca_mark'];
         case 'Not Satisfied With Final Grade':
             return [];
         default:
@@ -54,7 +47,7 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
                                                                      selectedItem,
                                                                      user,
                                                                      allStaff,
-                                                                     adminOffice,
+                                                                     //adminOffice,
                                                                      existingResolution,
                                                                      createResolution,
                                                                      updateResolution,
@@ -88,7 +81,7 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
 
         try {
             if (formFilled) {
-                // Convert string values to numbers for allowed fields
+                // Convert formData to numeric fields
                 const numericFields: Partial<Record<AllowedField, number>> = {};
                 allowedFields.forEach((field) => {
                     const val = formData[field];
@@ -97,8 +90,9 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
                     }
                 });
 
-                const resolutionPayload = {
-                    resolved_by_id: user.id,
+                const resolutionPayload: CreateResolutionPayload = {
+                    complaint: selectedItem.id,         // ✅ changed from complaint_id
+                    resolved_by: user.id,               // ✅ changed from resolved_by_id
                     ...numericFields,
                     comments: message,
                 };
@@ -115,10 +109,7 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
                         )
                     );
                 } else {
-                    await createResolution({
-                        complaint_id: selectedItem.id,
-                        ...resolutionPayload,
-                    });
+                    await createResolution(resolutionPayload); // ✅ now sends correct shape
                 }
             }
 
@@ -170,6 +161,7 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
         }
     };
 
+
     return (
         <div className="mt-6 space-y-4">
             <button
@@ -211,16 +203,25 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
                     setSelectedStaffIds(selected);
                 }}
             >
-                {(allStaff ?? []).map((staff) => {
-                    const staffAdminProfile = staff.profiles?.find((p) => p.type === 'admin');
-                    const staffOffice = staffAdminProfile?.data?.office || adminOffice;
-                    const isRegistrar = staffOffice === 'Registrar Office';
-                    return (
-                        <option key={staff.id} value={staff.id} disabled={!formFilled && isRegistrar}>
-                            {staff.username} - {staff.role} - {staffOffice}
-                        </option>
-                    );
-                })}
+                {(allStaff ?? [])
+                    .filter((staff) => staff.id !== user?.id)
+                    .map((staff) => {
+                        const staffAdminProfile = staff.profiles?.find((p) => p.type === 'admin');
+                        const staffOfficeRaw = staffAdminProfile?.data?.office ?? '';
+                        const staffOffice = staffOfficeRaw.toLowerCase();
+                        const isRegistrar = staffOffice === 'registrar_office';
+
+                        return (
+                            <option
+                                key={staff.id}
+                                value={staff.id}
+                                disabled={!formFilled && isRegistrar}
+                            >
+                                {staff.username} - {staff.role} - {staffOfficeRaw || 'Unknown'}
+                            </option>
+                        );
+                    })
+                }
             </select>
 
             <button
