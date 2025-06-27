@@ -189,8 +189,13 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
                     allStaff={allStaff}
                     //adminOffice={adminOffice}
                     existingResolution={existingResolution}
+                    updateResolution={async (id, data) => {
+                        if (!selectedItem) {
+                            throw new Error("No complaint selected for resolution update.");
+                        }
+                        return updateResolution(id, { ...data, complaint: selectedItem.id });
+                    }}
                     createResolution={createResolution}
-                    updateResolution={updateResolution}
                     createNotification={createNotification}
                     createAssignment={createAssignment}
                     router={router}
