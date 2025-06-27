@@ -73,10 +73,14 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
 
 // 2. Registrar submit handler
     const handleRegistrarSubmit = async () => {
-        if (!selectedItem || !user) return;
+        if (!selectedItem || !user || !existingResolution) return;
         try {
             // Mark complaint as resolved
             await updateComp(selectedItem.id, { status: "RESOLVED" });
+            await updateResolution(existingResolution.id, {
+                is_reviewed: true
+            });
+
 
             // Notify all staff
             if (allStaff) {
