@@ -3,6 +3,7 @@ from django.contrib.admin.widgets import AdminFileWidget
 from django.contrib.auth import get_user_model
 
 from django.contrib.auth.admin import UserAdmin
+from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
@@ -141,6 +142,30 @@ class ResolutionAdmin(admin.ModelAdmin):
     list_filter = ['resolved_by', 'created_at', 'resolved_by']
     search_fields = ['comments', 'complaint__title']
     readonly_fields = ['created_at', 'updated_at']
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        complaint = obj.complaint
+        if complaint.status != Complaint.StatusChoices.RESOLVED:
+            complaint.status = Complaint.StatusChoices.RESOLVED
+            complaint.save(update_fields=['status'])
+
+            from core.models import Notification
+            # Notify assigned admins
+            assignments = complaint.complaintassignment_set.all()
+            for assignment in assignments:
+                Notification.objects.create(
+                    recipient=assignment.staff.user,
+                    message=f'Complaint "{complaint.title}" has been resolved.',
+                    created_at=timezone.now()
+                )
+            # Notify the student who filed the complaint
+            if complaint.student and complaint.student.user:
+                Notification.objects.create(
+                    recipient=complaint.student.user,
+                    message=f'Your complaint "{complaint.title}" has been resolved.',
+                    created_at=timezone.now()
+                )
 
 
 @admin.register(Reminder)
