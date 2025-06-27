@@ -9,7 +9,7 @@ import ComplaintsInsightsHeader from "@/Usercomponents/ComplaintsInsightsHeader"
 import StudentComplaintsCard from "@/Usercomponents/StudentComplaintsCard";
 import Footer from "@/Usercomponents/Footer";
 import { getBaseUrl } from "@/app/utils/getBaseUrl";
-import AnalyticPageContent from "@/Usercomponents/AnalyticPageContent";
+//import AnalyticPageContent from "@/Usercomponents/AnalyticPageContent";
 
 function Home() {
     return (
@@ -95,7 +95,6 @@ function Home() {
                 <StudentComplaintsCard />
             </section>
 
-            <AnalyticPageContent />
 
             {/* CTA Section */}
             <section className="py-12">
