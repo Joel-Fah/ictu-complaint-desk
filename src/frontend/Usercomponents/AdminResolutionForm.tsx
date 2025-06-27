@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {getCategory, updateComplaint} from '@/lib/api';
+import {getCategory, updateComp, updateComplaint} from '@/lib/api';
 import { toast } from 'sonner';
 import ToastNotification from '@/Usercomponents/ToastNotifications';
 import { User } from "@/types/user";
@@ -76,7 +76,7 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
         if (!selectedItem || !user) return;
         try {
             // Mark complaint as resolved
-            await updateComplaint({ id: selectedItem.id, status: "RESOLVED" });
+            await updateComp(selectedItem.id, { status: "RESOLVED" });
 
             // Notify all staff
             if (allStaff) {
