@@ -133,7 +133,7 @@ const LecturerResolutionForm: React.FC<LecturerResolutionFormProps> = ({
 
             await Promise.all(
                 selectedStaffIds.map(async (id) => {
-                    await createAssignment({ complaint_id: selectedItem.id, staff_id: id });
+                    await createAssignment({ complaint: selectedItem.id, staff: id });
                     await createNotification({ recipient_id: id, message });
                 })
             );

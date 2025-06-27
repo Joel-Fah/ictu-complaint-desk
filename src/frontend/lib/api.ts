@@ -10,8 +10,8 @@ import { CreateResolutionPayload, UpdateResolutionPayload, Resolution } from "@/
 // types/api.ts
 
 export interface CreateAssignmentPayload {
-    complaint_id: number;
-    staff_id: number;
+    complaint: number;
+    staff: number;
 }
 
 export interface Assignment {
@@ -249,6 +249,7 @@ export const updateComplaint = async (data: {
   semester?: string;
   course?: number;
   deadline?: string;
+  status?: string;
   description?: string;
   attachments?: File[];
 }) => {
@@ -257,6 +258,7 @@ export const updateComplaint = async (data: {
     deadline: data.deadline,
     semester: data.semester,
     course: data.course,
+    status: data.status,
     description: data.description,
     // attachments can be handled separately if using FormData
   });
@@ -301,13 +303,14 @@ export const createNotification = async (data: CreateNotificationPayload): Promi
     }
 };
 
+export const markNotificationAsRead = async (id: number | string) => (await api.post(`/notifications/${id}/mark_as_read/`)).data;
+export const getNotifications = async () => (await api.get("/notifications/")).data;
 
 {/**
- export const getNotifications = async () => (await api.get("/notifications/")).data;
  export const getNotification = async (id: number | string) => (await api.get(`/notifications/${id}/`)).data;
  export const updateNotification = async (id: number | string, data: any) => (await api.put(`/notifications/${id}/`, data)).data;
  export const patchNotification = async (id: number | string, data: any) => (await api.patch(`/notifications/${id}/`, data)).data;
- export const markNotificationAsRead = async (id: number | string) => (await api.post(`/notifications/${id}/mark_as_read/`)).data;
+
  **/}
 // ======= REMINDERS =======
 
@@ -410,6 +413,7 @@ export const getUserById = async (id: number | string): Promise<User> => {
 
 // ======== Assignments =======
 export const createAssignment = async (data: CreateAssignmentPayload): Promise<Assignment> => {
+    console.log("Sending assignment payload:", data); // 👈 Add this
     try {
         const response = await api.post("/assignments/", data);
         return response.data;
