@@ -44,10 +44,6 @@ class FacultyChoices(models.TextChoices):
     BMS = 'BMS', 'BMS'
     BOTH = 'BOTH', 'Both ICT and BMS'
 
-    @classmethod
-    def choices(cls):
-        return [(choice.name, choice.value) for choice in cls]
-
 
 class SemesterChoices(models.TextChoices):
     FALL = "Fall", "Fall"
