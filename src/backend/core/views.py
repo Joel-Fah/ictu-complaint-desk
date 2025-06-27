@@ -29,6 +29,9 @@ from .models import Category, Reminder, Notification, Resolution, Complaint, Att
 from .serializers import CategorySerializer, UserSerializer, ReminderSerializer, NotificationSerializer, \
     ResolutionSerializer, ComplaintSerializer, CourseSerializer, StudentProfileSerializer, ComplaintAssignmentSerializer
 
+import logging
+
+logger = logging.getLogger(__name__)
 # Create your views here.
 
 User = get_user_model()
@@ -267,6 +270,26 @@ class ComplaintDetailView(RetrieveUpdateDestroyAPIView):
             return self.queryset.filter(student=user).prefetch_related('attachments')
         return self.queryset.prefetch_related('attachments')
 
+    def update(self, request, *args, **kwargs):
+        logger.info(f"User {request.user} is updating complaint {kwargs.get('pk')}. Data: {request.data}")
+        try:
+            response = super().update(request, *args, **kwargs)
+            logger.info(f"Update successful. Response: {response.data}")
+            return response
+        except Exception as e:
+            logger.error(f"Error updating complaint: {e}", exc_info=True)
+            raise
+
+    def partial_update(self, request, *args, **kwargs):
+        logger.info(f"User {request.user} is partially updating complaint {kwargs.get('pk')}. Data: {request.data}")
+        try:
+            response = super().partial_update(request, *args, **kwargs)
+            logger.info(f"Partial update successful. Response: {response.data}")
+            return response
+        except Exception as e:
+            logger.error(f"Error in partial update: {e}", exc_info=True)
+            raise
+
 
 class ComplaintAssignmentListView(ListCreateAPIView):
     """
@@ -457,6 +480,15 @@ class ResolutionRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
     """
     queryset = Resolution.objects.all()
     serializer_class = ResolutionSerializer
+
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        user = request.user
+        if hasattr(user, 'adminprofile'):
+            instance.is_reviewed = True
+            instance.reviewed_by = user.adminprofile
+            instance.save()
+        return super().partial_update(request, *args, **kwargs)
 
 
 # Courses Views
