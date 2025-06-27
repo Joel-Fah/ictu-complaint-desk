@@ -103,32 +103,6 @@ const [semester, setSemester] = useState(complaint?.semester || '');
         setIsSubmitting(true);
 
         try {
-            // ✅ Step 1: Validate category with Gemini
-            const res = await fetch("/api/validateCategory", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    category: selectedCategory,
-                    description: formData.description,
-                }),
-            });
-
-            const validationResult = await res.json();
-
-            if (!validationResult.valid) {
-                toast.custom(t =>
-                    <ToastNotification
-                        type="warning"
-                        title="Possible Mismatch"
-                        subtitle={`The description may not match the category. Suggestion: "${validationResult.suggestion}"`}
-                        onClose={() => toast.dismiss(t)}
-                        showClose
-                    />, { duration: 5000 }
-                );
-
-                setIsSubmitting(false);
-                return;
-            }
 
             // ✅ Step 2: Proceed with update or creation
             if (complaint?.id) {

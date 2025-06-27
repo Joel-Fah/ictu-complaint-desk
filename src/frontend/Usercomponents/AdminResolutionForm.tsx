@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getCategory } from '@/lib/api';
+import {getCategory, updateComplaint} from '@/lib/api';
 import { toast } from 'sonner';
 import ToastNotification from '@/Usercomponents/ToastNotifications';
 import { User } from "@/types/user";
@@ -108,17 +108,29 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
                             })
                         )
                     );
+                    setFormData({});
                 } else {
                     await createResolution(resolutionPayload); // ✅ now sends correct shape
+                    setFormData({});
                 }
             }
 
             await Promise.all(
                 selectedStaffIds.map(async (id) => {
-                    await createAssignment({ complaint_id: selectedItem.id, staff_id: id });
-                    await createNotification({ recipient_id: id, message });
+                    try {
+                        console.log("Creating assignment for staff_id:", id);
+                        const assignment = await createAssignment({ complaint: selectedItem.id, staff: id });
+                        await updateComplaint({ id: selectedItem.id, status: "in progress" });
+                        console.log("Assignment success:", assignment);
+
+                        await createNotification({ recipient_id: id, message });
+                        setFormData({});
+                    } catch (err) {
+                        console.error("Failed to create assignment for staff_id:", id, err);
+                    }
                 })
             );
+
 
             if (typeof selectedItem.student === 'number') {
                 await createNotification({

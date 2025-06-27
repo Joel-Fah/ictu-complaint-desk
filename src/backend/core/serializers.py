@@ -103,18 +103,11 @@ class ComplaintSerializer(serializers.ModelSerializer):
 
 
 class ComplaintAssignmentSerializer(serializers.ModelSerializer):
-    complaint = serializers.PrimaryKeyRelatedField(
-        queryset=Complaint.objects.all(), write_only=True
-    )
+    complaint = ComplaintSerializer(read_only=True)
 
     class Meta:
         model = ComplaintAssignment
         fields = '__all__'
-
-    def to_representation(self, instance):
-        rep = super().to_representation(instance)
-        rep['complaint'] = ComplaintSerializer(instance.complaint).data
-        return rep
 
 
 class ReminderSerializer(serializers.ModelSerializer):
@@ -133,7 +126,8 @@ class NotificationSerializer(serializers.ModelSerializer):
 
 class ResolutionSerializer(serializers.ModelSerializer):
     resolved_by = serializers.PrimaryKeyRelatedField(queryset=AdminProfile.objects.all())
-    reviewed_by = serializers.PrimaryKeyRelatedField(queryset=AdminProfile.objects.all(), required=False, allow_null=True)
+    reviewed_by = serializers.PrimaryKeyRelatedField(queryset=AdminProfile.objects.all(), required=False,
+                                                     allow_null=True)
 
     class Meta:
         model = Resolution
@@ -143,13 +137,14 @@ class ResolutionSerializer(serializers.ModelSerializer):
         if data.get('is_reviewed') and data.get('reviewed_by'):
             admin_profile = data['reviewed_by']
             if (
-                admin_profile.user.role != UserRole.COMPLAINT_COORDINATOR
-                and admin_profile.office != OfficeChoices.REGISTRAR_OFFICE
+                    admin_profile.user.role != UserRole.COMPLAINT_COORDINATOR
+                    and admin_profile.office != OfficeChoices.REGISTRAR_OFFICE
             ):
                 raise serializers.ValidationError(
                     "Only Complaint Coordinators or Admins from the Registrar Office can review resolutions."
                 )
         return data
+
 
 # Courses Serializer
 class CourseSerializer(serializers.ModelSerializer):
