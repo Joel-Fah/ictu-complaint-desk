@@ -147,17 +147,17 @@ class ResolutionSerializer(serializers.ModelSerializer):
         model = Resolution
         fields = '__all__'
 
-    def validate(self, data):
-        if data.get('is_reviewed') and data.get('reviewed_by'):
-            admin_profile = data['reviewed_by']
-            if (
-                admin_profile.user.role != UserRole.COMPLAINT_COORDINATOR
-                and admin_profile.office != OfficeChoices.REGISTRAR_OFFICE
-            ):
-                raise serializers.ValidationError(
-                    "Only Complaint Coordinators or Admins from the Registrar Office can review resolutions."
-                )
-        return data
+    # def validate(self, data):
+    #     if data.get('is_reviewed') and data.get('reviewed_by'):
+    #         admin_profile = data['reviewed_by']
+    #         if (
+    #             admin_profile.user.role != UserRole.COMPLAINT_COORDINATOR
+    #             and admin_profile.office != OfficeChoices.REGISTRAR_OFFICE
+    #         ):
+    #             raise serializers.ValidationError(
+    #                 "Only Complaint Coordinators or Admins from the Registrar Office can review resolutions."
+    #             )
+    #     return data
 
 # Courses Serializer
 class CourseSerializer(serializers.ModelSerializer):
