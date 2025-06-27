@@ -98,6 +98,14 @@ class ComplaintSerializer(serializers.ModelSerializer):
         model = Complaint
         fields = '__all__'
         read_only_fields = ['student', 'created_at', 'updated_at']
+        extra_kwargs = {
+            'category': {'required': False, 'allow_null': True},
+            'semester': {'required': False, 'allow_null': True},
+            'course': {'required': False, 'allow_null': True},
+            'description': {'required': False, 'allow_blank': True, 'allow_null': True},
+            'deadline': {'required': False, 'allow_null': True},
+            'status': {'required': False},
+        }
 
     title = serializers.CharField(required=False, allow_blank=True)
 
