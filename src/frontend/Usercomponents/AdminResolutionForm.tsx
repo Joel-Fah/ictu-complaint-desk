@@ -162,7 +162,6 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
 
                 const resolutionPayload: CreateResolutionPayload = {
                     complaint: selectedItem.id,         // ✅ changed from complaint_id
-                    resolved_by: user.id,               // ✅ changed from resolved_by_id
                     ...numericFields,
                     comments: message,
                 };
