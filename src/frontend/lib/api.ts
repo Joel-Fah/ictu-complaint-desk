@@ -5,7 +5,7 @@ import {Category} from "@/types/category";
 import type { User } from "@/types/user";
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { validateCategoryWithGemini } from "@/app/utils/geminiValidator";
-import { CreateResolutionPayload, UpdateResolutionPayload, Resolution } from "@/types/resolution";
+import { CreateResolutionPayload, Resolution } from "@/types/resolution";
 
 // types/api.ts
 
@@ -339,7 +339,7 @@ export const createResolution = async (
 
 export const updateResolution = async (
     id: number,
-    data: UpdateResolutionPayload
+    data: CreateResolutionPayload
 ): Promise<Resolution> => {
     try {
         const response = await api.patch(`/resolutions/${id}/`, data);
