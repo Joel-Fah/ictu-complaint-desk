@@ -198,6 +198,10 @@ const ComplaintDetail: React.FC<ComplaintDetailProps> = ({ complaint, complaintC
                     })}
                 </div>
             )}
+            <div>
+                {resolution?.comments}
+            </div>
+
             {resolution && (
                 (effectiveRole === "student"
                         ? resolution.is_reviewed
