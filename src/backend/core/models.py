@@ -689,17 +689,17 @@ class Resolution(models.Model):
         blank=True
     )
 
-    def save(self, *args, **kwargs):
-        # Ensure `reviewed_by` is either a Complaint Coordinator or Registrar Office admin
-        if self.is_reviewed and self.reviewed_by:
-            if (
-                    self.reviewed_by.user.role != UserRole.COMPLAINT_COORDINATOR
-                    and self.reviewed_by.office != OfficeChoices.REGISTRAR_OFFICE
-            ):
-                raise ValidationError(
-                    "Only Complaint Coordinators or Admins from the Registrar Office can review resolutions."
-                )
-        super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     # Ensure `reviewed_by` is either a Complaint Coordinator or Registrar Office admin
+    #     if self.is_reviewed and self.reviewed_by:
+    #         if (
+    #                 self.reviewed_by.user.role != UserRole.COMPLAINT_COORDINATOR
+    #                 and self.reviewed_by.office != OfficeChoices.REGISTRAR_OFFICE
+    #         ):
+    #             raise ValidationError(
+    #                 "Only Complaint Coordinators or Admins from the Registrar Office can review resolutions."
+    #             )
+    #     super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Resolution for {self.complaint.title} by {self.resolved_by.user.username}"

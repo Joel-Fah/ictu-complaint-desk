@@ -243,6 +243,10 @@ export const createComplaint = async (
         throw error;
     }
 };
+
+export const updateComp = async (id: number, data: Partial<Complaint>) =>
+    (await api.patch(`/complaints/${id}/`, data)).data;
+
 export const updateComplaint = async (data: {
   id: number;
   category?: number | string;

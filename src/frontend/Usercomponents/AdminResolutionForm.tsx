@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {getCategory, updateComplaint} from '@/lib/api';
+import {getCategory, updateComp, updateComplaint} from '@/lib/api';
 import { toast } from 'sonner';
 import ToastNotification from '@/Usercomponents/ToastNotifications';
 import { User } from "@/types/user";
@@ -68,7 +68,7 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
     const isRegistrar = (() => {
         if (!user) return false;
         const adminProfile = user.profiles?.find((p) => p.type === 'admin');
-        return adminProfile?.data?.office?.toLowerCase() === 'registrar office';
+        return adminProfile?.data?.office?.toLowerCase() === 'registrar_office';
     })();
 
 // 2. Registrar submit handler
@@ -76,7 +76,7 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
         if (!selectedItem || !user) return;
         try {
             // Mark complaint as resolved
-            await updateComplaint({ id: selectedItem.id, status: "RESOLVED" });
+            await updateComp(selectedItem.id, { status: "RESOLVED" });
 
             // Notify all staff
             if (allStaff) {
@@ -156,9 +156,13 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
                 allowedFields.forEach((field) => {
                     const val = formData[field];
                     if (val !== undefined && val !== '') {
-                        numericFields[field] = Number(val);
+                        const num = Number(val);
+                        if (!Number.isNaN(num)) {
+                            numericFields[field] = num;
+                        }
                     }
                 });
+
 
                 const resolutionPayload: CreateResolutionPayload = {
                     complaint: selectedItem.id,         // ✅ changed from complaint_id
@@ -179,6 +183,7 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
                     );
                     setFormData({});
                 } else {
+                    console.log("Resolution payload", resolutionPayload);
                     await createResolution(resolutionPayload); // ✅ now sends correct shape
                     setFormData({});
                 }
