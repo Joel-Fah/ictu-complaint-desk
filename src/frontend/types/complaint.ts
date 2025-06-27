@@ -2,8 +2,8 @@ export interface Complaint {
     id: number;
     title: string;
     description: string;
-    status: 'Open' | 'In Progress' | 'Resolved' | 'Escalated' | 'Closed';
-    type: 'Private' | 'Community';
+    status: 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'ESCALATED';
+    type: 'PRIVATE' | 'COMMUNITY';
     is_anonymous: boolean;
     slug: string;
     category: string;
