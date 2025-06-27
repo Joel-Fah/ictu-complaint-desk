@@ -140,7 +140,7 @@ class NotificationSerializer(serializers.ModelSerializer):
 
 
 class ResolutionSerializer(serializers.ModelSerializer):
-    resolved_by = serializers.PrimaryKeyRelatedField(queryset=AdminProfile.objects.all())
+    resolved_by = serializers.PrimaryKeyRelatedField(read_only=True)
     reviewed_by = serializers.PrimaryKeyRelatedField(queryset=AdminProfile.objects.all(), required=False, allow_null=True)
 
     class Meta:
