@@ -4,12 +4,12 @@ import { usePathname } from "next/navigation";
 import React, {useEffect, useState} from "react";
 import Image from "next/image";
 import Link from "next/link";
-import Button from "@/Usercomponents/Button";
 import { useUserStore } from "@/stores/userStore";
 import MenuIcon from "/public/icons/menu-11.svg";
 import XIcon from "/public/icons/cancel-01.svg";
 import {logout} from "@/lib/auth";
 import { useFilterStore } from "@/stores/filterStore";
+import NotificationBell from "@/Usercomponents/NotificationBell";
 
 //community removed
 const navLinks = [
@@ -117,7 +117,7 @@ const NavbarDashboard = () => {
 
             {/* Right: Profile and Icons (Desktop) */}
             <div className="hidden sm:flex items-center space-x-[-30px]">
-                <Button
+                {/**<Button
                     onClick={() => {}}
                     width={"26px"}
                     leftImageSrc={"/icons/mail-02.svg"}
@@ -129,20 +129,8 @@ const NavbarDashboard = () => {
                     text={""}
                     border={"border-none"}
                 />
-
-                <Button
-                    onClick={() => {}}
-                    width={"26px"}
-                    leftImageSrc={"/icons/notification-03.svg"}
-                    leftImageAlt={"Notification Icon"}
-                    leftImageWidth={24}
-                    leftImageHeight={24}
-                    bgColor={"bg-transparent"}
-                    borderRadius={"rounded-full"}
-                    text={""}
-                    border={"border-none"}
-                    leftImageClassName={"mr-7"}
-                />
+                    /**/}
+                <NotificationBell />
 
                 {user?.picture && (
                     <div className="relative profile-dropdown">
@@ -174,7 +162,14 @@ const NavbarDashboard = () => {
                 )}
                 <div className="text-right">
                     <div className="text-primary-100 font-heading text-[18.77px] font-semibold">{user?.fullName ? user.fullName.split(" ").slice(0, 2).join(" ") : "User"}</div>
-                    <div className="text-primary-100 text-[9.38px] font-sans">{user?.role || "student"}</div>
+                    <div className="text-primary-100 text-[9.38px] font-sans">{user?.role || "student"}{user?.profiles && user.profiles.length > 0 && (
+                        (() => {
+                            const adminProfile = user.profiles.find((p) => p.type === "admin");
+                            return adminProfile?.data?.office
+                                ? ` • ${adminProfile.data.office}`
+                                : null;
+                        })()
+                    )}</div>
                 </div>
             </div>
 
@@ -216,7 +211,14 @@ const NavbarDashboard = () => {
                             <div className="font-medium text-sm truncate text-ellipsis">
                                 {user?.fullName ? user.fullName.split(" ").slice(0, 2).join(" ") : "User"}
                             </div>
-                            <div className="text-blue-200 text-xs">{user?.role || "Student"}</div>
+                            <div className="text-blue-200 text-xs">{user?.role || "Student"}{user?.profiles && user.profiles.length > 0 && (
+                                (() => {
+                                    const adminProfile = user.profiles.find((p) => p.type === "admin");
+                                    return adminProfile?.data?.office
+                                        ? ` • ${adminProfile.data.office}`
+                                        : null;
+                                })()
+                            )}</div>
                         </div>
                     </div>
                     {/* Mobile Logout Button */}
