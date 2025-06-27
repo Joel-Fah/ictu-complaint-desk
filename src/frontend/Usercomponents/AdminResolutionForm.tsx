@@ -76,7 +76,7 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
         if (!selectedItem || !user) return;
         try {
             // Mark complaint as resolved
-            await updateComp(selectedItem.id, { status: "RESOLVED" });
+            await updateComp(selectedItem.id, { status: "Resolved" });
 
             // Notify all staff
             if (allStaff) {
@@ -194,7 +194,7 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
                     try {
                         console.log("Creating assignment for staff_id:", id);
                         const assignment = await createAssignment({ complaint: selectedItem.id, staff: id });
-                        await updateComplaint({ id: selectedItem.id, status: "IN_PROGRESS" });
+                        await updateComplaint({ id: selectedItem.id, status: "In Progress" });
                         console.log("Assignment success:", assignment);
 
                         await createNotification({ recipient_id: id, message });
