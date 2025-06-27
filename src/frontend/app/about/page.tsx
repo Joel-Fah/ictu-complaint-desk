@@ -199,7 +199,7 @@ const TeamAboutUs = () => {
             {/* Overall Leaderboard */}
             <div className="flex justify-center mt-20 mb-6">
                 <Image
-                    src="/images/dummy.jpg"
+                    src="/images/grp-pic.jpg"
                     alt="Leaderboard Banner"
                     width={800}
                     height={200}

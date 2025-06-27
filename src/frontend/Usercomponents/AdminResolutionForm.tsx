@@ -68,7 +68,7 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
     const isRegistrar = (() => {
         if (!user) return false;
         const adminProfile = user.profiles?.find((p) => p.type === 'admin');
-        return adminProfile?.data?.office?.toLowerCase() === 'registrar office';
+        return adminProfile?.data?.office?.toLowerCase() === 'registrar_office';
     })();
 
 // 2. Registrar submit handler
