@@ -27,7 +27,6 @@ interface LecturerResolutionFormProps {
     existingResolution?: { id: number };
     createResolution: (data: CreateResolutionPayload) => Promise<Resolution>;
     updateResolution: (id: number, data: {
-        resolved_by: number;
         reviewed_by: number;
         is_reviewed: boolean;
         attendance_mark?: number;
