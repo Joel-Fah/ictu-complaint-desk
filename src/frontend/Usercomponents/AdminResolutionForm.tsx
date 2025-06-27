@@ -73,10 +73,13 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
 
 // 2. Registrar submit handler
     const handleRegistrarSubmit = async () => {
-        if (!selectedItem || !user) return;
+        if (!selectedItem || !user || !existingResolution) return;
         try {
             // Mark complaint as resolved
-            await updateComp(selectedItem.id, { status: "RESOLVED" });
+            await updateComp(selectedItem.id, { status: "Resolved" });
+            await updateResolution(existingResolution.id, {
+                is_reviewed: true
+            });
 
             // Notify all staff
             if (allStaff) {
@@ -194,7 +197,7 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
                     try {
                         console.log("Creating assignment for staff_id:", id);
                         const assignment = await createAssignment({ complaint: selectedItem.id, staff: id });
-                        await updateComplaint({ id: selectedItem.id, status: "IN_PROGRESS" });
+                        await updateComplaint({ id: selectedItem.id, status: "In Progress" });
                         console.log("Assignment success:", assignment);
 
                         await createNotification({ recipient_id: id, message });

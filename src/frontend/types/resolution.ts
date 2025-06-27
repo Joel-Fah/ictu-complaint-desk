@@ -10,7 +10,7 @@ export interface ResolutionBase {
 
 
 export interface CreateResolutionPayload extends ResolutionBase {
-    complaint: number;          // ✅ match backend field name
+    complaint?: number;          // ✅ match backend field name
 }
 export interface Resolution extends CreateResolutionPayload {
     id: number;
