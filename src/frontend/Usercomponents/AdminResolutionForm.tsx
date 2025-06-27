@@ -43,6 +43,7 @@ const getAllowedFields = (categoryName: string): AllowedField[] => {
     }
 };
 
+
 const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
                                                                      selectedItem,
                                                                      user,
@@ -61,6 +62,75 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
     const [selectedStaffIds, setSelectedStaffIds] = useState<number[]>([]);
     const [allowedFields, setAllowedFields] = useState<AllowedField[]>([]);
     const formFilled = allowedFields.every((field) => !!formData[field]);
+
+
+// 1. Helper to check if user is registrar
+    const isRegistrar = (() => {
+        if (!user) return false;
+        const adminProfile = user.profiles?.find((p) => p.type === 'admin');
+        return adminProfile?.data?.office?.toLowerCase() === 'registrar office';
+    })();
+
+// 2. Registrar submit handler
+    const handleRegistrarSubmit = async () => {
+        if (!selectedItem || !user) return;
+        try {
+            // Mark complaint as resolved
+            await updateComplaint({ id: selectedItem.id, status: "RESOLVED" });
+
+            // Notify all staff
+            if (allStaff) {
+                await Promise.all(
+                    allStaff.map((staff) =>
+                        createNotification({
+                            recipient_id: staff.id,
+                            message: `Complaint ${selectedItem.id} has been resolved by the Registrar's Office.`,
+                        })
+                    )
+                );
+            }
+
+            // Notify student
+            if (typeof selectedItem.student === 'number') {
+                await createNotification({
+                    recipient_id: selectedItem.student,
+                    message: "Your complaint has been resolved by the Registrar's Office.",
+                });
+            }
+
+            toast.custom(
+                (t) => (
+                    <ToastNotification
+                        type="success"
+                        title="Resolved!"
+                        subtitle="Complaint marked as resolved."
+                        onClose={() => toast.dismiss(t)}
+                        showClose
+                    />
+                ),
+                { duration: 2000 }
+            );
+
+            setTimeout(() => {
+                router.push('/dashboard');
+            }, 3000);
+        } catch (error) {
+            console.error("Registrar processing failed:", error);
+            toast.custom(
+                (t) => (
+                    <ToastNotification
+                        type="error"
+                        title="Something went wrong!"
+                        subtitle="Could not mark as resolved."
+                        onClose={() => toast.dismiss(t)}
+                        showClose
+                    />
+                ),
+                { duration: 2000 }
+            );
+        }
+    };
+
 
     useEffect(() => {
         const fetchCategory = async () => {
@@ -92,7 +162,6 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
 
                 const resolutionPayload: CreateResolutionPayload = {
                     complaint: selectedItem.id,         // ✅ changed from complaint_id
-                    resolved_by: user.id,               // ✅ changed from resolved_by_id
                     ...numericFields,
                     comments: message,
                 };
@@ -120,7 +189,7 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
                     try {
                         console.log("Creating assignment for staff_id:", id);
                         const assignment = await createAssignment({ complaint: selectedItem.id, staff: id });
-                        await updateComplaint({ id: selectedItem.id, status: "in progress" });
+                        await updateComplaint({ id: selectedItem.id, status: "IN_PROGRESS" });
                         console.log("Assignment success:", assignment);
 
                         await createNotification({ recipient_id: id, message });
@@ -238,9 +307,9 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
 
             <button
                 className="w-full bg-yellow-600 text-white rounded-lg py-2 font-medium hover:bg-yellow-700"
-                onClick={handleSubmit}
+                onClick={isRegistrar ? handleRegistrarSubmit : handleSubmit}
             >
-                Send
+                {isRegistrar ? "Mark as Resolved" : "Send"}
             </button>
         </div>
     );
