@@ -481,6 +481,15 @@ class ResolutionRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
     queryset = Resolution.objects.all()
     serializer_class = ResolutionSerializer
 
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        user = request.user
+        if hasattr(user, 'adminprofile'):
+            instance.is_reviewed = True
+            instance.reviewed_by = user.adminprofile
+            instance.save()
+        return super().partial_update(request, *args, **kwargs)
+
 
 # Courses Views
 class CourseListCreateView(ListCreateAPIView):
