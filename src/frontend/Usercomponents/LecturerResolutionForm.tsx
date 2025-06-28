@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getCategory } from "@/lib/api";
+import {getCategory, updateComp, updateComplaint} from "@/lib/api";
 import { toast } from "sonner";
 import ToastNotification from "@/Usercomponents/ToastNotifications";
 import { User } from "@/types/user";
@@ -7,7 +7,6 @@ import { Complaint } from "@/types/complaint";
 import { Resolution, CreateResolutionPayload } from "@/types/resolution";
 import {
     CreateAssignmentPayload,
-    CreateNotificationPayload,
     Assignment,
     Notification
 } from "@/lib/api";
@@ -24,19 +23,14 @@ interface LecturerResolutionFormProps {
     user: User |  null;
     allStaff: User[] | undefined;
     //adminOffice: string;
-    existingResolution?: { id: number };
+    existingResolution?: { id: number, is_reviewed: boolean };
     createResolution: (data: CreateResolutionPayload) => Promise<Resolution>;
-    updateResolution: (id: number, data: {
-        reviewed_by: number;
-        is_reviewed: boolean;
-        attendance_mark?: number;
-        assignment_mark?: number;
-        ca_mark?: number;
-        final_mark?: number;
-        comments: string
-    }) => Promise<Resolution>;
+    updateResolution: (id: number, data: CreateResolutionPayload) => Promise<Resolution>;
     createNotification: (
-        data: CreateNotificationPayload
+        data: {
+            recipient_id: number | undefined;
+            message: string;
+        }
     ) => Promise<Notification>;
     createAssignment: (data: CreateAssignmentPayload) => Promise<Assignment>;
     router: { push: (path: string) => void };
@@ -75,6 +69,8 @@ const LecturerResolutionForm: React.FC<LecturerResolutionFormProps> = ({
     const [selectedStaffIds, setSelectedStaffIds] = useState<number[]>([]);
     const [allowedFields, setAllowedFields] = useState<AllowedField[]>([]);
     const formFilled = allowedFields.every((field) => !!formData[field]);
+    const isResolved = selectedItem?.status === "Resolved";
+
 
     useEffect(() => {
         const fetchCategory = async () => {
@@ -98,50 +94,74 @@ const LecturerResolutionForm: React.FC<LecturerResolutionFormProps> = ({
                 const numericFields: Partial<Record<AllowedField, number>> = {};
                 allowedFields.forEach((field) => {
                     const val = formData[field];
-                    if (val !== undefined && val !== "") {
-                        numericFields[field] = Number(val);
+                    if (val !== undefined && val !== '') {
+                        const num = Number(val);
+                        if (!Number.isNaN(num)) {
+                            numericFields[field] = num;
+                        }
                     }
                 });
 
-                const resolutionPayload = {
-                    resolved_by: user.id,
-                    reviewed_by: user.id,
-                    is_reviewed: true,
+                const resolutionPayload: CreateResolutionPayload = {
+                    complaint: selectedItem.id,
                     ...numericFields,
-                    comments: message
+                    comments: message,
                 };
 
                 if (existingResolution) {
                     await updateResolution(existingResolution.id, resolutionPayload);
-                    const admins = (allStaff ?? []).filter((s) => s.role.toLowerCase() === "admin");
+                    const admins = (allStaff ?? []).filter((s) => s.role === 'Admin');
                     await Promise.all(
                         admins.map((admin) =>
                             createNotification({
                                 recipient_id: admin.id,
-                                message: `Lecturer updated resolution for complaint ${selectedItem.id}.`
+                                message: `Mr/Mrs/Engr./Dr. ${admin.fullName} updated resolution for complaint ${selectedItem.id}.`,
                             })
                         )
                     );
+                    setFormData({});
                 } else {
-                    await createResolution({
-                        complaint: selectedItem.id,
-                        ...resolutionPayload
-                    });
+                    await createResolution(resolutionPayload);
+                    const admins = (allStaff ?? []).filter((s) => s.role === 'Admin');
+                    await Promise.all(
+                        admins.map((admin) =>
+                            createNotification({
+                                recipient_id: admin.id,
+                                message: `Mr/Mrs/Engr./Dr. ${admin.fullName} provided a resolution for complaint ${selectedItem.id}. The complaint is now at the Registrar's Office for approval.`,
+                            })
+                        )
+                    );
+                    await createNotification({
+                        recipient_id: selectedItem.student,
+                        message: `Your complaint ${selectedItem.id} ${selectedItem.title} is currently at the Registrar's Office for approval. Please be patient.`,
+                    })
+                    await createNotification({
+                        recipient_id: user.id,
+                        message: `You provided a resolution for complaint ${selectedItem.id} ${selectedItem.title}. Good job!!.`,
+                    })
+                    setFormData({});
                 }
             }
 
             await Promise.all(
                 selectedStaffIds.map(async (id) => {
-                    await createAssignment({ complaint: selectedItem.id, staff: id });
-                    await createNotification({ recipient_id: id, message });
+                    try {
+                        await createAssignment({ complaint: selectedItem.id, staff: id });
+                        await updateComplaint({ id: selectedItem.id, status: "In Progress" });
+                        await createNotification({ recipient_id: id, message });
+                        setFormData({});
+                    } catch (err) {
+                        console.error("Failed to create assignment for staff_id:", id, err);
+                    }
                 })
             );
 
-            if (typeof selectedItem.student === "number") {
+            // Always notify the student
+            if (typeof selectedItem.student === 'number') {
                 await createNotification({
                     recipient_id: selectedItem.student,
                     message:
-                        "Your complaint is currently at the Registrar's Office awaiting approval before the resolution can be sent to you"
+                        `Your complaint with title ${selectedItem.title} is currently at the Faculty Level.`,
                 });
             }
 
@@ -159,10 +179,10 @@ const LecturerResolutionForm: React.FC<LecturerResolutionFormProps> = ({
             );
 
             setTimeout(() => {
-                router.push("/dashboard");
+                router.push('/dashboard');
             }, 3000);
         } catch (error) {
-            console.error("Lecturer processing failed:", error);
+            console.error("Admin processing failed:", error);
             toast.custom(
                 (t) => (
                     <ToastNotification
@@ -178,77 +198,170 @@ const LecturerResolutionForm: React.FC<LecturerResolutionFormProps> = ({
         }
     };
 
+    const isRegistrar = (() => {
+        if (!user) return false;
+        const adminProfile = user.profiles?.find((p) => p.type === 'admin');
+        return adminProfile?.data?.office?.toLowerCase() === 'registrar_office';
+    })();
+
+    const handleRegistrarSubmit = async () => {
+        if (!selectedItem || !user || !existingResolution) return;
+        try {
+            await updateComp(selectedItem.id, { status: "Resolved" });
+            await updateResolution(existingResolution.id, { is_reviewed: true });
+
+            if (allStaff) {
+                await Promise.all(
+                    allStaff.map((staff) =>
+                        createNotification({
+                            recipient_id: staff.id,
+                            message: `Complaint ${selectedItem.id} with title ${selectedItem.title} has been provided a resolution from ${staff.fullName}.`,
+                        })
+                    )
+                );
+            }
+
+            // Always notify the student
+            if (typeof selectedItem.student === 'number') {
+                await createNotification({
+                    recipient_id: selectedItem.student,
+                    message: `Your complaint ${selectedItem.title} with id ${selectedItem.id} has been resolved by the Registrar's Office.`,
+                });
+            }
+
+            toast.custom(
+                (t) => (
+                    <ToastNotification
+                        type="success"
+                        title="Resolved!"
+                        subtitle="Complaint marked as resolved."
+                        onClose={() => toast.dismiss(t)}
+                        showClose
+                    />
+                ),
+                { duration: 2000 }
+            );
+
+            setTimeout(() => {
+                router.push('/dashboard');
+            }, 3000);
+        } catch (error) {
+            console.error("Registrar processing failed:", error);
+            toast.custom(
+                (t) => (
+                    <ToastNotification
+                        type="error"
+                        title="Something went wrong!"
+                        subtitle="Could not mark as resolved."
+                        onClose={() => toast.dismiss(t)}
+                        showClose
+                    />
+                ),
+                { duration: 2000 }
+            );
+        }
+    };
+
+    useEffect(() => {
+        const fetchCategory = async () => {
+            if (selectedItem?.category) {
+                try {
+                    const category = await getCategory(selectedItem.category);
+                    setAllowedFields(getAllowedFields(category.name));
+                } catch {
+                    toast.error("Failed to load category information");
+                }
+            }
+        };
+        fetchCategory();
+    }, [selectedItem]);
+
+
     return (
         <div className="mt-6 space-y-4">
-            <button
-                className="w-full bg-primary-700 text-white rounded-lg py-2 font-medium"
-                onClick={() => setShowResolutionForm(!showResolutionForm)}
-            >
-                {showResolutionForm ? "Hide Resolution Form" : "Fill Resolution Form"}
-            </button>
+            {!isResolved && (
+                isRegistrar ? (
+                    <button
+                        className="w-full bg-success text-white rounded-lg py-2 font-medium hover:bg-green-700"
+                        onClick={handleRegistrarSubmit}
+                        disabled={!!existingResolution && existingResolution.is_reviewed}
+                    >
+                        Mark as Resolved
+                    </button>
+                ) : (
+                    <>
+                        <button
+                            className="w-full bg-primary-700 text-white rounded-lg py-2 font-medium"
+                            onClick={() => setShowResolutionForm(!showResolutionForm)}
+                        >
+                            {showResolutionForm ? "Hide Resolution Form" : "Fill Resolution Form"}
+                        </button>
 
-            {showResolutionForm && (
-                <>
-                    {(["attendance_mark", "assignment_mark", "ca_mark", "final_mark"] as AllowedField[]).map(
-                        (field) => (
-                            <input
-                                key={field}
-                                type="number"
-                                placeholder={field.replace("_", " ").replace(/\b\w/g, (l) => l.toUpperCase())}
-                                className="w-full border rounded-lg p-2 text-sm"
-                                value={formData[field] || ""}
-                                onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
-                                disabled={!allowedFields.includes(field)}
-                            />
-                        )
-                    )}
-                </>
+                        {showResolutionForm && (
+                            <>
+                                {(["attendance_mark", "assignment_mark", "ca_mark", "final_mark"] as AllowedField[]).map(
+                                    (field) => (
+                                        <input
+                                            key={field}
+                                            type="number"
+                                            placeholder={field.replace("_", " ").replace(/\b\w/g, (l) => l.toUpperCase())}
+                                            className="w-full border rounded-lg p-2 text-sm"
+                                            value={formData[field] || ""}
+                                            onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
+                                            disabled={!allowedFields.includes(field)}
+                                        />
+                                    )
+                                )}
+                            </>
+                        )}
+
+                        <textarea
+                            className="w-full border border-gray-300 rounded-lg p-2 text-sm"
+                            rows={3}
+                            placeholder="Enter a message or comment..."
+                            value={message}
+                            onChange={(e) => setMessage(e.target.value)}
+                        />
+
+                        <select
+                            multiple
+                            className="w-full border rounded-lg p-2 text-sm"
+                            onChange={(e) => {
+                                const selected = Array.from(e.target.selectedOptions).map((opt) => Number(opt.value));
+                                setSelectedStaffIds(selected);
+                            }}
+                        >
+                            {(allStaff ?? [])
+                                .filter((staff) => staff.id !== user?.id)
+                                .map((staff) => {
+                                    const staffAdminProfile = staff.profiles?.find((p) => p.type === "admin");
+                                    const staffOfficeRaw = staffAdminProfile?.data?.office ?? "";
+                                    const staffOffice = staffOfficeRaw.toLowerCase();
+                                    const isRegistrarStaff = staffOffice === "registrar_office";
+
+                                    return (
+                                        <option
+                                            key={staff.id}
+                                            value={staff.id}
+                                            disabled={!formFilled && isRegistrarStaff}
+                                        >
+                                            {staff.username} - {staff.role} - {staffOfficeRaw || "Unknown"}
+                                        </option>
+                                    );
+                                })}
+                        </select>
+
+                        <button
+                            className="w-full bg-primary-950 text-white rounded-lg py-2 font-medium hover:bg-primary-800"
+                            onClick={handleSubmit}
+                        >
+                            Send
+                        </button>
+                    </>
+                )
             )}
-
-            <textarea
-                className="w-full border border-gray-300 rounded-lg p-2 text-sm"
-                rows={3}
-                placeholder="Enter a message or comment..."
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-            />
-
-            <select
-                multiple
-                className="w-full border rounded-lg p-2 text-sm"
-                onChange={(e) => {
-                    const selected = Array.from(e.target.selectedOptions).map((opt) => Number(opt.value));
-                    setSelectedStaffIds(selected);
-                }}
-            >
-                {(allStaff ?? [])
-                    .filter((staff) => staff.id !== user?.id)
-                    .map((staff) => {
-                        const staffAdminProfile = staff.profiles?.find((p) => p.type === 'admin');
-                        const staffOfficeRaw = staffAdminProfile?.data?.office ?? '';
-                        const staffOffice = staffOfficeRaw.toLowerCase();
-                        const isRegistrar = staffOffice === 'registrar_office';
-
-                        return (
-                            <option
-                                key={staff.id}
-                                value={staff.id}
-                                disabled={!formFilled && isRegistrar}
-                            >
-                                {staff.username} - {staff.role} - {staffOfficeRaw || 'Unknown'}
-                            </option>
-                        );
-                    })
-                }
-            </select>
-
-            <button
-                className="w-full bg-green-600 text-white rounded-lg py-2 font-medium hover:bg-green-700"
-                onClick={handleSubmit}
-            >
-                Send
-            </button>
         </div>
+
     );
 };
 

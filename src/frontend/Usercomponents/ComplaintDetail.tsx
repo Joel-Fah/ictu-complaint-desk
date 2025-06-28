@@ -199,6 +199,9 @@ const ComplaintDetail: React.FC<ComplaintDetailProps> = ({ complaint, complaintC
                 </div>
             )}
             <div>
+                <h2 className="text-lg sm:text-xl font-heading text-greyColor font-medium">
+                    Resolution Message
+                </h2>
                 {resolution?.comments}
             </div>
 
