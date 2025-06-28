@@ -8,7 +8,7 @@ from django.dispatch import receiver
 from django.db.models.signals import post_save
 
 from core.models import StudentProfile, LecturerProfile, AdminProfile, Course, UserRole, Complaint, ComplaintAssignment, \
-    Category, OfficeChoices, FacultyChoices
+    Category, OfficeChoices, FacultyChoices, Resolution, Notification
 from core.utils import match_email_to_csv, get_current_year
 
 # Create your signals here.
@@ -102,6 +102,29 @@ def auto_assign_role_and_profile(sender, request, user, **kwargs):
 @receiver(post_save, sender=Complaint)
 def create_complaint_assignments(sender, instance, created, **kwargs):
     if created:
+        if instance.category.name == "Unsatisfied With Final Grade":
+            # Ensure System admin exists
+            system_user, _ = User.objects.get_or_create(
+                email="system@ictuniversity.edu.cm",
+                defaults={"username": "system", "role": UserRole.ADMIN}
+            )
+            system_admin, _ = AdminProfile.objects.get_or_create(user=system_user,
+                                                                 office=OfficeChoices.REGISTRAR_OFFICE,
+                                                                 function="System Admin.", faculty=FacultyChoices.BOTH)
+            instance.status = "Resolved"
+            instance.save(update_fields=["status"])
+            Resolution.objects.create(
+                complaint=instance,
+                comments="Visit the finance department and request for bank details for remarking your scripts then proceed.",
+                resolved_by=system_admin,
+                is_reviewed=True,
+                reviewed_by=system_admin,
+            )
+            Notification.objects.create(
+                recipient=instance.student,
+                message="Your complaint has been resolved. Please visit the finance department for further instructions."
+            )
+
         # Assign complaint to admins based on the category
         admins = instance.category.admins.all()
         for admin in admins:
