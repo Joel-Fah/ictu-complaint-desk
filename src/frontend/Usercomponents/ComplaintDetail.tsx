@@ -8,6 +8,7 @@ import { useUserStore } from "@/stores/userStore";
 import {Resolution} from "@/types/resolution";
 import { allResolutions } from "@/lib/api";
 
+
 interface ComplaintDetailProps {
     complaint: Complaint | null;
     isLoading?: boolean;
@@ -89,6 +90,16 @@ const ComplaintDetail: React.FC<ComplaintDetailProps> = ({ complaint, complaintC
             </div>
         );
     }
+
+// Compute whether to show the resolution block
+    const shouldShowResolution =
+        resolution &&
+        categoryName !== "Unsatisfied With Final Grade" &&
+        (
+            (effectiveRole === "student" && resolution.is_reviewed) ||
+            (effectiveRole === "admin" || effectiveRole === "lecturer")
+        );
+
 
     return (
         <div className="bg-white p-4 w-full max-w-4xl mx-auto space-y-6">
@@ -205,39 +216,35 @@ const ComplaintDetail: React.FC<ComplaintDetailProps> = ({ complaint, complaintC
                 {resolution?.comments}
             </div>
 
-            {resolution && (
-                (effectiveRole === "student"
-                        ? resolution.is_reviewed
-                        : effectiveRole === "admin" || effectiveRole === "lecturer"
-                ) && (
-                    <div className="space-y-2 mt-4">
-                        <h2 className="text-lg sm:text-xl font-heading text-greyColor font-medium">
-                            Resolution Information
-                        </h2>
-                        <div className="bg-gray-50 border rounded-lg p-4">
-                            {resolution.attendance_mark !== undefined && (
-                                <p>Attendance Mark: {resolution.attendance_mark}</p>
-                            )}
-                            {resolution.assignment_mark !== undefined && (
-                                <p>Assignment Mark: {resolution.assignment_mark}</p>
-                            )}
-                            {resolution.ca_mark !== undefined && (
-                                <p>CA Mark: {resolution.ca_mark}</p>
-                            )}
-                            {resolution.final_mark !== undefined && (
-                                <p>Final Mark: {resolution.final_mark}</p>
-                            )}
-                            {resolution.comments && (
-                                <p>Comments: {resolution.comments}</p>
-                            )}
-                            <p>
-                                Status:{" "}
-                                {resolution.is_reviewed ? "Reviewed" : "Pending Review"}
-                            </p>
-                        </div>
+            {shouldShowResolution && (
+                <div className="space-y-2 mt-4">
+                    <h2 className="text-lg sm:text-xl font-heading text-greyColor font-medium">
+                        Resolution Information
+                    </h2>
+                    <div className="bg-gray-50 border rounded-lg p-4">
+                        {resolution.attendance_mark !== undefined && (
+                            <p>Attendance Mark: {resolution.attendance_mark}</p>
+                        )}
+                        {resolution.assignment_mark !== undefined && (
+                            <p>Assignment Mark: {resolution.assignment_mark}</p>
+                        )}
+                        {resolution.ca_mark !== undefined && (
+                            <p>CA Mark: {resolution.ca_mark}</p>
+                        )}
+                        {resolution.final_mark !== undefined && (
+                            <p>Final Mark: {resolution.final_mark}</p>
+                        )}
+                        {resolution.comments && (
+                            <p>Comments: {resolution.comments}</p>
+                        )}
+                        <p>
+                            Status:{" "}
+                            {resolution.is_reviewed ? "Reviewed" : "Pending Review"}
+                        </p>
                     </div>
-                )
+                </div>
             )}
+
 
             <div className="pt-6 border-t border-gray-200 text-sm text-gray-500 flex flex-col sm:flex-row sm:justify-between gap-2">
         <span>
