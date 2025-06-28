@@ -39,7 +39,12 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
     const router = useRouter();
     const [message, setMessage] = useState("");
     const [resolutions, setResolutions] = useState<Resolution[]>([]);
-    const existingResolution = resolutions.find(res => res.complaint === selectedItem?.id);
+    const rawExistingResolution = resolutions.find(res => res.complaint === selectedItem?.id);
+
+// Ensure is_reviewed is always boolean (default to false if undefined)
+    const existingResolution = rawExistingResolution
+        ? { id: rawExistingResolution.id, is_reviewed: !!rawExistingResolution.is_reviewed }
+        : undefined;
 
     useEffect(() => {
         // Fetch resolutions on mount
