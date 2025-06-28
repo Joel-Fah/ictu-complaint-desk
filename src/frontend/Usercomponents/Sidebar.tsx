@@ -241,16 +241,18 @@ const ComplaintsUI = ({ onSelectItem, statusFilter }: ComplaintsUIProps) => {
                           </button>
                           {openMenuId === complaint.id && (
                               <div className="absolute right-0 mt-2 w-28 bg-white rounded shadow-lg z-30 flex flex-col">
-                                <button
-                                    className="px-4 py-2 text-left hover:bg-gray-100"
-                                    onClick={e => {
-                                      e.stopPropagation();
-                                      setOpenMenuId(null);
-                                      handleEdit(complaint.id);
-                                    }}
-                                >
-                                  Edit
-                                </button>
+                                {complaint.status !== 'Resolved' && (
+                                    <button
+                                        className="px-4 py-2 text-left hover:bg-gray-100"
+                                        onClick={e => {
+                                          e.stopPropagation();
+                                          setOpenMenuId(null);
+                                          handleEdit(complaint.id);
+                                        }}
+                                    >
+                                      Edit
+                                    </button>
+                                )}
                                 <button
                                     className="px-4 py-2 text-left hover:bg-gray-100 text-red-600"
                                     onClick={e => {

@@ -69,6 +69,8 @@ const LecturerResolutionForm: React.FC<LecturerResolutionFormProps> = ({
     const [selectedStaffIds, setSelectedStaffIds] = useState<number[]>([]);
     const [allowedFields, setAllowedFields] = useState<AllowedField[]>([]);
     const formFilled = allowedFields.every((field) => !!formData[field]);
+    const isResolved = selectedItem?.status === "Resolved";
+
 
     useEffect(() => {
         const fetchCategory = async () => {
@@ -277,8 +279,8 @@ const LecturerResolutionForm: React.FC<LecturerResolutionFormProps> = ({
 
     return (
         <div className="mt-6 space-y-4">
-            {isRegistrar ? (
-                <>
+            {!isResolved && (
+                isRegistrar ? (
                     <button
                         className="w-full bg-success text-white rounded-lg py-2 font-medium hover:bg-green-700"
                         onClick={handleRegistrarSubmit}
@@ -286,77 +288,77 @@ const LecturerResolutionForm: React.FC<LecturerResolutionFormProps> = ({
                     >
                         Mark as Resolved
                     </button>
-                </>
-            ) : (
-                <>
-                    <button
-                        className="w-full bg-primary-700 text-white rounded-lg py-2 font-medium"
-                        onClick={() => setShowResolutionForm(!showResolutionForm)}
-                    >
-                        {showResolutionForm ? "Hide Resolution Form" : "Fill Resolution Form"}
-                    </button>
+                ) : (
+                    <>
+                        <button
+                            className="w-full bg-primary-700 text-white rounded-lg py-2 font-medium"
+                            onClick={() => setShowResolutionForm(!showResolutionForm)}
+                        >
+                            {showResolutionForm ? "Hide Resolution Form" : "Fill Resolution Form"}
+                        </button>
 
-                    {showResolutionForm && (
-                        <>
-                            {(["attendance_mark", "assignment_mark", "ca_mark", "final_mark"] as AllowedField[]).map(
-                                (field) => (
-                                    <input
-                                        key={field}
-                                        type="number"
-                                        placeholder={field.replace("_", " ").replace(/\b\w/g, (l) => l.toUpperCase())}
-                                        className="w-full border rounded-lg p-2 text-sm"
-                                        value={formData[field] || ""}
-                                        onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
-                                        disabled={!allowedFields.includes(field)}
-                                    />
-                                )
-                            )}
-                        </>
-                    )}
+                        {showResolutionForm && (
+                            <>
+                                {(["attendance_mark", "assignment_mark", "ca_mark", "final_mark"] as AllowedField[]).map(
+                                    (field) => (
+                                        <input
+                                            key={field}
+                                            type="number"
+                                            placeholder={field.replace("_", " ").replace(/\b\w/g, (l) => l.toUpperCase())}
+                                            className="w-full border rounded-lg p-2 text-sm"
+                                            value={formData[field] || ""}
+                                            onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
+                                            disabled={!allowedFields.includes(field)}
+                                        />
+                                    )
+                                )}
+                            </>
+                        )}
 
-                    <textarea
-                        className="w-full border border-gray-300 rounded-lg p-2 text-sm"
-                        rows={3}
-                        placeholder="Enter a message or comment..."
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                    />
+                        <textarea
+                            className="w-full border border-gray-300 rounded-lg p-2 text-sm"
+                            rows={3}
+                            placeholder="Enter a message or comment..."
+                            value={message}
+                            onChange={(e) => setMessage(e.target.value)}
+                        />
 
-                    <select
-                        multiple
-                        className="w-full border rounded-lg p-2 text-sm"
-                        onChange={(e) => {
-                            const selected = Array.from(e.target.selectedOptions).map((opt) => Number(opt.value));
-                            setSelectedStaffIds(selected);
-                        }}
-                    >
-                        {(allStaff ?? [])
-                            .filter((staff) => staff.id !== user?.id)
-                            .map((staff) => {
-                                const staffAdminProfile = staff.profiles?.find((p) => p.type === "admin");
-                                const staffOfficeRaw = staffAdminProfile?.data?.office ?? "";
-                                const staffOffice = staffOfficeRaw.toLowerCase();
-                                const isRegistrarStaff = staffOffice === "registrar_office";
+                        <select
+                            multiple
+                            className="w-full border rounded-lg p-2 text-sm"
+                            onChange={(e) => {
+                                const selected = Array.from(e.target.selectedOptions).map((opt) => Number(opt.value));
+                                setSelectedStaffIds(selected);
+                            }}
+                        >
+                            {(allStaff ?? [])
+                                .filter((staff) => staff.id !== user?.id)
+                                .map((staff) => {
+                                    const staffAdminProfile = staff.profiles?.find((p) => p.type === "admin");
+                                    const staffOfficeRaw = staffAdminProfile?.data?.office ?? "";
+                                    const staffOffice = staffOfficeRaw.toLowerCase();
+                                    const isRegistrarStaff = staffOffice === "registrar_office";
 
-                                return (
-                                    <option
-                                        key={staff.id}
-                                        value={staff.id}
-                                        disabled={!formFilled && isRegistrarStaff}
-                                    >
-                                        {staff.username} - {staff.role} - {staffOfficeRaw || "Unknown"}
-                                    </option>
-                                );
-                            })}
-                    </select>
+                                    return (
+                                        <option
+                                            key={staff.id}
+                                            value={staff.id}
+                                            disabled={!formFilled && isRegistrarStaff}
+                                        >
+                                            {staff.username} - {staff.role} - {staffOfficeRaw || "Unknown"}
+                                        </option>
+                                    );
+                                })}
+                        </select>
 
-                    <button
-                        className="w-full bg-primary-950 text-white rounded-lg py-2 font-medium hover:bg-primary-800"
-                        onClick={handleSubmit}
-                    >
-                        Send
-                    </button>
-                </>
+                        <button
+                            className="w-full bg-primary-950 text-white rounded-lg py-2 font-medium hover:bg-primary-800"
+                            onClick={handleSubmit}
+                        >
+                            Send
+                        </button>
+                    </>
+                )
             )}
         </div>
 
