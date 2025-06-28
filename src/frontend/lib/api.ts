@@ -22,7 +22,7 @@ export interface Assignment {
 }
 
 export interface CreateNotificationPayload {
-    recipient_id: number;
+    recipient_id: number | undefined;
     message: string;
 }
 

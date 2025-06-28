@@ -6,48 +6,54 @@ import { useUserStore } from "@/stores/userStore";
 import { Notification } from "@/types/notifications";
 
 export default function NotificationBell() {
-    const [notifications, setNotifications] = useState([]);
+    const [notifications, setNotifications] = useState<Notification[]>([]);
     const [isOpen, setIsOpen] = useState(false);
-    const [hasUnread, setHasUnread] = useState(false);
     const user = useUserStore((state) => state.user);
 
-    // Initial load
+    // Load unread notifications on mount
     useEffect(() => {
-        const fetchNotifications = async () => {
-            if (!user) return;
+        if (!user) return;
+
+        const fetchUnread = async () => {
             const data = await getNotifications();
-            const unread = data.filter((n:Notification) => !n.is_read);
+            const unread = data.filter(
+                (n: Notification) => !n.is_read && n.recipient === user.id
+            );
             setNotifications(unread);
-            setHasUnread(unread.length > 0);
         };
-        fetchNotifications();
+
+        fetchUnread();
     }, [user]);
 
     const handleClick = async () => {
         if (!user) return;
 
         if (isOpen) {
-            // Closing: mark as read
-            await Promise.all(
-                notifications.map((n: Notification) => markNotificationAsRead(n.id))
+            // When closing: mark all as read
+            await Promise.allSettled(
+                notifications.map((n) => markNotificationAsRead(n.id))
             );
-            setHasUnread(false);
             setNotifications([]);
         } else {
-            // Opening: load unread
+            // When opening: fetch latest unread
             const data = await getNotifications();
-            const unread = data.filter((n: Notification) => !n.is_read && n.recipient === user.id);
+            const unread = data.filter(
+                (n: Notification) => !n.is_read && n.recipient === user.id
+            );
             setNotifications(unread);
-            setHasUnread(unread.length > 0);
         }
 
         setIsOpen(!isOpen);
     };
 
+    const unreadCount = notifications.length;
 
     return (
         <div className="relative mr-8">
-            <button onClick={handleClick} className="relative">
+            <button
+                onClick={handleClick}
+                className="relative focus:outline-none focus:ring-primary-500"
+            >
                 <Image
                     src="/icons/notification-03.svg"
                     alt="Notifications"
@@ -55,18 +61,23 @@ export default function NotificationBell() {
                     height={24}
                     className="mr-7"
                 />
-                {hasUnread && (
-                    <span className="absolute -top-0.5 right-7 block h-2 w-2 rounded-full bg-red-600"></span>
+                {unreadCount > 0 && (
+                    <span className="absolute -top-1 right-6 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-semibold leading-none text-white bg-red-600 rounded-full">
+            {unreadCount}
+          </span>
                 )}
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-80 bg-white text-black border border-gray-200 shadow-lg rounded-lg max-h-80 overflow-y-auto z-50">
-                    {notifications.length === 0 ? (
+                <div className="absolute right-0 mt-2 w-80 bg-white text-black border border-gray-200 shadow-xl rounded-lg max-h-80 overflow-y-auto z-50">
+                    {unreadCount === 0 ? (
                         <p className="p-4 text-sm text-gray-500">No new notifications.</p>
                     ) : (
-                        notifications.map((n:Notification) => (
-                            <div key={n.id} className="p-3 border-b last:border-none text-sm">
+                        notifications.map((n) => (
+                            <div
+                                key={n.id}
+                                className="p-3 border-b last:border-none text-sm hover:bg-gray-50 transition"
+                            >
                                 {n.message}
                             </div>
                         ))
