@@ -1,17 +1,15 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Sidebar from "@/Usercomponents/Sidebar";
 import ComplaintDetail from "@/Usercomponents/ComplaintDetail";
 import StatusCard from "@/Usercomponents/StatusCard";
 import { withAuth } from "@/lib/withAuth";
 import { Complaint } from "@/types/complaint";
-import { User } from "@/types/user";
-import { getAssignmentFromComplaint, getUserById, getAllStaff } from "@/lib/api";
-import type { Assignment } from "@/lib/api";
-import type { AssignedPerson } from "@/Usercomponents/StatusCard";
 import { useUserStore } from "@/stores/userStore";
+import {useComplaintAssignments} from "@/hooks/useComplaintAssignments";
+import {useAllStaff} from "@/hooks/useStaff";
 
 interface RolePanelProps {
     selectedItem: Complaint | null;
@@ -26,43 +24,24 @@ const RolePanel = ({
                        statusFilter,
                        isMobile,
                    }: RolePanelProps) => {
-    const [assignedTo, setAssignedTo] = useState<AssignedPerson[]>([]);
-    const [allStaff, setAllStaff] = useState<User[]>([]);
     const [selectedComplaintCount, setSelectedComplaintCount] = useState<number | null>(null);
 
     // 👇 Pull the activeRoleTab from the global store
     const activeRoleTab = useUserStore((s) => s.activeRoleTab);
 
-    useEffect(() => {
-        getAllStaff()
-            .then(setAllStaff)
-            .catch(() => setAllStaff([]));
-    }, []);
+    const { data: allStaff = [],
+        //isLoading,
+        //isError,
+        refetch
+    } = useAllStaff();
+    refetch();
 
-    useEffect(() => {
-        if (!selectedItem?.id) {
-            setAssignedTo([]);
-            return;
-        }
-
-        getAssignmentFromComplaint(selectedItem.id)
-            .then((assignments: Assignment[]) =>
-                Promise.all(
-                    assignments.map(async (a) => {
-                        const staff = await getUserById(a.staff);
-                        return {
-                            user: staff,
-                            fullName: `${staff.firstName} ${staff.lastName}`,
-                            picture: staff.picture || " ",
-                            role: staff.role || "Staff",
-                            complaintId: selectedItem.id,
-                        };
-                    })
-                )
-            )
-            .then(setAssignedTo)
-            .catch(() => setAssignedTo([]));
-    }, [selectedItem?.id]);
+    const {
+        data: assignedTo = [],
+        //isLoading: isLoadingAssignments,
+        //isError: isErrorAssignments,
+        //error: errorAssignments,
+    } = useComplaintAssignments(selectedItem?.id);
 
     const handleSelectItem = (item: Complaint | null, count?: number | null) => {
         setSelectedItem(item);

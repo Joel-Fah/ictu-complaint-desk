@@ -50,14 +50,14 @@ export function StudentMatriculeForm({ onSuccess }: { onSuccess?: () => void }) 
                 <input id="student_number"
                        value={studentNumber}
                        onChange={(e) => setStudentNumber(e.target.value)}
-                       placeholder="ICTU2023xxxx"
+                       placeholder="ICTU202Xxxxx"
                        className="bg-whiteColor"
                        maxLength={12}
                 />
             </div>
             <Button
                 type="submit"
-                className="bg-primary-800 text-whiteColor hover:bg-primary-400"
+                className="bg-primary-950 text-whiteColor hover:bg-primary-800"
                 disabled={loading}
             >
                 {loading ? "Saving..." : "Save changes"}

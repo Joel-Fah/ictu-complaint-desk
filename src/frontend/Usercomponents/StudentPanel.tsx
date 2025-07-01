@@ -1,19 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 
 import { Complaint } from "@/types/complaint";
-import { User } from "@/types/user";
-import type { AssignedPerson } from "@/Usercomponents/StatusCard";
 
 import Sidebar from "@/Usercomponents/Sidebar";
 import ComplaintDetail from "@/Usercomponents/ComplaintDetail";
 import StatusCard from "@/Usercomponents/StatusCard";
 
-import { getAssignmentFromComplaint, getUserById, getAllStaff } from "@/lib/api";
 import { useUserStore } from "@/stores/userStore";
 import { StudentMatriculeForm } from "./DrawerDialog";
+import {useComplaintAssignments} from "@/hooks/useComplaintAssignments";
+import {useAllStaff} from "@/hooks/useStaff";
 
 interface StudentPanelProps {
     selectedItem: Complaint | null;
@@ -38,40 +37,23 @@ const StudentPanel = ({
     const studentProfile = user?.profiles?.find((p) => p.type === "student");
     const studentNumber = studentProfile?.data?.student_number;
 
-    const [assignedTo, setAssignedTo] = useState<AssignedPerson[]>([]);
-    const [allStaff, setAllStaff] = useState<User[]>([]);
-
     // New state to track the display count of the selected complaint
     const [selectedComplaintCount, setSelectedComplaintCount] = useState<number | null>(null);
 
-    useEffect(() => {
-        getAllStaff().then(setAllStaff).catch(() => setAllStaff([]));
-    }, []);
+    const { data: allStaff = [],
+        //isLoading,
+        //isError,
+        refetch
+    } = useAllStaff();
+    refetch();
 
-    useEffect(() => {
-        if (!selectedItem?.id) {
-            setAssignedTo([]);
-            return;
-        }
+    const {
+        data: assignedTo = [],
+        //isLoading: isLoadingAssignments,
+        //isError: isErrorAssignments,
+        //error: errorAssignments,
+    } = useComplaintAssignments(selectedItem?.id);
 
-        getAssignmentFromComplaint(selectedItem.id)
-            .then((assignments) =>
-                Promise.all(
-                    assignments.map(async (a) => {
-                        const staff = await getUserById(a.staff);
-                        return {
-                            user: staff,
-                            fullName: `${staff.firstName} ${staff.lastName}`,
-                            picture: staff.picture || " ",
-                            role: staff.role || "Staff",
-                            complaintId: selectedItem.id,
-                        };
-                    })
-                )
-            )
-            .then(setAssignedTo)
-            .catch(() => setAssignedTo([]));
-    }, [selectedItem?.id]);
 
     // New handler to set both selected complaint and complaint count
     const handleSelectItem = (item: Complaint | null, count?: number | null) => {
@@ -140,12 +122,7 @@ const StudentPanel = ({
             )}
 
             {isStudent && !studentNumber && (
-                <div className="fixed mt-4 left-96 z-0 p-4 bg-secondary-100 border-l-4 border-secondary-500 text-primary-950 font-sans rounded">
-                    <p className="mb-2 font-medium">
-                        We need your student number to complete your profile.
-                    </p>
                     <StudentMatriculeForm onSuccess={() => user?.id && fetchUser(user.id)} />
-                </div>
             )}
         </>
     );

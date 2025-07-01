@@ -12,6 +12,7 @@ import { useFilterStore } from "@/stores/filterStore";
 import RolePanel from "@/Usercomponents/RolePanel";
 import StudentPanel from "@/Usercomponents/StudentPanel";
 import Button from "@/Usercomponents/Button";
+import NotificationBell from "@/Usercomponents/NotificationBell";
 
 function DashboardPage() {
     const user = useUserStore((state) => state.user);
@@ -104,6 +105,11 @@ function DashboardPage() {
 
     return (
         <section className='flex flex-col min-h-screen'>
+            {isMobile && (
+                <div className="bg-primary-950 p-4">
+                    <NotificationBell />
+                </div>
+            )}
             {/* Role Tabs */}
             {hasMultipleRoles && (
                 <div className="ml-0 md:ml-[380px] mt-2 w-full md:w-[800px] flex gap-2 md:gap-4 p-2 md:p-4 rounded-2xl z-[1] backdrop-blur-md border border-opacity-20 shadow-lg

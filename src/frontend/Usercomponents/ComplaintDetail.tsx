@@ -5,8 +5,7 @@ import { useCategoryStore } from "@/stores/categoryStore";
 import { getUserById } from "@/lib/api";
 import Image from "next/image";
 import { useUserStore } from "@/stores/userStore";
-import {Resolution} from "@/types/resolution";
-import { allResolutions } from "@/lib/api";
+import { useResolutions } from "@/hooks/useResolution";
 
 
 interface ComplaintDetailProps {
@@ -25,7 +24,11 @@ const ComplaintDetail: React.FC<ComplaintDetailProps> = ({ complaint, complaintC
     const { categories } = useCategoryStore();
     const [studentName, setStudentName] = useState("");
     const [studentNumber, setStudentNumber] = useState("");
-    const [resolution, setResolution] = useState<Resolution | null>(null);
+    const { data: allResolutions = [],
+        //isLoading,
+        //isError,
+        //error
+    } = useResolutions();
 
     const role = useUserStore((state) => state.role);
     const secondaryRole = useUserStore((state) => state.secondary_role);
@@ -62,19 +65,10 @@ const ComplaintDetail: React.FC<ComplaintDetailProps> = ({ complaint, complaintC
     }, [studentId]);
 
 
-    useEffect(() => {
-        if (!complaint) {
-            setResolution(null);
-            return;
-        }
-        // Fetch all resolutions and find the one for this complaint
-        allResolutions()
-            .then((resolutions) => {
-                const found = resolutions.find((r) => r.complaint === complaint.id);
-                setResolution(found || null);
-            })
-            .catch(() => setResolution(null));
-    }, [complaint]);
+    const resolution = useMemo(() => {
+        if (!complaint) return null;
+        return allResolutions.find((r) => r.complaint === complaint.id) || null;
+    }, [complaint, allResolutions]);
 
     const safeHtml = useMemo(() => {
         if (!complaint?.description) return null;

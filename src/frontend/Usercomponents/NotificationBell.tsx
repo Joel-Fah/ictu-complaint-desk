@@ -1,52 +1,44 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { getNotifications, markNotificationAsRead } from "@/lib/api";
 import { useUserStore } from "@/stores/userStore";
-import { Notification } from "@/types/notifications";
+import { useNotifications, useMarkNotificationAsRead } from "@/hooks/useNotifications";
+import {Notification} from "@/lib/api";
 
 export default function NotificationBell() {
-    const [notifications, setNotifications] = useState<Notification[]>([]);
     const [isOpen, setIsOpen] = useState(false);
     const user = useUserStore((state) => state.user);
+    const { data: allNotifications = [], refetch } = useNotifications(user?.id);
+    const markAsReadMutation = useMarkNotificationAsRead();
 
-    // Load unread notifications on mount
+    // Only show unread
+    const unread = allNotifications.filter((n:Notification) => !n.is_read);
+    const unreadCount = unread.length;
+
+    // Play a sound when there are new unread notifications
     useEffect(() => {
-        if (!user) return;
-
-        const fetchUnread = async () => {
-            const data = await getNotifications();
-            const unread = data.filter(
-                (n: Notification) => !n.is_read && n.recipient === user.id
-            );
-            setNotifications(unread);
-        };
-
-        fetchUnread();
-    }, [user]);
+        if (unreadCount > 0) {
+            const audio = new Audio("/sounds/notification.mp3");
+            audio.play().catch(() => {
+                // Ignore play errors (e.g., if user hasn't interacted yet)
+            });
+        }
+    }, [unreadCount]);
 
     const handleClick = async () => {
         if (!user) return;
 
         if (isOpen) {
             // When closing: mark all as read
-            await Promise.allSettled(
-                notifications.map((n) => markNotificationAsRead(n.id))
-            );
-            setNotifications([]);
+            await Promise.allSettled(unread.map((n:Notification) => markAsReadMutation.mutateAsync(n.id)));
+            await refetch();
         } else {
-            // When opening: fetch latest unread
-            const data = await getNotifications();
-            const unread = data.filter(
-                (n: Notification) => !n.is_read && n.recipient === user.id
-            );
-            setNotifications(unread);
+            // When opening: fetch latest
+            await refetch();
         }
 
         setIsOpen(!isOpen);
     };
-
-    const unreadCount = notifications.length;
 
     return (
         <div className="relative mr-8">
@@ -57,8 +49,8 @@ export default function NotificationBell() {
                 <Image
                     src="/icons/notification-03.svg"
                     alt="Notifications"
-                    width={24}
-                    height={24}
+                    width={32}
+                    height={32}
                     className="mr-7"
                 />
                 {unreadCount > 0 && (
@@ -73,7 +65,7 @@ export default function NotificationBell() {
                     {unreadCount === 0 ? (
                         <p className="p-4 text-sm text-gray-500">No new notifications.</p>
                     ) : (
-                        notifications.map((n) => (
+                        unread.map((n:Notification) => (
                             <div
                                 key={n.id}
                                 className="p-3 border-b last:border-none text-sm hover:bg-gray-50 transition"
