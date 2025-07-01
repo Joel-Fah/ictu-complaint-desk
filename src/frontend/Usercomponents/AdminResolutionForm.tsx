@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getCategory, updateComp, updateComplaint } from '@/lib/api';
+import { getCategory, updateComp } from '@/lib/api';
 import { toast } from 'sonner';
 import ToastNotification from '@/Usercomponents/ToastNotifications';
 import { User } from "@/types/user";
@@ -11,6 +11,7 @@ import {
     Assignment,
     Notification
 } from "@/lib/api";
+import {useUpdateComplaint} from "@/hooks/useUpdateComplaint";
 
 type AllowedField = 'attendance_mark' | 'assignment_mark' | 'ca_mark' | 'final_mark';
 type FormData = Partial<Record<AllowedField, string>>;
@@ -60,6 +61,7 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
     const [allowedFields, setAllowedFields] = useState<AllowedField[]>([]);
     const formFilled = allowedFields.every((field) => !!formData[field]);
     const isResolved = selectedItem?.status === "Resolved";
+    const updateComplaintMutation = useUpdateComplaint();
 
     const isRegistrar = (() => {
         if (!user) return false;
@@ -206,7 +208,7 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
                 selectedStaffIds.map(async (id) => {
                     try {
                         await createAssignment({ complaint: selectedItem.id, staff: id });
-                        await updateComplaint({
+                        await updateComplaintMutation.mutateAsync({
                             id: selectedItem.id,
                             status: "In Progress",
                         });
