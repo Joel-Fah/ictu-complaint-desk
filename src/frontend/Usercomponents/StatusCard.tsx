@@ -1,6 +1,5 @@
 import React, {useEffect, useState} from "react";
 import Image from "next/image";
-import {createAssignment, createNotification, createResolution, updateResolution, allResolutions} from "@/lib/api";
 import {toast} from "sonner";
 import ToastNotification from "@/Usercomponents/ToastNotifications";
 import {Complaint} from "@/types/complaint";
@@ -8,10 +7,14 @@ import {useUserStore} from "@/stores/userStore";
 import {User} from "@/types/user";
 import {useRouter} from "next/navigation";
 import { useCategoryStore } from "@/stores/categoryStore";
-import type { Resolution } from "@/types/resolution";
 import AdminResolutionForm from "@/Usercomponents/AdminResolutionForm";
 import LecturerResolutionForm from "@/Usercomponents/LecturerResolutionForm";
 import {useUpdateComplaint} from "@/hooks/useUpdateComplaint";
+import {useCreateAssignment} from "@/hooks/useCreateAssignment";
+import {useResolutions} from "@/hooks/useResolution";
+import {useCreateResolution} from "@/hooks/useCreateResolution";
+import {useUpdateResolution} from "@/hooks/useUpdateResolution";
+import { useCreateNotification } from "@/hooks/useCreateNotification";
 
 export interface AssignedPerson {
     user: User;
@@ -39,19 +42,25 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
     const [selectedCategory, setSelectedCategory] = useState<number>(Number(selectedItem?.category)); // pull from selectedItem.category
     const router = useRouter();
     const [message, setMessage] = useState("");
-    const [resolutions, setResolutions] = useState<Resolution[]>([]);
-    const rawExistingResolution = resolutions.find(res => res.complaint === selectedItem?.id);
     const updateComplaintMutation = useUpdateComplaint();
+    const createAssignmentMutation = useCreateAssignment();
+    const createResolutionMutation = useCreateResolution();
+    const updateResolutionMutation = useUpdateResolution();
+    const createNotificationMutation = useCreateNotification();
 
-// Ensure is_reviewed is always boolean (default to false if undefined)
+    const { data: resolutions = [],
+        //isLoading,
+        //isError,
+        //error
+    } = useResolutions();
+
+    const rawExistingResolution = resolutions.find(res => res.complaint === selectedItem?.id);
+
+    // Ensure is_reviewed is always boolean (default to false if undefined)
     const existingResolution = rawExistingResolution
         ? { id: rawExistingResolution.id, is_reviewed: !!rawExistingResolution.is_reviewed }
         : undefined;
 
-    useEffect(() => {
-        // Fetch resolutions on mount
-        allResolutions().then((data: Resolution[]) => setResolutions(data));
-    }, []);
 
     useEffect(() => {
         fetchCategories();
@@ -82,7 +91,7 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
 
             // Example for sending notification to student
             if (typeof selectedItem.student === "number") {
-                await createNotification({
+                await createNotificationMutation.mutateAsync({
                     recipient_id: selectedItem.student,
                     message: "The complaint coordinator update the category and/or deadline of your complaint to better suit fast resolution"
                 });
@@ -197,14 +206,24 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
                     //adminOffice={adminOffice}
                     existingResolution={existingResolution}
                     updateResolution={async (id, data) => {
-                        if (!selectedItem) {
-                            throw new Error("No complaint selected for resolution update.");
-                        }
-                        return updateResolution(id, { ...data, complaint: selectedItem.id });
+                        if (!selectedItem) throw new Error("No complaint selected.");
+                        return updateResolutionMutation.mutateAsync({
+                            id,
+                            data: {
+                                ...data,
+                                complaint: selectedItem.id,
+                            },
+                        });
                     }}
-                    createResolution={createResolution}
-                    createNotification={createNotification}
-                    createAssignment={createAssignment}
+                    createResolution={async (data) => {
+                        if (!selectedItem) throw new Error("No complaint selected.");
+                        return createResolutionMutation.mutateAsync({
+                            ...data,
+                            complaint: selectedItem.id,
+                        });
+                    }}
+                    createNotification={async (data) => createNotificationMutation.mutateAsync(data)}
+                    createAssignment={async (data) => createAssignmentMutation.mutateAsync(data)}
                     router={router}
                 />
             )}
@@ -260,10 +279,25 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
                     allStaff={allStaff}
                     //adminOffice={adminOffice}
                     existingResolution={existingResolution}
-                    createResolution={createResolution}
-                    updateResolution={updateResolution}
-                    createNotification={createNotification}
-                    createAssignment={createAssignment}
+                    createResolution={async (data) => {
+                        if (!selectedItem) throw new Error("No complaint selected.");
+                        return createResolutionMutation.mutateAsync({
+                            ...data,
+                            complaint: selectedItem.id,
+                        });
+                    }}
+                    updateResolution={async (id, data) => {
+                        if (!selectedItem) throw new Error("No complaint selected.");
+                        return updateResolutionMutation.mutateAsync({
+                            id,
+                            data: {
+                                ...data,
+                                complaint: selectedItem.id,
+                            },
+                        });
+                    }}
+                    createNotification={async (data) => createNotificationMutation.mutateAsync(data)}
+                    createAssignment={async (data) => createAssignmentMutation.mutateAsync(data)}
                     router={router}
                 />
             )}
