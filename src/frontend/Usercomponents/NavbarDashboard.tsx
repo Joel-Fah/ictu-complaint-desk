@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import React, {useEffect, useState} from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useUserStore } from "@/stores/userStore";
+import { useUser } from "@/hooks/useUser";
 import MenuIcon from "/public/icons/menu-11.svg";
 import XIcon from "/public/icons/cancel-01.svg";
 import {logout} from "@/lib/auth";
@@ -23,8 +23,9 @@ const NavbarDashboard = () => {
     const pathname = usePathname();
     const [menuOpen, setMenuOpen] = useState(false);
     const toggleMenu = () => setMenuOpen((prev) => !prev);
-    const user = useUserStore((state) => state.user);
     const [dropdownOpen, setDropdownOpen] = useState(false);
+
+    const { data: user, isLoading, isError } = useUser();
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -40,9 +41,23 @@ const NavbarDashboard = () => {
         };
     }, []);
 
-
-
     const isActive = (href: string) => pathname === href;
+
+    if (isLoading || !user ) {
+        return (
+            <nav className="sticky top-0 left-0 right-0 z-20 bg-primary-950 h-[72px] flex items-center justify-center text-white w-full">
+                <p>Loading...</p>
+            </nav>
+        );
+    }
+
+    if (isError) {
+        return (
+            <nav className="sticky top-0 left-0 right-0 z-20 bg-primary-950 h-[72px] flex items-center justify-center text-white w-full">
+                <p>Error loading user.</p>
+            </nav>
+        );
+    }
 
     return (
         <nav className="sticky top-0 left-0 right-0 z-20 bg-primary-950 h-[72px] px-6 py-4 flex items-center justify-between text-white w-full">

@@ -7,8 +7,6 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { validateCategoryWithGemini } from "@/app/utils/geminiValidator";
 import { CreateResolutionPayload, Resolution } from "@/types/resolution";
 
-// types/api.ts
-
 export interface CreateAssignmentPayload {
     complaint: number;
     staff: number;
@@ -18,7 +16,7 @@ export interface Assignment {
     id: number;
     complaint_id: number;
     staff_id: number;
-    assigned_at: string; // adjust if you know the exact shape
+    assigned_at: string;
 }
 
 export interface CreateNotificationPayload {
@@ -30,7 +28,9 @@ export interface Notification {
     id: number;
     recipient_id: number;
     message: string;
-    timestamp: string; // or updated_at / created_at
+    is_read: boolean;
+    created_at: string;
+    updated_at: string;// or updated_at / created_at
 }
 
 
@@ -136,7 +136,7 @@ export const getCategory = async (id: number | string): Promise<Category> =>
 
  **/}
 // ======= COMPLAINTS =======
-// lib/api.ts
+
 
 export const getComplaints = async (
   page: number = 1,
@@ -156,7 +156,7 @@ export const getComplaints = async (
   }
 };
 
-export const getComplaintsByUser = async (userId: number): Promise<Complaint[]> => {
+export const getComplaintsByUser = async (userId: number | undefined): Promise<Complaint[]> => {
     try {
         const response = await api.get<ComplaintResponse>(`/complaints/?userId=${userId}`);
         return response.data.results;
@@ -165,7 +165,7 @@ export const getComplaintsByUser = async (userId: number): Promise<Complaint[]> 
         throw new Error("Failed to fetch user complaints");
     }
 };
-export const getComplaintsAssigned = async (userId: number): Promise<Assignment[]> => {
+export const getComplaintsAssigned = async (userId: number | undefined): Promise<Assignment[]> => {
     try {
         const response = await api.get<Assignment[]>(`/assignments/?userId=${userId}`);
         console.log("Raw assignment response:", response.data);

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getCategory, updateComp, updateComplaint } from '@/lib/api';
+import { getCategory } from '@/lib/api';
 import { toast } from 'sonner';
 import ToastNotification from '@/Usercomponents/ToastNotifications';
 import { User } from "@/types/user";
@@ -11,6 +11,7 @@ import {
     Assignment,
     Notification
 } from "@/lib/api";
+import {useUpdateComp, useUpdateComplaint} from "@/hooks/useUpdateComplaint";
 
 type AllowedField = 'attendance_mark' | 'assignment_mark' | 'ca_mark' | 'final_mark';
 type FormData = Partial<Record<AllowedField, string>>;
@@ -51,15 +52,57 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
                                                                      updateResolution,
                                                                      createNotification,
                                                                      createAssignment,
-                                                                     router,
                                                                  }) => {
     const [showResolutionForm, setShowResolutionForm] = useState(false);
     const [formData, setFormData] = useState<FormData>({});
     const [message, setMessage] = useState('');
     const [selectedStaffIds, setSelectedStaffIds] = useState<number[]>([]);
     const [allowedFields, setAllowedFields] = useState<AllowedField[]>([]);
-    const formFilled = allowedFields.every((field) => !!formData[field]);
+    const formFilled = allowedFields.every((field) => {
+        const val = formData[field];
+        return val !== undefined && val !== "";
+    });
     const isResolved = selectedItem?.status === "Resolved";
+    const updateComplaintMutation = useUpdateComplaint();
+    const updateCompMutation = useUpdateComp();
+    const [errors, setErrors] = useState<{ [key in AllowedField]?: string }>({});
+
+    const hasValidationErrors = Object.values(errors).some((v) => v !== undefined);
+    const requiredFieldsFilled = allowedFields.every(
+        (field) => formData[field] !== undefined && formData[field] !== ""
+    );
+
+    const markRanges: Record<AllowedField, [number, number]> = {
+        attendance_mark: [0, 10],
+        assignment_mark: [0, 20],
+        ca_mark: [0, 30],
+        final_mark: [0, 70],
+    };
+
+    const handleMarkChange = (field: AllowedField, value: string) => {
+        const num = parseFloat(value);
+
+        if (value === "") {
+            setFormData({ ...formData, [field]: "" });
+            setErrors((prev) => ({ ...prev, [field]: undefined }));
+            return;
+        }
+
+        if (isNaN(num)) {
+            setErrors((prev) => ({ ...prev, [field]: "Must be a valid number" }));
+            return;
+        }
+
+        const [min, max] = markRanges[field];
+        if (num < min || num > max) {
+            setErrors((prev) => ({ ...prev, [field]: `Must be between ${min} and ${max}` }));
+            return;
+        }
+
+        setErrors((prev) => ({ ...prev, [field]: undefined }));
+        setFormData({ ...formData, [field]: num });
+    };
+
 
     const isRegistrar = (() => {
         if (!user) return false;
@@ -70,7 +113,7 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
     const handleRegistrarSubmit = async () => {
         if (!selectedItem || !user || !existingResolution) return;
         try {
-            await updateComp(selectedItem.id, { status: "Resolved" });
+            await updateCompMutation.mutateAsync({data: {status: "Resolved"}, id: selectedItem.id });
             await updateResolution(existingResolution.id, { is_reviewed: true });
 
             if (allStaff) {
@@ -106,7 +149,7 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
             );
 
             setTimeout(() => {
-                router.push('/dashboard');
+                //router.push('/dashboard');
             }, 3000);
         } catch (error) {
             console.error("Registrar processing failed:", error);
@@ -142,17 +185,42 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
     const handleSubmit = async () => {
         if (!message.trim() || !selectedItem || !user) return;
 
+        // Validate all fields before submit
+        const invalidFields: string[] = [];
+        allowedFields.forEach((field) => {
+            const val = formData[field];
+            if (val === undefined || val === "") {
+                invalidFields.push(`${field.replace("_", " ")} is required.`);
+            } else {
+                const num = Number(val);
+                const [min, max] = markRanges[field];
+                if (isNaN(num) || num < min || num > max) {
+                    invalidFields.push(`${field.replace("_", " ")} must be between ${min} and ${max}.`);
+                }
+            }
+        });
+
+        if (invalidFields.length > 0) {
+            toast.custom(
+                (t) => (
+                    <ToastNotification
+                        type="error"
+                        title="Validation Error!"
+                        subtitle={`Please fix the following:\n\n${invalidFields.join("\n")}`}
+                        onClose={() => toast.dismiss(t)}
+                        showClose
+                    />
+                ),
+                { duration: 4000 }
+            );
+            return;
+        }
+
         try {
             if (formFilled) {
                 const numericFields: Partial<Record<AllowedField, number>> = {};
                 allowedFields.forEach((field) => {
-                    const val = formData[field];
-                    if (val !== undefined && val !== "") {
-                        const num = Number(val);
-                        if (!Number.isNaN(num)) {
-                            numericFields[field] = num;
-                        }
-                    }
+                    numericFields[field] = Number(formData[field]);
                 });
 
                 const resolutionPayload: CreateResolutionPayload = {
@@ -179,6 +247,8 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
                     );
 
                     setFormData({});
+                    setMessage("");
+                    setSelectedStaffIds([]);
                 } else {
                     await createResolution(resolutionPayload);
 
@@ -199,6 +269,8 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
                     ]);
 
                     setFormData({});
+                    setMessage("");
+                    setSelectedStaffIds([]);
                 }
             }
 
@@ -206,7 +278,7 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
                 selectedStaffIds.map(async (id) => {
                     try {
                         await createAssignment({ complaint: selectedItem.id, staff: id });
-                        await updateComplaint({
+                        await updateComplaintMutation.mutateAsync({
                             id: selectedItem.id,
                             status: "In Progress",
                         });
@@ -215,6 +287,8 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
                             message,
                         });
                         setFormData({});
+                        setMessage("");
+                        setSelectedStaffIds([]);
                     } catch (err) {
                         console.error("Failed to create assignment for staff_id:", id, err);
                     }
@@ -238,11 +312,11 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
                         showClose
                     />
                 ),
-                { duration: 2000 }
+                { duration: 3000 }
             );
 
             setTimeout(() => {
-                router.push("/dashboard");
+                //router.push("/dashboard");
             }, 3000);
         } catch (error) {
             console.error("Admin processing failed:", error);
@@ -261,45 +335,44 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
         }
     };
 
-
     return (
         <div className="mt-6 space-y-4">
             {!isResolved && (
                 <>
                     {!isRegistrar && (
                         <>
-                            <button
-                                className="w-full bg-primary-700 text-white rounded-lg py-2 font-medium"
-                                onClick={() => setShowResolutionForm(!showResolutionForm)}
-                            >
-                                {showResolutionForm ? "Hide Resolution Form" : "Fill Resolution Form"}
-                            </button>
+                            {!existingResolution && (
+                                <button
+                                    className="w-full bg-primary-700 text-white rounded-lg py-2 font-medium"
+                                    onClick={() => setShowResolutionForm(!showResolutionForm)}
+                                >
+                                    {showResolutionForm ? "Hide Resolution Form" : "Fill Resolution Form"}
+                                </button>
+                            )}
 
                             {showResolutionForm && (
                                 <>
                                     {(
                                         ["attendance_mark", "assignment_mark", "ca_mark", "final_mark"] as AllowedField[]
                                     ).map((field) => (
-                                        <input
-                                            key={field}
-                                            type="number"
-                                            placeholder={field.replace("_", " ").replace(/\b\w/g, (l) => l.toUpperCase())}
-                                            className="w-full border rounded-lg p-2 text-sm"
-                                            value={formData[field] || ""}
-                                            onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
-                                            disabled={!allowedFields.includes(field)}
-                                        />
+                                        <div key={field} className="mb-2">
+                                            <input
+                                                type="number"
+                                                placeholder={field.replace("_", " ").replace(/\b\w/g, (l) => l.toUpperCase())}
+                                                className={`w-full border rounded-lg p-2 text-sm ${
+                                                    errors[field] ? "border-red-500" : "border-gray-300"
+                                                }`}
+                                                value={formData[field] ?? ""}
+                                                onChange={(e) => handleMarkChange(field, e.target.value)}
+                                                disabled={!allowedFields.includes(field)}
+                                            />
+                                            {errors[field] && (
+                                                <p className="text-red-500 text-xs mt-1">{errors[field]}</p>
+                                            )}
+                                        </div>
                                     ))}
                                 </>
                             )}
-
-                            <textarea
-                                className="w-full border border-gray-300 rounded-lg p-2 text-sm"
-                                rows={3}
-                                placeholder="Enter a message..."
-                                value={message}
-                                onChange={(e) => setMessage(e.target.value)}
-                            />
 
                             <select
                                 multiple
@@ -310,7 +383,7 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
                                 }}
                             >
                                 {(allStaff ?? [])
-                                    .filter((staff) => staff.id !== user?.id)
+                                    .filter((staff) => staff.id !== user?.id || staff.username !== "system")
                                     .map((staff) => {
                                         const staffAdminProfile = staff.profiles?.find((p) => p.type === "admin");
                                         const staffOfficeRaw = staffAdminProfile?.data?.office ?? "";
@@ -328,25 +401,39 @@ const AdminResolutionForm: React.FC<AdminResolutionFormProps> = ({
                                         );
                                     })}
                             </select>
+
+                            <textarea
+                                className="w-full border border-gray-300 rounded-lg p-2 text-sm"
+                                rows={3}
+                                placeholder="Enter a message..."
+                                value={message}
+                                onChange={(e) => setMessage(e.target.value)}
+                            />
+
+                            <button
+                                className="w-full bg-primary-950 text-white rounded-lg py-2 font-medium hover:bg-primary-800"
+                                onClick={handleSubmit}
+                                disabled={hasValidationErrors || !requiredFieldsFilled}
+                            >
+                                Send
+                            </button>
                         </>
                     )}
 
-                    <button
-                        className={
-                            isRegistrar
-                                ? "w-full bg-success text-white rounded-lg py-2 font-medium hover:bg-green-700"
-                                : "w-full bg-primary-950 text-white rounded-lg py-2 font-medium hover:bg-primary-800"
-                        }
-                        onClick={isRegistrar ? handleRegistrarSubmit : handleSubmit}
-                        disabled={isRegistrar && !!existingResolution && existingResolution.is_reviewed}
-                    >
-                        {isRegistrar ? "Mark as Resolved" : "Send"}
-                    </button>
+                    {isRegistrar && (
+                        <button
+                            className="w-full bg-success text-white rounded-lg py-2 font-medium hover:bg-green-700"
+                            onClick={handleRegistrarSubmit}
+                            disabled={!!existingResolution && existingResolution.is_reviewed}
+                        >
+                            Mark as Resolved
+                        </button>
+                    )}
                 </>
             )}
-
         </div>
     );
+
 };
 
 export default AdminResolutionForm;

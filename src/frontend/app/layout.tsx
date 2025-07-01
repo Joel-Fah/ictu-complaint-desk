@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import UserProvider from '../Usercomponents/userProvider';
+import UserProvider from '@/Usercomponents/userProvider';
 import React from "react";
 import { Toaster } from "@/components/ui/sonner";
-import LayoutWrapper from "../Usercomponents/LayoutWrapper";
+import LayoutWrapper from "@/Usercomponents/LayoutWrapper";
+import ReactQueryProvider from "@/providers/ReactQueryProvider";
 
 
 export const metadata: Metadata = {
@@ -59,7 +60,9 @@ export default function RootLayout({
       <body>
         <Toaster />
         <UserProvider>
-          <LayoutWrapper>{children}</LayoutWrapper>
+          <ReactQueryProvider>
+            <LayoutWrapper>{children}</LayoutWrapper>
+          </ReactQueryProvider>
         </UserProvider>
       </body>
     </html>
