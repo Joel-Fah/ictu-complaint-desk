@@ -4,7 +4,7 @@ import { getComplaintsAssigned } from "@/lib/api";
 
 export function useComplaintsAssigned(userId: number | undefined) {
     return useQuery({
-        queryKey: ["userComplaints", userId],
+        queryKey: ["complaintsAssigned", userId],
         queryFn: () => getComplaintsAssigned(userId),
         enabled: !!userId,
         staleTime: 60 * 1000,

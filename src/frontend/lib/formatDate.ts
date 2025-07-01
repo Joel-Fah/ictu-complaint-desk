@@ -1,6 +1,7 @@
 import { format, formatDistanceToNow, isThisWeek, isToday } from 'date-fns'
 
 export function formatComplaintDate(dateString: string): string {
+    if (!dateString) return '';
     const date = new Date(dateString)
 
     const diff = Date.now() - date.getTime()

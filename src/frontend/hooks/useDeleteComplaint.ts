@@ -10,6 +10,7 @@ export function useDeleteComplaint() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["complaints"] });
             queryClient.invalidateQueries({ queryKey: ["userComplaints"] });
+            queryClient.invalidateQueries({ queryKey: ["complaintsAssigned"] });
         },
     });
 }

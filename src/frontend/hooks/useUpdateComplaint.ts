@@ -26,6 +26,7 @@ export function useUpdateComp() {
         onSuccess: (_data, variables) => {
             queryClient.invalidateQueries({ queryKey: ["complaints"] });
             queryClient.invalidateQueries({ queryKey: ["userComplaints"] });
+            queryClient.invalidateQueries({ queryKey: ["complaintsAssigned"] });
             queryClient.invalidateQueries({ queryKey: ["complaint", variables.id] });
         },
     });

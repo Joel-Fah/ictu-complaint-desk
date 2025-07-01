@@ -92,7 +92,6 @@ const ComplaintsUI = ({ onSelectItem, statusFilter }: ComplaintsUIProps) => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [openMenuId]);
-
   const totalPages = Math.ceil(count / pageSize);
 
   const filteredComplaints = useMemo(() => {
@@ -100,6 +99,8 @@ const ComplaintsUI = ({ onSelectItem, statusFilter }: ComplaintsUIProps) => {
         ? complaints
         : complaints.filter(c => c.status === statusFilter);
   }, [complaints, statusFilter]);
+  console.log('Complaints', complaints);
+  console.log("Filtered Complaints:", filteredComplaints);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -117,9 +118,9 @@ const ComplaintsUI = ({ onSelectItem, statusFilter }: ComplaintsUIProps) => {
   };
 
   const getStatusColor = (status: string) => {
+    if (!status) return 'text-gray-600 bg-gray-50';
     switch (status.toLowerCase()) {
       case 'escalated': return 'text-red-600 bg-red-50';
-      case 'in-progress':
       case 'in progress': return 'text-orange-600 bg-orange-50';
       case 'resolved': return 'text-green-600 bg-green-50';
       case 'open': return 'text-blue-600 bg-blue-50';
@@ -214,65 +215,70 @@ const ComplaintsUI = ({ onSelectItem, statusFilter }: ComplaintsUIProps) => {
                                 : 'hover:bg-white hover:shadow-lg'
                         }`}
                     >
-                      <div className="flex items-center gap-2">
-                  <span className="text-[18px] leading-[20px] font-heading font-medium text-darkColor">
-                    {complaintCount}.
-                  </span>
-                        <h3 className="text-[18px] font-medium text-darkColor leading-[20px] flex-1 font-sans">
-                          {complaint.title}
-                        </h3>
-                      </div>
-                      <div className="relative">
-                        <button
-                            className="ml-2"
-                            onClick={e => {
-                              e.stopPropagation();
-                              setOpenMenuId(openMenuId === complaint.id ? null : complaint.id);
-                            }}
-                        >
-                          <Image
-                              src="/icons/more-horizontal.svg"
-                              alt="Options"
-                              width={30}
-                              height={30}
-                          />
-                        </button>
-                        {openMenuId === complaint.id && (
-                            <div className="absolute right-0 mt-2 w-28 bg-white rounded shadow-lg z-30 flex flex-col">
-                              {complaint.status !== 'Resolved' && (
-                                  <button
-                                      className="px-4 py-2 text-left hover:bg-gray-100"
-                                      onClick={e => {
-                                        e.stopPropagation();
-                                        setOpenMenuId(null);
-                                        handleEdit(complaint.id);
-                                      }}
-                                  >
-                                    Edit
-                                  </button>
-                              )}
-                              <button
-                                  className="px-4 py-2 text-left hover:bg-gray-100 text-red-600"
-                                  onClick={e => {
-                                    e.stopPropagation();
-                                    setOpenMenuId(null);
-                                    handleDelete(complaint.id);
-                                  }}
-                              >
-                                Delete
-                              </button>
-                            </div>
-                        )}
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <span className="text-[18px] leading-[20px] font-heading font-medium text-darkColor">
+            {complaintCount}.
+          </span>
+                          <h3 className="text-[18px] font-medium text-darkColor leading-[20px] font-sans truncate">
+                            {complaint.title}
+                          </h3>
+                        </div>
+                        <div className="relative flex-shrink-0">
+                          <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpenMenuId(openMenuId === complaint.id ? null : complaint.id);
+                              }}
+                          >
+                            <Image
+                                src="/icons/more-horizontal.svg"
+                                alt="Options"
+                                width={30}
+                                height={30}
+                            />
+                          </button>
+                          {openMenuId === complaint.id && (
+                              <div className="absolute right-0 mt-2 w-16 bg-whiteColor rounded shadow-lg z-30 flex flex-col">
+                                {complaint.status !== 'Resolved' && (
+                                    <button
+                                        className="px-2 py-1 text-left hover:bg-primary-100"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setOpenMenuId(null);
+                                          handleEdit(complaint.id);
+                                        }}
+                                    >
+                                      Edit
+                                    </button>
+                                )}
+                                <button
+                                    className="px-2 py-1 text-left hover:bg-primary-100 text-red-600"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setOpenMenuId(null);
+                                      handleDelete(complaint.id);
+                                    }}
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                          )}
+                        </div>
                       </div>
                       <p className="text-[14px] ml-6 text-greyColor font-sans mb-3 truncate whitespace-nowrap overflow-hidden text-ellipsis pr-8">
                         {new DOMParser().parseFromString(complaint.description, 'text/html').body.textContent || ''}
                       </p>
                       <div className="flex items-center justify-between ml-6">
                         <div className="flex items-center gap-2">
-                    <span className={`text-xs font-sans flex flex-row items-center justify-center px-[6px] py-[3px] gap-1 rounded-[8px] ${getStatusColor(complaint.status)}`}>
-                      <div>{getStatusIcon(complaint.status)}</div>
-                      {complaint.status}
-                    </span>
+          <span
+              className={`text-xs font-sans flex flex-row items-center justify-center px-[6px] py-[3px] gap-1 rounded-[8px] ${getStatusColor(
+                  complaint.status
+              )}`}
+          >
+            <div>{getStatusIcon(complaint.status)}</div>
+            {complaint.status}
+          </span>
                           <div className="flex items-center gap-1 text-xs text-[#050041] text-opacity-[50%] font-sans">
                             <Image src="/icons/clock-02.svg" alt="Clock" width={12} height={12} />
                             <span>{formatComplaintDate(complaint.created_at)}</span>
@@ -282,6 +288,7 @@ const ComplaintsUI = ({ onSelectItem, statusFilter }: ComplaintsUIProps) => {
                     </div>
                 );
               })}
+
             </div>
         )}
 
