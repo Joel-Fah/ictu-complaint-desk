@@ -8,13 +8,14 @@ import FileUploadPreview from "@/Usercomponents/FileUploadPreview";
 import { useUserStore } from '@/stores/userStore';
 import { useCategoryStore } from "@/stores/categoryStore";
 import { useCourseStore } from "@/stores/useCourseStore";
-import { getUserById, createComplaint } from "@/lib/api";
+import { getUserById} from "@/lib/api";
 import { toast } from "sonner";
 import ToastNotification from "@/Usercomponents/ToastNotifications";
 import { useRouter } from "next/navigation";
 import {withAuth} from "@/lib/withAuth";
-import { updateComplaint } from "@/lib/api";
 import { useEditComplaintStore } from '@/stores/editComplaintStore';
+import {useCreateComplaint} from "@/hooks/useCreateComplaint";
+import {useUpdateComplaint} from "@/hooks/useUpdateComplaint";
 
 interface FormData {
     category: string;
@@ -56,6 +57,10 @@ const [semester, setSemester] = useState(complaint?.semester || '');
     const studentNumber = studentProfile?.data?.student_number;
     const isFormValid = Boolean(selectedCategory && selectedCourseId && semester && formData.description.trim());
 
+    const createComplaintMutation = useCreateComplaint();
+    const updateComplaintMutation = useUpdateComplaint();
+
+
     useEffect(() => {
         setHasMounted(true);
         setIsMobile(window.innerWidth < 768);
@@ -85,9 +90,6 @@ const [semester, setSemester] = useState(complaint?.semester || '');
             });
     }, [lecturerUserId]);
 
-
-
-
     const goBack = () => router.back();
 
     const handleInputChange = <K extends keyof FormData>(
@@ -103,10 +105,8 @@ const [semester, setSemester] = useState(complaint?.semester || '');
         setIsSubmitting(true);
 
         try {
-
-            // ✅ Step 2: Proceed with update or creation
             if (complaint?.id) {
-                await updateComplaint({
+                await updateComplaintMutation.mutateAsync({
                     id: complaint.id,
                     category: selectedCategory,
                     semester,
@@ -114,11 +114,9 @@ const [semester, setSemester] = useState(complaint?.semester || '');
                     description: formData.description,
                     attachments,
                 });
-
-                setComplaint(null); // Clear the store after editing
-
+                setComplaint(null); // Clear after update if needed
             } else {
-                await createComplaint({
+                await createComplaintMutation.mutateAsync({
                     description: formData.description,
                     category: selectedCategory,
                     semester,
@@ -128,32 +126,33 @@ const [semester, setSemester] = useState(complaint?.semester || '');
                 });
             }
 
-            toast.custom(t =>
+            toast.custom(t => (
                 <ToastNotification
                     type="success"
                     title="Complaint filed!"
                     subtitle="Here begins peace of mind."
                     onClose={() => toast.dismiss(t)}
                     showClose
-                />, { duration: 4000 });
+                />
+            ), { duration: 4000 });
 
             goBack();
         } catch (error) {
             console.error(error);
-            toast.custom(t =>
+            toast.custom(t => (
                 <ToastNotification
                     type="error"
                     title="Something went wrong!"
                     subtitle="Please try again."
                     onClose={() => toast.dismiss(t)}
                     showClose
-                />, { duration: 4000 });
-
-            goBack();
+                />
+            ), { duration: 4000 });
         } finally {
             setIsSubmitting(false);
         }
     };
+
 
     if (!hasMounted) {
         return(<p>Loading Form...</p>);

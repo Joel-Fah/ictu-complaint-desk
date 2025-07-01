@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {getCategory, updateComp, updateComplaint} from "@/lib/api";
+import {getCategory } from "@/lib/api";
 import { toast } from "sonner";
 import ToastNotification from "@/Usercomponents/ToastNotifications";
 import { User } from "@/types/user";
@@ -10,6 +10,7 @@ import {
     Assignment,
     Notification
 } from "@/lib/api";
+import {useUpdateComplaint, useUpdateComp} from "@/hooks/useUpdateComplaint";
 
 type AllowedField =
     | "attendance_mark"
@@ -70,7 +71,8 @@ const LecturerResolutionForm: React.FC<LecturerResolutionFormProps> = ({
     const [allowedFields, setAllowedFields] = useState<AllowedField[]>([]);
     const formFilled = allowedFields.every((field) => !!formData[field]);
     const isResolved = selectedItem?.status === "Resolved";
-
+    const updateComplaintMutation = useUpdateComplaint();
+    const updateCompMutation = useUpdateComp();
 
     useEffect(() => {
         const fetchCategory = async () => {
@@ -147,7 +149,7 @@ const LecturerResolutionForm: React.FC<LecturerResolutionFormProps> = ({
                 selectedStaffIds.map(async (id) => {
                     try {
                         await createAssignment({ complaint: selectedItem.id, staff: id });
-                        await updateComplaint({ id: selectedItem.id, status: "In Progress" });
+                        await updateComplaintMutation.mutateAsync({ id: selectedItem.id, status: "In Progress" });
                         await createNotification({ recipient_id: id, message });
                         setFormData({});
                     } catch (err) {
@@ -207,7 +209,7 @@ const LecturerResolutionForm: React.FC<LecturerResolutionFormProps> = ({
     const handleRegistrarSubmit = async () => {
         if (!selectedItem || !user || !existingResolution) return;
         try {
-            await updateComp(selectedItem.id, { status: "Resolved" });
+            updateCompMutation.mutate({id: selectedItem.id, data: {status: "Resolved"}});
             await updateResolution(existingResolution.id, { is_reviewed: true });
 
             if (allStaff) {

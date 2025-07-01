@@ -433,7 +433,7 @@ class NotificationViewSet(viewsets.ModelViewSet):
         return Notification.objects.filter(recipient=self.request.user)
 
     def perform_create(self, serializer):
-        serializer.save(recipient=self.request.user)
+        serializer.save()
 
     @action(detail=True, methods=['post'])
     def mark_as_read(self, request, pk=None):

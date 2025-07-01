@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { getUser } from '../lib/api';
-import { getAccessToken } from '../lib/token';
-import { useUserStore } from '../stores/userStore';
-import FaviconSwitcher from "../Usercomponents/faviconSwitcher";
+import { getUser } from '@/lib/api';
+import { getAccessToken } from '@/lib/token';
+import { useUserStore } from '@/stores/userStore';
+import FaviconSwitcher from "@/Usercomponents/faviconSwitcher";
 
 export default function UserProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {

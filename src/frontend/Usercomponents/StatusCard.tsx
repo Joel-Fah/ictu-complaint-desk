@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import Image from "next/image";
-import {createAssignment, createNotification, createResolution, updateComplaint, updateResolution, allResolutions} from "@/lib/api";
+import {createAssignment, createNotification, createResolution, updateResolution, allResolutions} from "@/lib/api";
 import {toast} from "sonner";
 import ToastNotification from "@/Usercomponents/ToastNotifications";
 import {Complaint} from "@/types/complaint";
@@ -11,6 +11,7 @@ import { useCategoryStore } from "@/stores/categoryStore";
 import type { Resolution } from "@/types/resolution";
 import AdminResolutionForm from "@/Usercomponents/AdminResolutionForm";
 import LecturerResolutionForm from "@/Usercomponents/LecturerResolutionForm";
+import {useUpdateComplaint} from "@/hooks/useUpdateComplaint";
 
 export interface AssignedPerson {
     user: User;
@@ -40,6 +41,7 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
     const [message, setMessage] = useState("");
     const [resolutions, setResolutions] = useState<Resolution[]>([]);
     const rawExistingResolution = resolutions.find(res => res.complaint === selectedItem?.id);
+    const updateComplaintMutation = useUpdateComplaint();
 
 // Ensure is_reviewed is always boolean (default to false if undefined)
     const existingResolution = rawExistingResolution
@@ -72,7 +74,7 @@ const StatusCard: React.FC<StatusCardProps> = ({ status, assignedTo, role, selec
         if (!selectedItem || !selectedCategory || !selectedDeadline || !message.trim()) return;
 
         try {
-            await updateComplaint({
+            await updateComplaintMutation.mutateAsync({
                 id: selectedItem.id,
                 category: selectedCategory,
                 deadline: selectedDeadline,
